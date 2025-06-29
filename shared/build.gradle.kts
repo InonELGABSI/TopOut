@@ -4,11 +4,20 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
-    kotlin("plugin.serialization") version "2.1.0"
     id("co.touchlab.skie") version "0.10.1"
+    alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
+    sqldelight {
+        databases {
+            create("AppDatabase") {
+                packageName.set("com.topout.kmp")
+            }
+        }
+    }
+
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
@@ -19,7 +28,6 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_17)
         }
     }
-    
     listOf(
         iosX64(),
         iosArm64(),
@@ -28,9 +36,11 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "Shared"
             isStatic = true
+            linkerOpts.addAll(listOf("-framework", "CoreMotion"))
         }
     }
-    
+
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.androidx.lifecycle.viewmodel.ktx)
@@ -38,27 +48,37 @@ kotlin {
 
             implementation(libs.koin.android)
             implementation(libs.koin.androidx.compose)
+
+            implementation(libs.android.driver)
         }
         commonMain.dependencies {
-            implementation(project.dependencies.platform(libs.firebase.bom))
-
-            implementation(libs.kotlinx.coroutines.core)
-
-            implementation(libs.firebase.firestore)
-            implementation(libs.firebase.common)
-            implementation(libs.firebase.auth)
-
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.serialization.kotlinx.json)
 
             api(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.test)
+
+            implementation(project.dependencies.platform(libs.firebase.bom))
+            implementation(libs.firebase.firestore)
+            implementation(libs.firebase.common)
+            implementation(libs.firebase.auth)
+
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kermit)
+
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.client.logging)
+
+            implementation(libs.runtime)
+            implementation(libs.coroutines.extensions)
+
+
         }
 
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.native.driver)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

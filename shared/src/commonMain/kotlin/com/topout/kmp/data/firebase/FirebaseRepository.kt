@@ -13,5 +13,6 @@ interface FirebaseRepository {
 
     suspend fun deleteSession(sessionId: String)
 
+    suspend fun signInAnonymously()
 
 }

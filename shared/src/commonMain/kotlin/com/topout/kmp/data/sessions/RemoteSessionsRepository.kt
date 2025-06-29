@@ -17,7 +17,7 @@ class RemoteSessionsRepository (
     override suspend fun getSessions(): Result<Sessions, SessionsError> {
         // Simulate a network call to fetch sessions
         return try {
-            val sessions = sessionDao.getSessions()
+            val sessions = sessionDao.getAllSessions()
             Result.Success(Sessions(sessions))
 
         } catch (e: Exception) {

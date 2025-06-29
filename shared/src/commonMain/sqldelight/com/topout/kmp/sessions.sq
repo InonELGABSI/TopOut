@@ -1,0 +1,45 @@
+CREATE TABLE SessionEntity  (
+id INTEGER PRIMARY KEY,
+userId INTEGER ,
+title TEXT ,
+startTime Integer ,
+endTime Integer ,
+totalAscent REAL ,
+totalDescent REAL ,
+maxAltitude REAL ,
+minAltitude REAL ,
+avgRate REAL ,
+alertTriggered INTEGER DEFAULT 0,
+createdAt INTEGER DEFAULT (strftime('%s', 'now')),
+graphImageUrl TEXT
+);
+
+insertSession:
+INSERT OR REPLACE INTO SessionEntity(
+  id, userId, title, startTime, endTime,
+  totalAscent, totalDescent, maxAltitude,
+  minAltitude, avgRate, alertTriggered,
+  createdAt, graphImageUrl
+) VALUES (?, ?, ?,?,?,?,?,?,?,?,?,?,?);
+
+getSessionById:
+SELECT * FROM SessionEntity WHERE id = ?;
+
+getAllSessions:
+SELECT * FROM SessionEntity;
+
+deleteSession:
+DELETE FROM SessionEntity WHERE id = ?;
+
+getSessionsByUserId:
+SELECT * FROM SessionEntity WHERE userId = ?;
+
+selectSessionById:
+SELECT * FROM SessionEntity WHERE id = ?;
+
+selectAllSessions:
+SELECT * FROM SessionEntity;
+
+selectSessionsByUserId:
+SELECT * FROM SessionEntity WHERE userId = ?;
+

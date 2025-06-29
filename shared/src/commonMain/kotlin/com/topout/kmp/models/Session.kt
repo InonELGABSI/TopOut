@@ -9,7 +9,7 @@ data class Session(
     val id: Int?,
 
     @SerialName("user_id")
-    val userId: String?,
+    val userId: Int?,
 
     val title: String? = "",
 
@@ -31,7 +31,7 @@ data class Session(
     val avgRate: Double? = 0.0,         // avgV
 
     @SerialName("alert_triggered")
-    val alertTriggered: Boolean? = false,
+    val alertTriggered: Long? = 0,
     @SerialName("created_at")
     val createdAt: Long? = 0L,
     @SerialName("graph_image_url")

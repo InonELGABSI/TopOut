@@ -1,4 +1,7 @@
 package com.topout.kmp.data.dao
 
-class DatabaseDriverFactory {
+import app.cash.sqldelight.db.SqlDriver
+
+expect class DatabaseDriverFactory {
+    fun createDriver(): SqlDriver
 }

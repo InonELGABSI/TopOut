@@ -45,5 +45,9 @@ class RemoteFirebaseRepository : FirebaseRepository {
             .document(sessionId)
             .delete()
     }
-
+    override suspend fun signInAnonymously() {
+        if (auth.currentUser == null) {
+            auth.signInAnonymously()
+        }
+    }
 }
