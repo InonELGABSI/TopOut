@@ -16,8 +16,8 @@ class SessionDao(
         return queries.getAllSessions().executeAsList().map { it.toSession() }
     }
 
-     fun insertSession(session: Session) {
-        queries.insertSession(
+     fun saveSession(session: Session) {
+        queries.saveSession(
             id = session.id?.toLong(),
             userId = session.userId?.toLong(),
             title = session.title,
@@ -35,8 +35,9 @@ class SessionDao(
 
     }
 
-     fun deleteSession(sessionId: Int) {
-        queries.deleteSession(sessionId.toLong())
+     fun deleteSession(session: Session) {
+         session.id?.toLong()?.let { queries.deleteSession(id= it) }
+
     }
 
 }

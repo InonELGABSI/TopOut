@@ -1,10 +1,8 @@
 package com.topout.kmp.domain
-
 import com.topout.kmp.data.sessions.SessionsRepository
 
-class GetSessions (
+class GetSessionById (
     private val sessionsRepository: SessionsRepository
 ) {
-    suspend operator fun invoke() = sessionsRepository.getSessions()
+    suspend operator fun invoke(id: Int)  = sessionsRepository.getSessionById(id)
 }
-

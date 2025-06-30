@@ -1,5 +1,7 @@
 package com.topout.kmp.di
 
+import app.cash.sqldelight.db.SqlDriver
+import com.topout.kmp.data.dao.DatabaseDriverFactory
 import com.topout.kmp.utils.providers.AccelerometerProvider
 import com.topout.kmp.utils.providers.BarometerProvider
 import com.topout.kmp.utils.providers.GPSProvider
@@ -18,4 +20,6 @@ actual val platformModule = module {
 
     factoryOf(::SessionsViewModel)
     factoryOf(::SessionViewModel)
+
+    single<SqlDriver> { DatabaseDriverFactory().createDriver() }
 }

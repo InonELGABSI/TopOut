@@ -5,7 +5,7 @@ import com.topout.kmp.models.Sessions
 public sealed class SessionsState {
     data object Loading : SessionsState()
     data class Loaded(
-        val session: Sessions
+        val sessions: Sessions
     ) : SessionsState()
     data class Error(
         var errorMessage: String

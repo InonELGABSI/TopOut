@@ -1,5 +1,7 @@
 package com.topout.kmp.di
 
+import app.cash.sqldelight.db.SqlDriver
+import com.topout.kmp.data.dao.DatabaseDriverFactory
 import com.topout.kmp.features.session_details.SessionViewModel
 import com.topout.kmp.features.sessions.SessionsViewModel
 import com.topout.kmp.utils.providers.AccelerometerProvider
@@ -20,5 +22,5 @@ actual val platformModule = module {
     viewModelOf(::SessionsViewModel)
     viewModelOf(::SessionViewModel)
 
-
+    single<SqlDriver> { DatabaseDriverFactory(get()).createDriver() }
 }

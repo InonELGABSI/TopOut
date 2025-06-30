@@ -14,7 +14,7 @@ createdAt INTEGER DEFAULT (strftime('%s', 'now')),
 graphImageUrl TEXT
 );
 
-insertSession:
+saveSession:
 INSERT OR REPLACE INTO SessionEntity(
   id, userId, title, startTime, endTime,
   totalAscent, totalDescent, maxAltitude,
