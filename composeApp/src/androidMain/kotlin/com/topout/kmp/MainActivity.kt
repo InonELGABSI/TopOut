@@ -28,6 +28,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.FirebaseApp
+import com.topout.kmp.features.HistoryScreen
 import com.topout.kmp.models.Session
 import com.topout.kmp.shared_components.BottomNavigationBar
 
@@ -52,7 +53,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 val navController = rememberNavController()
-                var selectedTab by remember { mutableStateOf<NavTab>(NavTab.Home) }
+                var selectedTab by remember { mutableStateOf<NavTab>(NavTab.History) }
 
                 Scaffold (
                     topBar = {
@@ -90,7 +91,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = NavTab.Home.route,
+                        startDestination = NavTab.History.route,
                         modifier = Modifier.padding(innerPadding)
                     ){
 //                        composable(NavTab.Home.route) {

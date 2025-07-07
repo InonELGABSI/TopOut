@@ -20,8 +20,7 @@ class SessionsViewModel (
 
     private fun fetchSessions() {
         scope.launch {
-            val result = useCases.getSessions()
-            when (result) {
+            when (val result = useCases.getSessions()) {
                 is Result.Success<*> -> {
                     _uiState.emit(SessionsState.Loaded(result.data as? Sessions ?: Sessions(emptyList())))
                 }
