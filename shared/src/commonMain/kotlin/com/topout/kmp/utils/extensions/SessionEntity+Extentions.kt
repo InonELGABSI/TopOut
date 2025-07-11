@@ -6,7 +6,7 @@ import com.topout.kmp.models.Session
 fun SessionEntity.toSession(): Session {
     return Session(
         id = id.toInt(),
-        userId = userId?.toInt(),
+        userId = userId,
         title = title,
         startTime = startTime,
         endTime = endTime,

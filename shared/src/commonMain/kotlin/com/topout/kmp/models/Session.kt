@@ -9,7 +9,7 @@ data class Session(
     val id: Int?,
 
     @SerialName("user_id")
-    val userId: Int?,
+    val userId: String?,
 
     val title: String? = "",
 

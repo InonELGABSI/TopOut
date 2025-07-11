@@ -19,6 +19,8 @@ struct iOSApp: App {
 
     init() {
         KoinKt.doInitKoin()
+        Task { try? await (KoinKt.getKoin().get(objCClass: EnsureAnonymousUser.self) as! EnsureAnonymousUser).invoke() }
+
     }
     
     var body: some Scene {

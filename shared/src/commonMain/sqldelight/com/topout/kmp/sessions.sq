@@ -1,6 +1,6 @@
 CREATE TABLE SessionEntity  (
 id INTEGER PRIMARY KEY,
-userId INTEGER ,
+userId TEXT ,
 title TEXT ,
 startTime Integer ,
 endTime Integer ,

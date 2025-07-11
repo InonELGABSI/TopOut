@@ -25,8 +25,8 @@ fun HistoryScreen(
     viewModel: SessionsViewModel = koinViewModel(),
     onSessionClick: (Session) -> Unit
 ) {
-//    val uiState = viewModel.uiState.collectAsState().value
-    val uiState = createDummyUiState("loaded") // Change to "loading", "error", "empty", or "loaded"
+    val uiState = viewModel.uiState.collectAsState().value
+//    val uiState = createDummyUiState("loaded") // Change to "loading", "error", "empty", or "loaded"
 
     Scaffold(
         topBar = {
@@ -50,13 +50,15 @@ fun HistoryScreen(
             when (uiState) {
                 is SessionsState.Error -> ErrorContent(message = uiState.errorMessage)
                 is SessionsState.Loaded -> {
-                    if (uiState.sessions.items.isEmpty()) {
+                    if (uiState.sessions?.isEmpty() == true) {
                         EmptyStateContent()
                     } else {
-                        SessionsListContent(
-                            sessions = uiState.sessions,
-                            onSessionClicked = onSessionClick
-                        )
+                        uiState.sessions?.let {
+                            SessionsListContent(
+                                sessions = it,
+                                onSessionClicked = onSessionClick
+                            )
+                        }
                     }
                 }
                 SessionsState.Loading -> LoadingContent()
@@ -67,14 +69,14 @@ fun HistoryScreen(
 
 @Composable
 fun SessionsListContent(
-    sessions: Sessions,
+    sessions: List<Session>,  // Remove the ?
     onSessionClicked: (Session) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
-        items(sessions.items) { session ->
+        items(sessions) { session ->
             SessionItem(
                 session = session,
                 onSessionClick = onSessionClicked
@@ -154,14 +156,14 @@ private fun createDummyUiState(type: String = "loaded"): SessionsState {
 
         "error" -> SessionsState.Error("Failed to load sessions. Please check your connection.")
 
-        "empty" -> SessionsState.Loaded(Sessions(emptyList()))
+        "empty" -> SessionsState.Loaded(emptyList())
 
         "loaded" -> SessionsState.Loaded(
-            Sessions(
+
                 listOf(
                     Session(
                         id = 1,
-                        userId = 1,
+                        userId = "1",
                         title = "Morning Climb",
                         startTime = System.currentTimeMillis() - 3600000,
                         endTime = System.currentTimeMillis(),
@@ -176,7 +178,7 @@ private fun createDummyUiState(type: String = "loaded"): SessionsState {
                     ),
                     Session(
                         id = 2,
-                        userId = 1,
+                        userId = "2",
                         title = "Evening Session",
                         startTime = System.currentTimeMillis() - 7200000,
                         endTime = System.currentTimeMillis() - 3600000,
@@ -191,7 +193,7 @@ private fun createDummyUiState(type: String = "loaded"): SessionsState {
                     ),
                     Session(
                         id = 3,
-                        userId = 1,
+                        userId = "3",
                         title = "Weekend Adventure",
                         startTime = System.currentTimeMillis() - 14400000,
                         endTime = System.currentTimeMillis() - 10800000,
@@ -206,7 +208,7 @@ private fun createDummyUiState(type: String = "loaded"): SessionsState {
                     )
                 )
             )
-        )
+
 
         else -> SessionsState.Loading
     }

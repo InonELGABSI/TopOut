@@ -29,6 +29,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.FirebaseApp
 import com.topout.kmp.features.HistoryScreen
+import com.topout.kmp.features.HomeScreen
+import com.topout.kmp.features.SettingsScreen
 import com.topout.kmp.models.Session
 import com.topout.kmp.shared_components.BottomNavigationBar
 
@@ -37,10 +39,10 @@ sealed class NavTab(val route: String, val title: String) {
     data object Home : NavTab("home", "Home")
     data object History : NavTab("history", "History")
     data object Settings : NavTab("settings", "Settings")
-    data object Livesession : NavTab("live_session", "Live Session")
-    data object SessionDetail : NavTab("session/{sessionId}", "Session") {
-        fun createRoute(sessionId: String) = "session/$sessionId"
-    }
+//    data object Livesession : NavTab("live_session", "Live Session")
+//    data object SessionDetail : NavTab("session/{sessionId}", "Session") {
+//        fun createRoute(sessionId: String) = "session/$sessionId"
+//    }
 }
 
 class MainActivity : ComponentActivity() {
@@ -94,15 +96,13 @@ class MainActivity : ComponentActivity() {
                         startDestination = NavTab.History.route,
                         modifier = Modifier.padding(innerPadding)
                     ){
-//                        composable(NavTab.Home.route) {
-//                            HomeScreen(
-//                            )
-//                        }
+                        composable(NavTab.Home.route) {
+                            HomeScreen()
+                        }
 
-//                        composable(NavTab.Settings.route) {
-//                            SettingsScreen(
-//                            )
-//                        }
+                        composable(NavTab.Settings.route) {
+                            SettingsScreen()
+                        }
 
                         composable(NavTab.History.route) {
                             HistoryScreen(

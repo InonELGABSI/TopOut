@@ -19,7 +19,7 @@ class SessionDao(
      fun saveSession(session: Session) {
         queries.saveSession(
             id = session.id?.toLong(),
-            userId = session.userId?.toLong(),
+            userId = session.userId,
             title = session.title,
             startTime = session.startTime,
             endTime = session.endTime,
@@ -32,7 +32,6 @@ class SessionDao(
             createdAt = session.createdAt,
             graphImageUrl = session.graphImageUrl
         )
-
     }
 
      fun deleteSession(session: Session) {

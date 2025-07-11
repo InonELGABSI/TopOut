@@ -1,0 +1,17 @@
+CREATE TABLE UserEntity (
+id TEXT PRIMARY KEY,
+name TEXT,
+email TEXT,
+imgUrl TEXT,
+
+unitPreference TEXT DEFAULT 'meters',
+enabledNotifications INTEGER DEFAULT 1,
+relativeHeightFromStartThr REAL DEFAULT 0.0,
+totalHeightFromStartThr REAL DEFAULT 0.0,
+currentAvgHeightSpeedThr REAL DEFAULT 0.0,
+
+createdAt INTEGER DEFAULT (strftime('%s', 'now'))
+);
+
+getUser:
+SELECT * FROM UserEntity;

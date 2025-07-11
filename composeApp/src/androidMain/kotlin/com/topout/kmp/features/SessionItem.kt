@@ -106,50 +106,42 @@ private fun SessionStats(session: Session) {
     ) {
         // Total Ascent
         session.totalAscent?.let { ascent ->
-            if (ascent > 0) {
-                StatItem(
-                    icon = Icons.Default.KeyboardArrowUp,
-                    value = "${ascent.toInt()}m",
-                    label = "Ascent",
-                    iconTint = Color(0xFF4CAF50)
-                )
-            }
+            StatItem(
+                icon = Icons.Default.KeyboardArrowUp,
+                value = "${ascent.toInt()}m",
+                label = "Ascent",
+                iconTint = Color(0xFF4CAF50)
+            )
         }
 
         // Total Descent
         session.totalDescent?.let { descent ->
-            if (descent > 0) {
-                StatItem(
-                    icon = Icons.Default.KeyboardArrowDown,
-                    value = "${descent.toInt()}m",
-                    label = "Descent",
-                    iconTint = Color(0xFFFF5722)
-                )
-            }
+            StatItem(
+                icon = Icons.Default.KeyboardArrowDown,
+                value = "${descent.toInt()}m",
+                label = "Descent",
+                iconTint = Color(0xFFFF5722)
+            )
         }
 
         // Max Altitude
         session.maxAltitude?.let { altitude ->
-            if (altitude > 0) {
-                StatItem(
-                    icon = Icons.AutoMirrored.Filled.TrendingUp,
-                    value = "${altitude.toInt()}m",
-                    label = "Max Alt",
-                    iconTint = Color(0xFF2196F3)
-                )
-            }
+            StatItem(
+                icon = Icons.AutoMirrored.Filled.TrendingUp,
+                value = "${altitude.toInt()}m",
+                label = "Max Alt",
+                iconTint = Color(0xFF2196F3)
+            )
         }
 
         // Average Rate
         session.avgRate?.let { rate ->
-            if (rate > 0) {
-                StatItem(
-                    icon = Icons.Default.Schedule,
-                    value = String.format("%.1f", rate),
-                    label = "Avg Rate",
-                    iconTint = Color(0xFF9C27B0)
-                )
-            }
+            StatItem(
+                icon = Icons.Default.Schedule,
+                value = String.format("%.1f", rate),
+                label = "Avg Rate",
+                iconTint = Color(0xFF9C27B0)
+            )
         }
     }
 }
