@@ -1,24 +1,31 @@
 package com.topout.kmp.features.live_session
 
+import com.topout.kmp.domain.StartSession
+import com.topout.kmp.domain.StopSession
 import com.topout.kmp.features.BaseViewModel
+import com.topout.kmp.features.settings.SettingsState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 
-class LiveSessionViewModel (
-    private val useCases: LiveSessionUseCases,
+class LiveSessionViewModel(
+    private val startSession: StartSession,
+    private val stopSessionUC: StopSession, // existing
 ) : BaseViewModel() {
 
-    private val _uiState: MutableStateFlow<LiveSessionState> = MutableStateFlow<LiveSessionState>(LiveSessionState.Loading)
-    val uiState: StateFlow<LiveSessionState> get()= _uiState
+    private var _uiState: MutableStateFlow<LiveSessionState> = MutableStateFlow<LiveSessionState>(LiveSessionState.Loading)
+    val uiState: StateFlow<LiveSessionState> get() = _uiState
 
-    init {
+    fun onStartClicked() = launch {
+        startSession().collect { m ->
+            setState { copy(metrics = m) }
+        }
     }
 
-    private fun startLiveSession() {
-    }
-
-    private fun stopLiveSession() {
+    fun onStopClicked() {
+        startSession.stop()   // stop tracker
+        stopSessionUC()       // finalize session
     }
 }
+
 

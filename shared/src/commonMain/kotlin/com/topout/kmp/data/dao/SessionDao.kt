@@ -9,7 +9,7 @@ class SessionDao(
     private val queries: SessionsQueries
 ) {
 
-    fun getSessionById(id: Long) : Session {
+    fun getSessionById(id: String) : Session {
         return queries.getSessionById(id).executeAsOne().toSession()
     }
     fun getAllSessions():List<Session> {
@@ -18,7 +18,7 @@ class SessionDao(
 
      fun saveSession(session: Session) {
         queries.saveSession(
-            id = session.id?.toLong(),
+            id = session.id,
             userId = session.userId,
             title = session.title,
             startTime = session.startTime,
@@ -35,7 +35,7 @@ class SessionDao(
     }
 
      fun deleteSession(session: Session) {
-         session.id?.toLong()?.let { queries.deleteSession(id= it) }
+         session.id.let { queries.deleteSession(id= it) }
 
     }
 

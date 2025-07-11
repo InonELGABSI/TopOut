@@ -1,15 +1,16 @@
 package com.topout.kmp.models
 
+import com.topout.kmp.utils.generateId
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Session(
 
-    val id: Int?,
+    val id: String = generateId(),
 
     @SerialName("user_id")
-    val userId: String?,
+    val userId: String? = "",
 
     val title: String? = "",
 

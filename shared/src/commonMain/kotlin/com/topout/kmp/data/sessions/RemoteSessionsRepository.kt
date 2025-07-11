@@ -28,9 +28,9 @@ class RemoteSessionsRepository (
     }
 
 
-    override suspend fun getSessionById(id: Int): Result<Session, SessionsError> {
+    override suspend fun getSessionById(id: String): Result<Session, SessionsError> {
         return try {
-            val session = sessionDao.getSessionById(id.toLong())
+            val session = sessionDao.getSessionById(id)
             Result.Success(session)
         } catch (e: Exception) {
             Result.Failure(SessionsError(e.message ?: "Unknown error"))
@@ -45,6 +45,16 @@ class RemoteSessionsRepository (
 
     override suspend fun deleteSession(session: Session) {
         sessionDao.deleteSession(session)
+    }
+
+    override suspend fun createSession(): Result<Session, SessionsError> {
+        return try {
+            val newSession = Session() // Assuming Session has a default constructor
+            sessionDao.saveSession(newSession)
+            Result.Success(newSession)
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to create session"))
+        }
     }
 }
 

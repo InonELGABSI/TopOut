@@ -1,5 +1,5 @@
 CREATE TABLE SessionEntity  (
-id INTEGER PRIMARY KEY,
+id TEXT PRIMARY KEY,
 userId TEXT ,
 title TEXT ,
 startTime Integer ,

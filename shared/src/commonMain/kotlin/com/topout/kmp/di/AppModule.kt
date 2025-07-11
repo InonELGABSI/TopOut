@@ -5,6 +5,7 @@ import com.topout.kmp.data.dao.SessionDao
 import com.topout.kmp.data.dao.UserDao
 import com.topout.kmp.data.firebase.FirebaseRepository
 import com.topout.kmp.data.firebase.RemoteFirebaseRepository
+import com.topout.kmp.data.sensors.SensorAggregator
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -20,6 +21,7 @@ import com.topout.kmp.domain.GetSessionDetails
 import com.topout.kmp.domain.GetSettings
 import com.topout.kmp.domain.SaveSession
 import com.topout.kmp.domain.SignInAnonymously
+import com.topout.kmp.domain.StartSession
 import com.topout.kmp.features.session_details.SessionUseCases
 import com.topout.kmp.features.sessions.SessionsUseCases
 import com.topout.kmp.features.sessions.SessionsViewModel
@@ -62,6 +64,8 @@ val domainModule = module {
     factoryOf(::SaveSession)
     factoryOf(::DeleteSession)
 
+    single { StartSession(get(), get(), get(), get()) }
+
     factoryOf(::SessionsUseCases)
     factoryOf(::SessionUseCases)
     factoryOf(::SessionsViewModel)
@@ -71,6 +75,9 @@ val domainModule = module {
     factoryOf(::GetSettings)
     factoryOf(::SettingsUseCases)
     factoryOf(::SettingsViewModel)
+
+
+
 }
 
 val commonModule = module {
@@ -88,6 +95,9 @@ val commonModule = module {
 
     single { get<AppDatabase>().userQueries}
     single { UserDao(get()) }
+
+    single { SensorAggregator(get(),get(),get())}
+
 
 }
 

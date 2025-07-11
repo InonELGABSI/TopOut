@@ -1,0 +1,25 @@
+CREATE TABLE track_points (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sessionId INTEGER NOT NULL,
+    ts INTEGER NOT NULL,
+    lat REAL,
+    lon REAL,
+    altitude REAL,
+    vVertical REAL,
+    vHorizontal REAL,
+    vTotal REAL,
+    gain REAL,
+    loss REAL,
+    relAltitude REAL,
+    avgVertical REAL,
+    danger INTEGER,
+    alertType TEXT
+);
+
+insertTrackPoint:
+INSERT INTO track_points(sessionId, ts, lat, lon, altitude,
+                         vVertical, vHorizontal, vTotal,
+                         gain, loss, relAltitude, avgVertical,
+                         danger, alertType)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
