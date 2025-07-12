@@ -5,6 +5,7 @@ import com.topout.kmp.models.Session
 import com.topout.kmp.models.Sessions
 import com.topout.kmp.data.Result
 import com.topout.kmp.data.user.UserError
+import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.models.User
 
 interface FirebaseRepository {
@@ -24,5 +25,6 @@ interface FirebaseRepository {
 
     suspend fun ensureUserDocument(): Result<Unit, UserError>
 
+    suspend fun pushTrackPoints(sessionId: String, points: List<TrackPoint>)
 
 }

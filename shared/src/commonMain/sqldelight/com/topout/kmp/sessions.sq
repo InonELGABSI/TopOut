@@ -31,6 +31,17 @@ SELECT * FROM SessionEntity;
 deleteSession:
 DELETE FROM SessionEntity WHERE id = ?;
 
+updateSessionSummary:
+UPDATE SessionEntity
+SET
+  endTime      = ?,
+  totalAscent  = ?,
+  totalDescent = ?,
+  maxAltitude  = ?,
+  minAltitude  = ?,
+  avgRate      = ?
+WHERE id = ?;
+
 getSessionsByUserId:
 SELECT * FROM SessionEntity WHERE userId = ?;
 

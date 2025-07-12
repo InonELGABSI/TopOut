@@ -39,4 +39,24 @@ class SessionDao(
         session.id.let { queries.deleteSession(id= it) }
     }
 
+    fun updateSessionSummary(
+        id: String,
+        endTime: Long,
+        totalAscent: Double?,
+        totalDescent: Double?,
+        maxAltitude: Double?,
+        minAltitude: Double?,
+        avgRate: Double?
+    ) {
+        queries.updateSessionSummary(
+            endTime,
+            totalAscent,
+            totalDescent,
+            maxAltitude,
+            minAltitude,
+            avgRate,
+            id
+        )
+    }
+
 }

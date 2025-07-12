@@ -9,6 +9,7 @@ import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.firestore.firestore
 import com.topout.kmp.data.Result
 import com.topout.kmp.data.sessions.SessionsError
+import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.utils.extensions.asSessionTitle
 import com.topout.kmp.utils.extensions.toFirestoreMap
 import com.topout.kmp.utils.extensions.toSession
@@ -126,4 +127,19 @@ class RemoteFirebaseRepository : FirebaseRepository {
             Result.Failure(SessionsError(e.message ?: "Failed to create session"))
         }
     }
+
+    override suspend fun pushTrackPoints(sessionId: String, points: List<TrackPoint>) {
+        if (points.isEmpty()) return
+
+        val batch = firestore.batch()                                   // ✔ create batch
+        val sub   = sessionsCollection
+            .document(sessionId)
+            .collection("trackPoints")
+
+        points.forEach { p ->
+            batch.set(sub.document(p.id.toString()), p.toFirestoreMap()) // ✔ enqueue
+        }
+        batch.commit()                                                   // ✔ commit
+    }
+
 }

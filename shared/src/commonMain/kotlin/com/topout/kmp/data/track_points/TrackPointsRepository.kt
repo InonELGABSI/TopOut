@@ -1,12 +1,21 @@
+// TrackPointsRepository.kt
 package com.topout.kmp.data.track_points
 
+import com.topout.kmp.data.Result
 import com.topout.kmp.models.TrackPoint
 import kotlinx.coroutines.flow.Flow
 
 interface TrackPointsRepository {
-    suspend fun insertTrackPoint (trackPoint: TrackPoint)
-    suspend fun getTrackPointsBySessionId(sessionId: String): List<TrackPoint>
-    suspend fun getTrackPointsFlowBySessionId (sessionId: String): Flow<List<TrackPoint>>
-    suspend fun deleteTrackPointsBySessionId(sessionId: String)
-    suspend fun endCurrentSession()
+
+    /** Insert one point — returns row-id or Failure */
+    suspend fun insert(trackPoint: TrackPoint): Result<String, TrackPointsError>
+
+    /** List points for a session */
+    suspend fun getBySession(sessionId: String): Result<List<TrackPoint>, TrackPointsError>
+
+    /** Same list as a flow */
+    fun flowBySession(sessionId: String): Flow<Result<List<TrackPoint>, TrackPointsError>>
+
+    /** Delete all points of a session */
+    suspend fun deleteBySession(sessionId: String): Result<Unit, TrackPointsError>
 }

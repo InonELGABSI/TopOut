@@ -6,7 +6,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         
         FirebaseApp.configure()
-        
         return true
     }
 }
@@ -27,13 +26,6 @@ struct iOSApp: App {
         WindowGroup {
             TabView {
                 
-//                MoviesScreen(viewModel: .init()).tabItem {
-//                    Label("Movies", systemImage: "film")
-//                }
-//                
-//                FavouritesMoviesScreen(viewModel: .init()).tabItem {
-//                    Label("Favorites", systemImage: "heart")
-//                }
             }
         }
     }

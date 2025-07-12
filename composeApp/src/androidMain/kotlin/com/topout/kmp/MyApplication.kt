@@ -7,6 +7,7 @@ import kotlinx.coroutines.*
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.android.ext.android.getKoin   // <-- correct import
+import org.koin.dsl.module
 
 class MyApplication : Application() {
 
@@ -16,17 +17,17 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // 1. start DI
         initKoin {
             androidLogger()
             androidContext(this@MyApplication)
+
+            // expose appScope so modules can `get<CoroutineScope>()`
+            modules(module { single<CoroutineScope> { appScope } })
         }
 
-        // 2. fire-and-forget anonymous sign-in (only creates an account on first run)
-        // run the suspend use-case once, off the main thread
+        // optional fire-and-forget task
         appScope.launch {
-            getKoin()                     // <- NOT composable
-                .get<EnsureAnonymousUser>()()   // invoke() operator
+            getKoin().get<EnsureAnonymousUser>()()
         }
     }
 }

@@ -3,6 +3,7 @@ package com.topout.kmp.domain
 import com.topout.kmp.data.dao.TrackPointsDao
 import com.topout.kmp.models.Metrics
 import com.topout.kmp.models.AlertType
+import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.data.sensors.SensorAggregator
 import com.topout.kmp.utils.RateCalculator
 import kotlinx.coroutines.CoroutineScope
@@ -16,7 +17,6 @@ class SessionTracker(
     private val dao: TrackPointsDao,
     private val scope: CoroutineScope
 ) {
-
     private val startAltitude = MutableStateFlow<Double?>(null)
     private var lastAlt: Double? = null
     private var gain = 0.0
@@ -24,9 +24,8 @@ class SessionTracker(
     private var vertDistSum = 0.0
     private var vertSampleCount = 0
 
-    // Stream exposed to ViewModel
-    private val _metrics = MutableStateFlow(Metrics())
-    val metrics: StateFlow<Metrics> = _metrics.asStateFlow()
+    private val _trackPointFlow = MutableSharedFlow<TrackPoint>(replay = 0)
+    val trackPointFlow: SharedFlow<TrackPoint> = _trackPointFlow.asSharedFlow()
 
     private var collectJob: Job? = null
 
@@ -36,23 +35,19 @@ class SessionTracker(
                 val alt = sample.altitude?.altitude ?: lastAlt
                 if (startAltitude.value == null && alt != null) startAltitude.value = alt
 
-                // ---- compute vertical speed ----
                 val vVert = if (alt != null && lastAlt != null) {
                     RateCalculator.verticalSpeedMetersPerMinute(lastAlt!!, alt)
                 } else 0.0
                 lastAlt = alt
 
-                // ---- compute horizontal speed ----
                 val vHorizon = sample.location?.speed?.toDouble() ?: 0.0
                 val vTotal = kotlin.math.sqrt(vVert * vVert + vHorizon * vHorizon)
 
-                // ---- gain / loss ----
                 if (alt != null && lastAlt != null) {
                     val diff = alt - lastAlt!!
                     if (diff > 0) gain += diff else loss -= diff
                 }
 
-                // ---- averages ----
                 vertDistSum += kotlin.math.abs(vVert)
                 vertSampleCount++
 
@@ -61,7 +56,7 @@ class SessionTracker(
 
                 val avgVert = if (vertSampleCount > 0) vertDistSum / vertSampleCount else 0.0
 
-                val danger = vVert > 600 || vTotal > 15      // example thresholds
+                val danger = vVert > 600 || vTotal > 15
                 val alertType = when {
                     vVert > 600 -> AlertType.RAPID_ASCENT
                     vVert < -600 -> AlertType.RAPID_DESCENT
@@ -79,20 +74,40 @@ class SessionTracker(
                     danger = danger,
                     alertType = alertType
                 )
-                _metrics.value = newMetrics
 
-                // ---- persist sample with ALL sensor data ----
-                dao.insertTrackPoint(
+                // Build and persist TrackPoint
+                val trackPoint = TrackPoint(
                     sessionId = sessionId,
-                    ts = sample.ts,
-                    lat = sample.location?.lat,
-                    lon = sample.location?.lon,
-                    altitude = alt,
-                    accelX = sample.accel?.x,
-                    accelY = sample.accel?.y,
-                    accelZ = sample.accel?.z,
+                    timestamp = sample.ts,
+                    latitude  = sample.location?.lat,
+                    longitude = sample.location?.lon,
+                    altitude  = alt,
+                    accelerationX = sample.accel?.x,
+                    accelerationY = sample.accel?.y,
+                    accelerationZ = sample.accel?.z,
+                    vVertical = vVert,
+                    vHorizontal = vHorizon,
+                    vTotal = vTotal,
+                    gain = gain,
+                    loss = loss,
+                    relAltitude = relAltitude,
+                    avgVertical = avgVert,
+                    danger = danger,
+                    alertType = alertType
+                )
+                dao.insertTrackPoint(
+                    sessionId = trackPoint.sessionId,
+                    ts = trackPoint.timestamp,
+                    lat = trackPoint.latitude,
+                    lon = trackPoint.longitude,
+                    altitude = trackPoint.altitude,
+                    accelX = trackPoint.accelerationX,
+                    accelY = trackPoint.accelerationY,
+                    accelZ = trackPoint.accelerationZ,
                     metrics = newMetrics
                 )
+
+                _trackPointFlow.emit(trackPoint)
             }
         }
     }

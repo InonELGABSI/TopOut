@@ -52,6 +52,9 @@ kotlin {
             implementation(libs.android.driver)
             implementation(project.dependencies.platform(libs.firebase.bom))
 
+            implementation(libs.play.services.location)
+            // optional – turns Task<T> into suspend functions
+            implementation(libs.kotlinx.coroutines.play.services)
 
         }
         commonMain.dependencies {

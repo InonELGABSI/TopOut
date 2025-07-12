@@ -1,7 +1,6 @@
 package com.topout.kmp.features.live_session
-
 import com.topout.kmp.features.BaseViewModel
-import com.topout.kmp.models.Metrics
+import com.topout.kmp.models.TrackPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,16 +14,16 @@ class LiveSessionViewModel(
     private val _uiState = MutableStateFlow<LiveSessionState>(LiveSessionState.Loading)
     val uiState: StateFlow<LiveSessionState> = _uiState
 
-    private var metricsJob: Job? = null
+    private var trackPointJob: Job? = null
 
     fun onStartClicked() {
-        metricsJob?.cancel()
-        metricsJob = scope.launch {
+        trackPointJob?.cancel()
+        trackPointJob = scope.launch {
             try {
                 _uiState.value = LiveSessionState.Loading
-                val metricsFlow = useCases.startSession()
-                metricsFlow.collect { m: Metrics ->
-                    _uiState.value = LiveSessionState.Loaded(m)
+                val trackPointFlow = useCases.startSession()
+                trackPointFlow.collect { point: TrackPoint ->
+                    _uiState.value = LiveSessionState.Loaded(point)
                 }
             } catch (ce: CancellationException) {
                 // cancellation (user stopped) – ignore
@@ -34,21 +33,17 @@ class LiveSessionViewModel(
         }
     }
 
-    fun onStopClicked() {
-        metricsJob?.cancel()
-        metricsJob = null
-
-        useCases.startSession.stop() // stops tracker/aggregator
-
+    fun onStopClicked(sessionId: String) {
+        trackPointJob?.cancel()
+        trackPointJob = null
+        useCases.startSession.stop()
         scope.launch {
-            useCases.stopSession()
-            _uiState.value = LiveSessionState.Loading
+            try {
+                val details = useCases.finishSession(sessionId)
+                _uiState.value = LiveSessionState.Loading
+            } catch (e: Exception) {
+                _uiState.value = LiveSessionState.Error(e.message ?: "Error finishing session")
+            }
         }
     }
-
-//    override fun onCleared() {
-//        super.onCleared()
-//        metricsJob?.cancel()
-//        useCases.startSession.stop()
-//    }
 }

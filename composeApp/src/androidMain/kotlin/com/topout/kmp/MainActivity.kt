@@ -30,6 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.firebase.FirebaseApp
 import com.topout.kmp.features.HistoryScreen
 import com.topout.kmp.features.HomeScreen
+import com.topout.kmp.features.LiveSessionScreen
 import com.topout.kmp.features.SettingsScreen
 import com.topout.kmp.models.Session
 import com.topout.kmp.shared_components.BottomNavigationBar
@@ -39,7 +40,7 @@ sealed class NavTab(val route: String, val title: String) {
     data object Home : NavTab("home", "Home")
     data object History : NavTab("history", "History")
     data object Settings : NavTab("settings", "Settings")
-//    data object Livesession : NavTab("live_session", "Live Session")
+    data object LiveSession : NavTab("live_session", "Live Session")
 //    data object SessionDetail : NavTab("session/{sessionId}", "Session") {
 //        fun createRoute(sessionId: String) = "session/$sessionId"
 //    }
@@ -112,10 +113,9 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-//                        composable(NavTab.Livesession.route) {
-//                            LiveSessionScreen(
-//                            )
-//                        }
+                        composable(NavTab.LiveSession.route) {
+                            LiveSessionScreen()
+                        }
                     }
                     // Main content of the app
                 }

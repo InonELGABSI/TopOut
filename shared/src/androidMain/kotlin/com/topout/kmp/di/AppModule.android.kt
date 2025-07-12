@@ -2,25 +2,38 @@ package com.topout.kmp.di
 
 import app.cash.sqldelight.db.SqlDriver
 import com.topout.kmp.data.dao.DatabaseDriverFactory
+import com.topout.kmp.data.sensors.SensorDataSource
+import com.topout.kmp.features.live_session.LiveSessionViewModel
 import com.topout.kmp.features.session_details.SessionViewModel
 import com.topout.kmp.features.sessions.SessionsViewModel
+import com.topout.kmp.features.settings.SettingsViewModel
 import com.topout.kmp.utils.providers.AccelerometerProvider
-//import com.topout.kmp.utils.providers.BarometerProvider
-//import com.topout.kmp.utils.providers.GPSProvider
+import com.topout.kmp.utils.providers.BarometerProvider
+import com.topout.kmp.utils.providers.LocationProvider
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
-import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 actual val platformModule = module {
     single<HttpClientEngine> { OkHttp.create() }
     single<AccelerometerProvider> { AccelerometerProvider(context = get() )}
-//    single<BarometerProvider> { BarometerProvider(context = get() ) }
-//    single<GPSProvider>{ GPSProvider(context = get() ) }
+    single<BarometerProvider> { BarometerProvider(context = get() ) }
+    single<LocationProvider>{ LocationProvider(context = get() ) }
 
+    // ⬇️ ADD THIS ⬇️
+    single<SensorDataSource> { SensorDataSource(
+        context = get(),
+        accelProvider = get(),
+        baroProvider = get(),
+        locProvider = get()
+    )}
+
+    // ...your ViewModels, DB, etc
     viewModelOf(::SessionsViewModel)
     viewModelOf(::SessionViewModel)
+    viewModelOf(::SettingsViewModel)
+    viewModelOf(::LiveSessionViewModel)
 
     single<SqlDriver> { DatabaseDriverFactory(get()).createDriver() }
 }

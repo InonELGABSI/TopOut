@@ -1,10 +1,10 @@
 package com.topout.kmp.features.live_session
-import com.topout.kmp.models.Metrics
+import com.topout.kmp.models.TrackPoint
 
-public sealed class LiveSessionState {
-    data object Loading : LiveSessionState()
+sealed class LiveSessionState {
+    object Loading : LiveSessionState()
     data class Loaded(
-        val metrics: Metrics?
+        val trackPoint: TrackPoint
     ) : LiveSessionState()
     data class Error(
         var errorMessage: String

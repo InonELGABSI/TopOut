@@ -5,29 +5,36 @@ import dev.gitlive.firebase.firestore.DocumentSnapshot
 import dev.gitlive.firebase.firestore.FieldValue
 import dev.gitlive.firebase.firestore.Timestamp
 
-/* ---------- read ---------- */
-private fun Any?.toEpochMillis(): Long = when (this) {
-    is Timestamp -> this.toEpochMillis()
-    is Long      -> this
-    else         -> 0L
+/* ---------- helpers ---------- */
+
+/** get field as Long else Timestamp else 0  */
+private fun DocumentSnapshot.millis(field: String): Long {
+    // try Long first (what we usually store)
+    get<Long?>(field)?.let { return it }
+
+    // fallback to Timestamp (when Firestore wrote serverTimestamp)
+    get<Timestamp?>(field)?.let { return it.toEpochMillis() }
+
+    return 0L
 }
 
-
-/* Firestore document ➜ Session (all Long timestamps) */
+/* ---------- read ---------- */
+/** Firestore document ➜ Session (pure Long timestamps) */
 fun DocumentSnapshot.toSession(): Session {
     val base = data<Session>() ?: error("Invalid Session data")
 
     return base.copy(
-        startTime = get<Any?>("start_time").toEpochMillis(),
-        endTime   = get<Any?>("end_time").toEpochMillis(),
-        createdAt = get<Any?>("created_at").toEpochMillis()
+        startTime = millis("start_time"),
+        endTime   = get<Long?>("end_time")           // may be null
+            ?: get<Timestamp?>("end_time")?.toEpochMillis(),
+        createdAt = millis("created_at")
     )
 }
 
 /* ---------- write ---------- */
 /**
- * Convert Session ➜ Map ready for Firestore.
- * Pass `serverCreatedAt = true` to let Firestore set `created_at`
+ * Session ➜ Map ready for Firestore.
+ * Pass `serverCreatedAt = true` to store `created_at`
  * using FieldValue.serverTimestamp().
  */
 fun Session.toFirestoreMap(serverCreatedAt: Boolean = false): Map<String, Any?> =

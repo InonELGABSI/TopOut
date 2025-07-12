@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -36,11 +37,11 @@ fun BottomNavigationBar(
             icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
             label = { Text("Settings") }
         )
-//        NavigationBarItem(
-//            selected = selectedTab is NavTab.Livesession,
-//            onClick = { onTabSelected(NavTab.Livesession) },
-//            icon = { Icon(Icons.Default.Favorite, contentDescription = "Live Session") },
-//            label = { Text("Live Session") }
-//        )
+        NavigationBarItem(
+            selected = selectedTab is NavTab.LiveSession,
+            onClick = { onTabSelected(NavTab.LiveSession) },
+            icon = { Icon(Icons.Default.PlayArrow, contentDescription = "Live Session") },
+            label = { Text("Live") }
+        )
     }
 }
