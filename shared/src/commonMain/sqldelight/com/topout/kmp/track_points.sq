@@ -5,6 +5,9 @@ CREATE TABLE track_points (
     lat REAL,
     lon REAL,
     altitude REAL,
+    accelX REAL,
+    accelY REAL,
+    accelZ REAL,
     vVertical REAL,
     vHorizontal REAL,
     vTotal REAL,
@@ -17,9 +20,18 @@ CREATE TABLE track_points (
 );
 
 insertTrackPoint:
-INSERT INTO track_points(sessionId, ts, lat, lon, altitude,
+INSERT INTO track_points(sessionId, ts, lat, lon, altitude, accelX, accelY, accelZ,
                          vVertical, vHorizontal, vTotal,
                          gain, loss, relAltitude, avgVertical,
                          danger, alertType)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+getTrackPointsBySession:
+SELECT * FROM track_points WHERE sessionId = ?;
+
+deleteTrackPointsBySession:
+DELETE FROM track_points WHERE sessionId = ?;
+
+lastInsertRowId:
+SELECT last_insert_rowid();
 

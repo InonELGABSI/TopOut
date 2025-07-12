@@ -21,7 +21,7 @@ import com.topout.kmp.domain.GetSessionDetails
 import com.topout.kmp.domain.GetSettings
 import com.topout.kmp.domain.SaveSession
 import com.topout.kmp.domain.SignInAnonymously
-import com.topout.kmp.domain.StartSession
+import com.topout.kmp.domain.LiveSessionManager
 import com.topout.kmp.features.session_details.SessionUseCases
 import com.topout.kmp.features.sessions.SessionsUseCases
 import com.topout.kmp.features.sessions.SessionsViewModel
@@ -64,7 +64,7 @@ val domainModule = module {
     factoryOf(::SaveSession)
     factoryOf(::DeleteSession)
 
-    single { StartSession(get(), get(), get(), get()) }
+    single { LiveSessionManager(get(), get(), get(), get()) }
 
     factoryOf(::SessionsUseCases)
     factoryOf(::SessionUseCases)

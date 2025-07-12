@@ -7,33 +7,28 @@ import com.topout.kmp.data.sessions.SessionsRepository
 import com.topout.kmp.models.Metrics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 
-class StartSession(
+class LiveSessionManager(
     private val sessionsRepo: SessionsRepository,
     private val dao: TrackPointsDao,
-    private val aggreg: SensorAggregator,
+    private val aggregate: SensorAggregator,
     private val scope: CoroutineScope
 ) {
     private var tracker: SessionTracker? = null
 
-    suspend operator fun invoke(): Flow<Metrics> {
-        // 1. create session row → returns sessionId
+    // main entry (still supports controller())
+    suspend operator fun invoke(): Flow<Metrics> = start()
+
+    // explicit start function
+    private suspend fun start(): Flow<Metrics> {
         val result = sessionsRepo.createSession()
-            ?: throw IllegalStateException("Failed to create session in StartSession")
+            ?: throw IllegalStateException("Failed to create session in LiveSessionController")
         when (result) {
             is Result.Success -> {
                 val sessionId = result.data?.id
-                // 1.1 store sessionId in aggregator
-                aggreg.setSessionId(sessionId)
-
-                // 2. start aggregator timers
-                scope.launch { aggreg.start() }
-
-                // 3. spin tracker
-                tracker = SessionTracker(sessionId, aggreg, dao, scope).also { it.start() }
-
-                // 4. return metrics flow for UI
+                aggregate.setSessionId(sessionId)
+                aggregate.start(scope)
+                tracker = sessionId?.let { SessionTracker(it, aggregate, dao, scope).also { it.start() } }
                 return tracker!!.metrics
             }
             is Result.Failure -> {
@@ -42,5 +37,11 @@ class StartSession(
         }
     }
 
-    fun stop() { tracker?.stop() }
+    fun stop() {
+        tracker?.stop()
+        aggregate.stop()
+        tracker = null
+    }
 }
+
+

@@ -73,6 +73,7 @@ kotlin {
             implementation(libs.runtime)
             implementation(libs.coroutines.extensions)
 
+            implementation(libs.kotlinx.datetime.v041)
 
         }
 

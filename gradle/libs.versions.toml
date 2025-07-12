@@ -22,6 +22,7 @@ koinCore = "4.0.4"
 kotlin = "2.1.0"
 kotlinxCoroutinesCore = "1.10.1"
 kotlinxDatetime = "0.5.0"
+kotlinxDatetimeVersion = "0.4.1"
 ktorClientCore = "3.0.1"
 ktorClientLogging = "2.3.7"
 lifecycleViewmodelKtx = "2.8.7"
@@ -71,6 +72,7 @@ androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:life
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+kotlinx-datetime-v041 = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetimeVersion" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktorClientCore" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktorClientCore" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktorClientCore" }

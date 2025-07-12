@@ -4,10 +4,19 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TrackPoint(
+    val id: Long = 0L,                // מזהה ייחודי
+    val sessionId: String = "",       // מזהה סשן
+    val timestamp: Long = 0L,         // זמן הדגימה
 
+    // Raw sensor data
+    val latitude: Double? = null,     // GPS lat
+    val longitude: Double? = null,    // GPS lon
+    val altitude: Double? = null,     // Barometer/GPS altitude
+    val accelerationX: Float? = null, // Accelerometer X
+    val accelerationY: Float? = null, // Accelerometer Y
+    val accelerationZ: Float? = null, // Accelerometer Z
 
-
-
+    // Calculated metrics
     val vVertical: Double = 0.0,       //
     val vHorizontal: Double = 0.0,     //
     val vTotal: Double = 0.0,          // √(v_h²+v_v²)
