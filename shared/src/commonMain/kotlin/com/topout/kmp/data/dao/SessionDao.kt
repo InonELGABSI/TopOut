@@ -4,6 +4,7 @@ import com.topout.kmp.SessionEntity
 import com.topout.kmp.SessionsQueries
 import com.topout.kmp.models.Session
 import com.topout.kmp.utils.extensions.toSession
+import dev.gitlive.firebase.firestore.Timestamp
 
 class SessionDao(
     private val queries: SessionsQueries
@@ -16,7 +17,7 @@ class SessionDao(
         return queries.getAllSessions().executeAsList().map { it.toSession() }
     }
 
-     fun saveSession(session: Session) {
+    fun saveSession(session: Session) {
         queries.saveSession(
             id = session.id,
             userId = session.userId,
@@ -34,10 +35,8 @@ class SessionDao(
         )
     }
 
-     fun deleteSession(session: Session) {
-         session.id.let { queries.deleteSession(id= it) }
-
+    fun deleteSession(session: Session) {
+        session.id.let { queries.deleteSession(id= it) }
     }
 
 }
-

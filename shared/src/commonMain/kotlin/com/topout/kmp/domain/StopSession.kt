@@ -1,3 +1,5 @@
+package com.topout.kmp.domain
+
 import com.topout.kmp.data.track_points.TrackPointsRepository
 
 class StopSession(

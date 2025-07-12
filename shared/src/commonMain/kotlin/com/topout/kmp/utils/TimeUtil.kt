@@ -1,4 +1,5 @@
 package com.topout.kmp.utils
 
-class TimeUtil {
-}
+import kotlinx.datetime.Clock
+
+fun nowEpochMillis(): Long = Clock.System.now().toEpochMilliseconds()

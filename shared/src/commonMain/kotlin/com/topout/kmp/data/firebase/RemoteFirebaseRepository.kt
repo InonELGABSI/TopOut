@@ -9,7 +9,13 @@ import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.firestore.firestore
 import com.topout.kmp.data.Result
 import com.topout.kmp.data.sessions.SessionsError
+import com.topout.kmp.utils.extensions.asSessionTitle
+import com.topout.kmp.utils.extensions.toFirestoreMap
+import com.topout.kmp.utils.extensions.toSession
+import dev.gitlive.firebase.firestore.DocumentSnapshot
 import io.ktor.util.date.getTimeMillis
+import dev.gitlive.firebase.firestore.Timestamp
+import kotlinx.datetime.Clock
 
 
 class RemoteFirebaseRepository : FirebaseRepository {
@@ -28,7 +34,7 @@ class RemoteFirebaseRepository : FirebaseRepository {
                 .where { "userId" equalTo uid }
                 .get()
                 .documents
-                .map { it.data<Session>() }
+                .map { it.toSession() }
 
             Result.Success(sessions)
         } catch (e: Exception) {
@@ -38,14 +44,13 @@ class RemoteFirebaseRepository : FirebaseRepository {
 
     override suspend fun saveSession(session: Session) {
         val uid = auth.currentUser?.uid ?: return
-        val sessionWithUserId = session.id?.let {
-            sessionsCollection.document(it.toString())
-                .set(session.copy(userId = uid))
-        } ?: sessionsCollection.add(session.copy(userId = uid))
+        val map = session.copy(userId = uid)
+            .toFirestoreMap(serverCreatedAt = true)  // server time for created_at
+        sessionsCollection.document(session.id).set(map)
     }
 
     override suspend fun updateSession(session: Session) {
-        session.id?.let {
+        session.id.let {
             sessionsCollection.document(it.toString())
                 .set(session)
         }
@@ -101,7 +106,24 @@ class RemoteFirebaseRepository : FirebaseRepository {
         }
     }
 
+    override suspend fun createSession(): Result<Session, SessionsError> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.Failure(SessionsError("User not authenticated"))
 
+        return try {
+            val now = Clock.System.now()
 
+            val session = Session(
+                userId     = uid,
+                title      = now.asSessionTitle(),
+            )
 
+            // write with the deterministic id generated in Session()
+            sessionsCollection.document(session.id).set(session)
+
+            Result.Success(session)
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to create session"))
+        }
+    }
 }

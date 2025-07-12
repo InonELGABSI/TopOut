@@ -49,7 +49,7 @@ class RemoteSessionsRepository (
 
     override suspend fun createSession(): Result<Session, SessionsError> {
         return try {
-            val newSession = Session() // Assuming Session has a default constructor
+            val newSession = Session()
             sessionDao.saveSession(newSession)
             Result.Success(newSession)
         } catch (e: Exception) {

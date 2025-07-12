@@ -14,27 +14,29 @@ class RemoteTrackPointsRepository(
     private val trackPointsDao: TrackPointsDao
 ) {
     suspend fun insertTrackPoint(trackPoint: TrackPoint) {
-        trackPointsDao.insertTrackPoint(
-            sessionId = trackPoint.sessionId,
-            ts = trackPoint.timestamp,
-            lat = trackPoint.latitude,
-            lon = trackPoint.longitude,
-            altitude = trackPoint.altitude,
-            accelX = trackPoint.accelerationX,
-            accelY = trackPoint.accelerationY,
-            accelZ = trackPoint.accelerationZ,
-            metrics = Metrics(
-                vVertical = trackPoint.vVertical,
-                vHorizontal = trackPoint.vHorizontal,
-                vTotal = trackPoint.vTotal,
-                gain = trackPoint.gain,
-                loss = trackPoint.loss,
-                relAltitude = trackPoint.relAltitude,
-                avgVertical = trackPoint.avgVertical,
-                danger = trackPoint.danger,
-                alertType = trackPoint.alertType
+        trackPoint.timestamp.let {
+            trackPointsDao.insertTrackPoint(
+                sessionId = trackPoint.sessionId,
+                ts = it,
+                lat = trackPoint.latitude,
+                lon = trackPoint.longitude,
+                altitude = trackPoint.altitude,
+                accelX = trackPoint.accelerationX,
+                accelY = trackPoint.accelerationY,
+                accelZ = trackPoint.accelerationZ,
+                metrics = Metrics(
+                    vVertical = trackPoint.vVertical,
+                    vHorizontal = trackPoint.vHorizontal,
+                    vTotal = trackPoint.vTotal,
+                    gain = trackPoint.gain,
+                    loss = trackPoint.loss,
+                    relAltitude = trackPoint.relAltitude,
+                    avgVertical = trackPoint.avgVertical,
+                    danger = trackPoint.danger,
+                    alertType = trackPoint.alertType
+                )
             )
-        )
+        }
     }
 
     suspend fun getTrackPointsBySessionId(sessionId: String): List<TrackPoint> {

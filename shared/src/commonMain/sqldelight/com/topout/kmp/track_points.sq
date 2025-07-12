@@ -1,6 +1,6 @@
 CREATE TABLE track_points (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    sessionId INTEGER NOT NULL,
+    sessionId TEXT NOT NULL,
     ts INTEGER NOT NULL,
     lat REAL,
     lon REAL,
@@ -33,5 +33,5 @@ deleteTrackPointsBySession:
 DELETE FROM track_points WHERE sessionId = ?;
 
 lastInsertRowId:
-SELECT last_insert_rowid();
+SELECT last_insert_rowid() AS id;
 

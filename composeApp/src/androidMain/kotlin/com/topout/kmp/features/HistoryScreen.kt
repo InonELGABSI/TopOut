@@ -159,56 +159,54 @@ private fun createDummyUiState(type: String = "loaded"): SessionsState {
         "empty" -> SessionsState.Loaded(emptyList())
 
         "loaded" -> SessionsState.Loaded(
-
-                listOf(
-                    Session(
-                        id = 1,
-                        userId = "1",
-                        title = "Morning Climb",
-                        startTime = System.currentTimeMillis() - 3600000,
-                        endTime = System.currentTimeMillis(),
-                        totalAscent = 120.0,
-                        totalDescent = 100.0,
-                        maxAltitude = 300.0,
-                        minAltitude = 150.0,
-                        avgRate = 1.5,
-                        alertTriggered = 0L,
-                        createdAt = System.currentTimeMillis() - 3600000,
-                        graphImageUrl = null
-                    ),
-                    Session(
-                        id = 2,
-                        userId = "2",
-                        title = "Evening Session",
-                        startTime = System.currentTimeMillis() - 7200000,
-                        endTime = System.currentTimeMillis() - 3600000,
-                        totalAscent = 80.0,
-                        totalDescent = 80.0,
-                        maxAltitude = 250.0,
-                        minAltitude = 120.0,
-                        avgRate = 1.2,
-                        alertTriggered = 0L,
-                        createdAt = System.currentTimeMillis() - 7200000,
-                        graphImageUrl = null
-                    ),
-                    Session(
-                        id = 3,
-                        userId = "3",
-                        title = "Weekend Adventure",
-                        startTime = System.currentTimeMillis() - 14400000,
-                        endTime = System.currentTimeMillis() - 10800000,
-                        totalAscent = 200.0,
-                        totalDescent = 180.0,
-                        maxAltitude = 450.0,
-                        minAltitude = 200.0,
-                        avgRate = 1.8,
-                        alertTriggered = 0L,
-                        createdAt = System.currentTimeMillis() - 14400000,
-                        graphImageUrl = null
-                    )
+            listOf(
+                Session(
+                    id = "1",
+                    userId = "1",
+                    title = "Morning Climb",
+                    startTime = null, // Will be handled by ViewModel when real data comes from shared module
+                    endTime = null,
+                    totalAscent = 120.0,
+                    totalDescent = 100.0,
+                    maxAltitude = 300.0,
+                    minAltitude = 150.0,
+                    avgRate = 1.5,
+                    alertTriggered = 0L,
+                    createdAt = null,
+                    graphImageUrl = null
+                ),
+                Session(
+                    id = "2",
+                    userId = "2",
+                    title = "Evening Session",
+                    startTime = null,
+                    endTime = null,
+                    totalAscent = 80.0,
+                    totalDescent = 80.0,
+                    maxAltitude = 250.0,
+                    minAltitude = 120.0,
+                    avgRate = 1.2,
+                    alertTriggered = 0L,
+                    createdAt = null,
+                    graphImageUrl = null
+                ),
+                Session(
+                    id = "3",
+                    userId = "3",
+                    title = "Weekend Adventure",
+                    startTime = null,
+                    endTime = null,
+                    totalAscent = 200.0,
+                    totalDescent = 180.0,
+                    maxAltitude = 450.0,
+                    minAltitude = 200.0,
+                    avgRate = 1.8,
+                    alertTriggered = 0L,
+                    createdAt = null,
+                    graphImageUrl = null
                 )
             )
-
+        )
 
         else -> SessionsState.Loading
     }

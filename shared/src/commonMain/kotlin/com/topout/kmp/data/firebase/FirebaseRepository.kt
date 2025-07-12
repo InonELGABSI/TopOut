@@ -8,6 +8,8 @@ import com.topout.kmp.data.user.UserError
 import com.topout.kmp.models.User
 
 interface FirebaseRepository {
+    suspend fun createSession() : Result<Session, SessionsError>
+
     suspend fun getSessions() : Result<List<Session>, SessionsError>
 
     suspend fun saveSession(session: Session)
@@ -21,4 +23,6 @@ interface FirebaseRepository {
     suspend fun getUser() : Result<User, UserError>
 
     suspend fun ensureUserDocument(): Result<Unit, UserError>
+
+
 }

@@ -1,7 +1,5 @@
 package com.topout.kmp.features.live_session
 
-
-import StopSession
 import com.topout.kmp.domain.GetLiveMetrics
 import com.topout.kmp.domain.LiveSessionManager
 import com.topout.kmp.domain.StopSession

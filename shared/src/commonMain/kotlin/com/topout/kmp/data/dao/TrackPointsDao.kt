@@ -30,7 +30,7 @@ class TrackPointsDao(
         metrics: Metrics
     ): String {
         queries.insertTrackPoint(
-            sessionId = sessionId.toLong(),
+            sessionId = sessionId,
             ts = ts,
             lat = lat,
             lon = lon,
@@ -55,26 +55,22 @@ class TrackPointsDao(
     }
 
     suspend fun getTrackPointsBySessionId(sessionId: String): List<TrackPoint> {
-        return queries.getTrackPointsBySession(sessionId.toLong())
+        return queries.getTrackPointsBySession(sessionId)
             .executeAsList()
             .map { it.toTrackPoint() }
     }
 
     fun getTrackPointsFlowBySessionId(sessionId: String): Flow<List<TrackPoint>> {
-        return queries.getTrackPointsBySession(sessionId.toLong())
+        return queries.getTrackPointsBySession(sessionId)
             .asFlow()
             .mapToList(kotlinx.coroutines.Dispatchers.IO)
             .map { list -> list.map { it.toTrackPoint() } }
     }
 
     suspend fun deleteTrackPointsBySessionId(sessionId: String) {
-        queries.deleteTrackPointsBySession(sessionId.toLong())
+        queries.deleteTrackPointsBySession(sessionId)
     }
 
     suspend fun endCurrentSession() {
-        // This method can be used to perform any cleanup or finalization
-        // For example, you might want to delete all track points for the current session
-        // or perform any other necessary operations before ending the session.
-        // Implementation depends on your specific requirements.
     }
 }

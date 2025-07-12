@@ -50,6 +50,9 @@ kotlin {
             implementation(libs.koin.androidx.compose)
 
             implementation(libs.android.driver)
+            implementation(project.dependencies.platform(libs.firebase.bom))
+
+
         }
         commonMain.dependencies {
 
@@ -57,10 +60,13 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.test)
 
-            implementation(project.dependencies.platform(libs.firebase.bom))
+
             implementation(libs.firebase.firestore)
             implementation(libs.firebase.common)
             implementation(libs.firebase.auth)
+            implementation(project.dependencies.platform(libs.firebase.bom))
+
+            implementation(libs.kotlinx.datetime.v041)
 
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kermit)
@@ -73,7 +79,6 @@ kotlin {
             implementation(libs.runtime)
             implementation(libs.coroutines.extensions)
 
-            implementation(libs.kotlinx.datetime.v041)
 
         }
 
@@ -98,3 +103,4 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
 }
+

@@ -16,6 +16,6 @@ fun UserEntity.toUser(): User {
         totalHeightFromStartThr = totalHeightFromStartThr ?: 0.0,
         currentAvgHeightSpeedThr = currentAvgHeightSpeedThr ?: 0.0,
 
-        createdAt = createdAt ?: 0L
+        createdAt = createdAt
     )
 }

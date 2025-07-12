@@ -105,13 +105,13 @@ fun UserSettingsContent(user: User) {
             icon = Icons.Default.Settings
         ) {
             UnitPreferenceSelector(
-                currentUnit = editableUser.unitPreference,
+                currentUnit = editableUser.unitPreference ?: "meters",
                 onUnitChange = { editableUser = editableUser.copy(unitPreference = it) },
                 isEditing = isEditing
             )
 
             NotificationToggle(
-                enabled = editableUser.enabledNotifications,
+                enabled = editableUser.enabledNotifications ?: false,
                 onToggle = { editableUser = editableUser.copy(enabledNotifications = it) },
                 isEditing = isEditing
             )
@@ -124,26 +124,26 @@ fun UserSettingsContent(user: User) {
         ) {
             ThresholdField(
                 label = "Relative Height Threshold",
-                value = editableUser.relativeHeightFromStartThr,
+                value = editableUser.relativeHeightFromStartThr ?: 0.0,
                 onValueChange = { editableUser = editableUser.copy(relativeHeightFromStartThr = it) },
                 isEditing = isEditing,
-                unit = editableUser.unitPreference
+                unit = editableUser.unitPreference ?: "meters"
             )
 
             ThresholdField(
                 label = "Total Height Threshold",
-                value = editableUser.totalHeightFromStartThr,
+                value = editableUser.totalHeightFromStartThr ?: 0.0,
                 onValueChange = { editableUser = editableUser.copy(totalHeightFromStartThr = it) },
                 isEditing = isEditing,
-                unit = editableUser.unitPreference
+                unit = editableUser.unitPreference ?: "meters"
             )
 
             ThresholdField(
                 label = "Average Speed Threshold",
-                value = editableUser.currentAvgHeightSpeedThr,
+                value = editableUser.currentAvgHeightSpeedThr ?: 0.0,
                 onValueChange = { editableUser = editableUser.copy(currentAvgHeightSpeedThr = it) },
                 isEditing = isEditing,
-                unit = "${editableUser.unitPreference}/min"
+                unit = "${editableUser.unitPreference ?: "meters"}/min"
             )
         }
 
@@ -160,7 +160,7 @@ fun UserSettingsContent(user: User) {
 
             ReadOnlyField(
                 label = "Created At",
-                value = formatDate(user.createdAt),
+                value = formatDate(user.createdAt ?: 0L),
                 icon = Icons.Default.CalendarMonth
             )
         }
@@ -414,3 +414,4 @@ private fun formatDate(timestamp: Long): String {
 private fun String.capitalize(): String {
     return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 }
+
