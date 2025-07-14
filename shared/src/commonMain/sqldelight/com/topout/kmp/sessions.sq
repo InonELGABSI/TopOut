@@ -20,7 +20,7 @@ INSERT OR REPLACE INTO SessionEntity(
   totalAscent, totalDescent, maxAltitude,
   minAltitude, avgRate, alertTriggered,
   createdAt, graphImageUrl
-) VALUES (?, ?, ?,?,?,?,?,?,?,?,?,?,?);
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getSessionById:
 SELECT * FROM SessionEntity WHERE id = ?;
