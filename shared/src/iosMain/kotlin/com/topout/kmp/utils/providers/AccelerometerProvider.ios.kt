@@ -1,52 +1,61 @@
 package com.topout.kmp.utils.providers
 
-import kotlinx.cinterop.useContents          // <-- NEW
+import com.topout.kmp.models.sensor.AccelerationData
+import kotlinx.cinterop.useContents
 import kotlinx.coroutines.suspendCancellableCoroutine
 import platform.CoreMotion.CMMotionManager
+import platform.Foundation.NSDate
 import platform.Foundation.NSOperationQueue
+import platform.Foundation.timeIntervalSince1970
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 actual class AccelerometerProvider {
 
-    private val motionManager = CMMotionManager()
+    private val motionManager = CMMotionManager()           // Core Motion manager :contentReference[oaicite:0]{index=0}
 
-    actual suspend fun getAccelerometerData(): List<Float> =
+    /** One-shot read; returns X, Y, Z in m/s² plus epoch-millis timestamp. */
+    actual suspend fun getAcceleration(): AccelerationData =
         suspendCancellableCoroutine { cont ->
 
-            if (!motionManager.isAccelerometerAvailable()) {            // availability test
+            if (!motionManager.isAccelerometerAvailable()) {
                 cont.resumeWithException(
-                    IllegalStateException("Accelerometer not available")
+                    IllegalStateException("Accelerometer not available on this device")
                 )
                 return@suspendCancellableCoroutine
             }
 
-            motionManager.accelerometerUpdateInterval = 0.016           // ~60 Hz
+            motionManager.accelerometerUpdateInterval = 0.016  // ≈ 60 Hz :contentReference[oaicite:1]{index=1}
 
             motionManager.startAccelerometerUpdatesToQueue(
-                NSOperationQueue.mainQueue()
+                NSOperationQueue.mainQueue()                   // queue – fine for one sample :contentReference[oaicite:2]{index=2}
             ) { data, error ->
 
                 when {
                     error != null -> {
                         motionManager.stopAccelerometerUpdates()
                         cont.resumeWithException(
-                            IllegalStateException(
-                                error.localizedDescription ?: "CoreMotion error"
-                            )
+                            IllegalStateException(error.localizedDescription ?: "CoreMotion error")
                         )
                     }
 
                     data != null -> {
                         motionManager.stopAccelerometerUpdates()
 
-                        // ✅ unwrap CMAcceleration safely
-                        val triple = data.acceleration.useContents {
-                            listOf(x.toFloat(), y.toFloat(), z.toFloat())
+                        // Safely unwrap CMAcceleration struct (x, y, z) :contentReference[oaicite:3]{index=3}
+                        val (x, y, z) = data.acceleration.useContents {
+                            Triple(x.toFloat(), y.toFloat(), z.toFloat())
                         }
 
-                        cont.resume(triple)
+                        cont.resume(
+                            AccelerationData(
+                                x  = x,
+                                y  = y,
+                                z  = z,
+                                ts = (NSDate().timeIntervalSince1970 * 1000).toLong() // matches System.currentTimeMillis - android implementation
+                            )
+                        )
                     }
                 }
             }

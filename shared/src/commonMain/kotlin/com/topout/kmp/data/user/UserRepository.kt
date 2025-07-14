@@ -1,4 +1,8 @@
 package com.topout.kmp.data.user
 
-class UserRepository {
+import com.topout.kmp.data.Result
+import com.topout.kmp.models.User
+
+interface UserRepository {
+    suspend fun getUser():Result<User, UserError>
 }

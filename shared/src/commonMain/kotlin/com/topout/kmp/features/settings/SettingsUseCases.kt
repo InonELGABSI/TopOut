@@ -1,4 +1,7 @@
 package com.topout.kmp.features.settings
 
-class SettingsUseCases {
-}
+import com.topout.kmp.domain.GetSettings
+
+data class SettingsUseCases (
+    val getSettings: GetSettings
+)

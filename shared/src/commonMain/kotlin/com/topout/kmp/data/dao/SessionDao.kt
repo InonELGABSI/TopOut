@@ -4,22 +4,23 @@ import com.topout.kmp.SessionEntity
 import com.topout.kmp.SessionsQueries
 import com.topout.kmp.models.Session
 import com.topout.kmp.utils.extensions.toSession
+import dev.gitlive.firebase.firestore.Timestamp
 
 class SessionDao(
     private val queries: SessionsQueries
 ) {
 
-    fun getSessionById(id: Long) : Session {
+    fun getSessionById(id: String) : Session {
         return queries.getSessionById(id).executeAsOne().toSession()
     }
     fun getAllSessions():List<Session> {
         return queries.getAllSessions().executeAsList().map { it.toSession() }
     }
 
-     fun insertSession(session: Session) {
-        queries.insertSession(
-            id = session.id?.toLong(),
-            userId = session.userId?.toLong(),
+    fun saveSession(session: Session) {
+        queries.saveSession(
+            id = session.id,
+            userId = session.userId,
             title = session.title,
             startTime = session.startTime,
             endTime = session.endTime,
@@ -32,12 +33,30 @@ class SessionDao(
             createdAt = session.createdAt,
             graphImageUrl = session.graphImageUrl
         )
-
     }
 
-     fun deleteSession(sessionId: Int) {
-        queries.deleteSession(sessionId.toLong())
+    fun deleteSession(session: Session) {
+        session.id.let { queries.deleteSession(id= it) }
+    }
+
+    fun updateSessionSummary(
+        id: String,
+        endTime: Long,
+        totalAscent: Double?,
+        totalDescent: Double?,
+        maxAltitude: Double?,
+        minAltitude: Double?,
+        avgRate: Double?
+    ) {
+        queries.updateSessionSummary(
+            endTime,
+            totalAscent,
+            totalDescent,
+            maxAltitude,
+            minAltitude,
+            avgRate,
+            id
+        )
     }
 
 }
-

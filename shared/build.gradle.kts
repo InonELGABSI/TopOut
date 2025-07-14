@@ -50,6 +50,12 @@ kotlin {
             implementation(libs.koin.androidx.compose)
 
             implementation(libs.android.driver)
+            implementation(project.dependencies.platform(libs.firebase.bom))
+
+            implementation(libs.play.services.location)
+            // optional – turns Task<T> into suspend functions
+            implementation(libs.kotlinx.coroutines.play.services)
+
         }
         commonMain.dependencies {
 
@@ -57,10 +63,13 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.test)
 
-            implementation(project.dependencies.platform(libs.firebase.bom))
+
             implementation(libs.firebase.firestore)
             implementation(libs.firebase.common)
             implementation(libs.firebase.auth)
+            implementation(project.dependencies.platform(libs.firebase.bom))
+
+            implementation(libs.kotlinx.datetime.v041)
 
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kermit)
@@ -97,3 +106,4 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
 }
+

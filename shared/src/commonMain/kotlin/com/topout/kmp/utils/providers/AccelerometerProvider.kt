@@ -1,5 +1,7 @@
 package com.topout.kmp.utils.providers
+import com.topout.kmp.models.sensor.AccelerationData
 
 expect class AccelerometerProvider {
-    suspend fun getAccelerometerData(): List<Float>   // [x, y, z]
+    /** Single, one-shot read – handy for suspend & forget. */
+    suspend fun getAcceleration(): AccelerationData
 }

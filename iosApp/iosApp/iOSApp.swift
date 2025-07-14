@@ -6,7 +6,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         
         FirebaseApp.configure()
-        
         return true
     }
 }
@@ -19,19 +18,14 @@ struct iOSApp: App {
 
     init() {
         KoinKt.doInitKoin()
+        Task { try? await (KoinKt.getKoin().get(objCClass: EnsureAnonymousUser.self) as! EnsureAnonymousUser).invoke() }
+
     }
     
     var body: some Scene {
         WindowGroup {
             TabView {
                 
-//                MoviesScreen(viewModel: .init()).tabItem {
-//                    Label("Movies", systemImage: "film")
-//                }
-//                
-//                FavouritesMoviesScreen(viewModel: .init()).tabItem {
-//                    Label("Favorites", systemImage: "heart")
-//                }
             }
         }
     }

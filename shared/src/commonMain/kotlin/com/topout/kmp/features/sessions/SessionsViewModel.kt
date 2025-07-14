@@ -4,6 +4,7 @@ import com.topout.kmp.features.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import com.topout.kmp.data.Result
 
 class SessionsViewModel (
     private val useCases: SessionsUseCases
@@ -18,10 +19,9 @@ class SessionsViewModel (
 
     private fun fetchSessions() {
         scope.launch {
-            val result = useCases.getSessions()
-            when(result) {
+            when (val result = useCases.getSessions()) {
                 is Result.Success -> {
-                    _uiState.emit(SessionsState.Loaded(result.data ?: Sessions(emptyList())))
+                    _uiState.emit(SessionsState.Loaded(result.data ))
                 }
                 is Result.Failure -> {
                     _uiState.emit(SessionsState.Error(errorMessage = result.error?.message ?: "N/A"))
@@ -30,6 +30,3 @@ class SessionsViewModel (
         }
     }
 }
-
-
-
