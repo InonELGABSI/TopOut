@@ -1,7 +1,8 @@
 package com.topout.kmp
-
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
@@ -16,12 +17,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,6 +37,7 @@ import com.topout.kmp.features.LiveSessionScreen
 import com.topout.kmp.features.SettingsScreen
 import com.topout.kmp.models.Session
 import com.topout.kmp.shared_components.BottomNavigationBar
+import org.koin.compose.KoinContext  // add this import
 
 
 sealed class NavTab(val route: String, val title: String) {
@@ -54,70 +58,91 @@ class MainActivity : ComponentActivity() {
         FirebaseApp.initializeApp(this)
 
         setContent {
-            MaterialTheme {
-                val navController = rememberNavController()
-                var selectedTab by remember { mutableStateOf<NavTab>(NavTab.History) }
+            KoinContext {
+                MaterialTheme {
+                    val navController = rememberNavController()
+                    var selectedTab by remember { mutableStateOf<NavTab>(NavTab.History) }
 
-                Scaffold (
-                    topBar = {
-                        val navBackStackEntry by navController.currentBackStackEntryAsState()
-                        val sessionId = navBackStackEntry?.arguments?.getString("sessionId")
-                        val currentRoute = navBackStackEntry?.destination?.route
-                        val isSessionScreen = currentRoute == "session"
-                        val appBarTitle: String = when {
-                            currentRoute?.startsWith("session/") == true -> sessionId ?: "Session"
-                            else -> "Sessions"
-                        }
-                        AppBar(
-                            title = appBarTitle,
-                            showBackButton = isSessionScreen,
-                            onBackClick = { navController.popBackStack() }
-                        )
-
-                    },
-                    bottomBar = {
-                        BottomNavigationBar(
-                            selectedTab = selectedTab,
-                            onTabSelected = {
-                                selectedTab = it
-                                navController.navigate(it.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        )
+                    // --- Permission State ---
+                    var hasLocationPermission by remember { mutableStateOf(false) }
+                    // Compose launcher for permission request
+                    val launcher = rememberLauncherForActivityResult(
+                        contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+                    ) { isGranted ->
+                        hasLocationPermission = isGranted
                     }
-                ) { innerPadding ->
 
-                    NavHost(
-                        navController = navController,
-                        startDestination = NavTab.History.route,
-                        modifier = Modifier.padding(innerPadding)
-                    ){
-                        composable(NavTab.Home.route) {
-                            HomeScreen()
-                        }
+                    // Check permission initially
+                    LaunchedEffect(Unit) {
+                        val granted = ContextCompat.checkSelfPermission(
+                            this@MainActivity,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                        hasLocationPermission = granted
+                    }
 
-                        composable(NavTab.Settings.route) {
-                            SettingsScreen()
-                        }
+                    Scaffold(
+                        topBar = {
+                            val navBackStackEntry by navController.currentBackStackEntryAsState()
+                            val sessionId = navBackStackEntry?.arguments?.getString("sessionId")
+                            val currentRoute = navBackStackEntry?.destination?.route
+                            val isSessionScreen = currentRoute == "session"
+                            val appBarTitle: String = when {
+                                currentRoute?.startsWith("session/") == true -> sessionId
+                                    ?: "Session"
 
-                        composable(NavTab.History.route) {
-                            HistoryScreen(
-                                onSessionClick = { session ->
-                                    navController.navigateToSession(session)
+                                else -> "Sessions"
+                            }
+                            AppBar(
+                                title = appBarTitle,
+                                showBackButton = isSessionScreen,
+                                onBackClick = { navController.popBackStack() }
+                            )
+                        },
+                        bottomBar = {
+                            BottomNavigationBar(
+                                selectedTab = selectedTab,
+                                onTabSelected = {
+                                    selectedTab = it
+                                    navController.navigate(it.route) {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
                             )
                         }
-
-                        composable(NavTab.LiveSession.route) {
-                            LiveSessionScreen()
+                    ) { innerPadding ->
+                        NavHost(
+                            navController = navController,
+                            startDestination = NavTab.History.route,
+                            modifier = Modifier.padding(innerPadding)
+                        ) {
+                            composable(NavTab.Home.route) {
+                                HomeScreen()
+                            }
+                            composable(NavTab.Settings.route) {
+                                SettingsScreen()
+                            }
+                            composable(NavTab.History.route) {
+                                HistoryScreen(
+                                    onSessionClick = { session ->
+                                        navController.navigateToSession(session)
+                                    }
+                                )
+                            }
+                            composable(NavTab.LiveSession.route) {
+                                LiveSessionScreen(
+                                    hasLocationPermission = hasLocationPermission,
+                                    onRequestLocationPermission = {
+                                        launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                                    }
+                                )
+                            }
                         }
                     }
-                    // Main content of the app
                 }
             }
         }

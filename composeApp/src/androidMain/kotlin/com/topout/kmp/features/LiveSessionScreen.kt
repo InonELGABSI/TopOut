@@ -21,6 +21,8 @@ import org.koin.androidx.compose.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiveSessionScreen(
+    hasLocationPermission: Boolean,
+    onRequestLocationPermission: () -> Unit,
     viewModel: LiveSessionViewModel = koinViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsState().value
@@ -46,7 +48,9 @@ fun LiveSessionScreen(
         ) {
             when (uiState) {
                 is LiveSessionState.Loading -> StartSessionContent(
-                    onStartClick = { viewModel.onStartClicked() }
+                    hasLocationPermission = hasLocationPermission,
+                    onStartClick = { viewModel.onStartClicked() },
+                    onRequestLocationPermission = onRequestLocationPermission
                 )
                 is LiveSessionState.Loaded -> ActiveSessionContent(
                     trackPoint = uiState.trackPoint,
@@ -63,7 +67,9 @@ fun LiveSessionScreen(
 
 @Composable
 fun StartSessionContent(
-    onStartClick: () -> Unit
+    hasLocationPermission: Boolean,
+    onStartClick: () -> Unit,
+    onRequestLocationPermission: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -116,7 +122,13 @@ fun StartSessionContent(
         Spacer(modifier = Modifier.height(48.dp))
 
         Button(
-            onClick = onStartClick,
+            onClick = {
+                if (hasLocationPermission) {
+                    onStartClick()
+                } else {
+                    onRequestLocationPermission()
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
