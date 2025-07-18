@@ -18,7 +18,8 @@ class LiveSessionManager(
     private val aggregator = SensorAggregator(
         accelFlow = sensors.accelFlow,
         altFlow   = sensors.baroFlow,
-        locFlow   = sensors.locFlow
+        locFlow   = sensors.locFlow,
+        hz = 1000L           // <-- Now emits 10x per second!
     )
     private var tracker: SessionTracker? = null
 

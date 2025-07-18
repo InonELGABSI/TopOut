@@ -31,7 +31,7 @@ actual class SensorDataSource(
         baroProvider.getBarometerReading()
     }
 
-    actual val locFlow  : Flow<LocationData>     = sensorLoop(1_000) { // 1 Hz
+    actual val locFlow  : Flow<LocationData>     = sensorLoop(100) { // 10 Hz
         locProvider.getLocation()
     }
 

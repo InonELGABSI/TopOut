@@ -10,7 +10,7 @@ class SensorAggregator(
     private val accelFlow: Flow<AccelerationData>,
     private val altFlow: Flow<AltitudeData>,
     private val locFlow: Flow<LocationData>,
-    private val hz: Long = 1_000L
+    private val hz: Long = 50L
 ) {
     data class Aggregate(
         val accel: AccelerationData?,
@@ -32,7 +32,6 @@ class SensorAggregator(
 
     @OptIn(FlowPreview::class)
     val aggregateFlow: Flow<Aggregate> = _tick
-        .sample(hz)
         .map {
             Aggregate(
                 accel = latestAccel,

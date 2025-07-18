@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin") version "2.0.1"
     id("com.google.gms.google-services")
 }
 
@@ -55,6 +55,7 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+
     }
     packaging {
         resources {
@@ -93,6 +94,11 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.ui.graphics)
     debugImplementation(compose.uiTooling)
+
+
+    implementation(libs.maps.compose)
+    implementation(libs.maps.compose.utils)
+    implementation(libs.maps.compose.widgets)
 
 
 }

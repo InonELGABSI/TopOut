@@ -12,10 +12,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+
+import com.topout.kmp.map.LiveMap
 import com.topout.kmp.features.live_session.LiveSessionState
 import com.topout.kmp.features.live_session.LiveSessionViewModel
 import com.topout.kmp.models.TrackPoint
+import com.topout.kmp.utils.extensions.latLngOrNull
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -155,12 +157,21 @@ fun ActiveSessionContent(
     trackPoint: TrackPoint,
     onStopClick: () -> Unit
 ) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+
+        LiveMap(
+            location = trackPoint.latLngOrNull(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+        )
+
         // Session Status Card
         SessionStatusCard(trackPoint = trackPoint)
 
@@ -507,4 +518,3 @@ fun ErrorContent(
         }
     }
 }
-
