@@ -107,22 +107,22 @@ class RemoteFirebaseRepository : FirebaseRepository {
         }
     }
 
-    override suspend fun createSession(): Result<Session, SessionsError> {
+    override suspend fun createSession(session: Session): Result<Session, SessionsError> {
         val uid = auth.currentUser?.uid
             ?: return Result.Failure(SessionsError("User not authenticated"))
 
         return try {
             val now = Clock.System.now()
 
-            val session = Session(
-                userId     = uid,
-                title      = now.asSessionTitle(),
+            val updatedSession = session.copy(
+                userId = uid,
+                title = now.asSessionTitle()
             )
 
             // write with the deterministic id generated in Session()
-            sessionsCollection.document(session.id).set(session)
+            sessionsCollection.document(updatedSession.id).set(updatedSession)
 
-            Result.Success(session)
+            Result.Success(updatedSession)
         } catch (e: Exception) {
             Result.Failure(SessionsError(e.message ?: "Failed to create session"))
         }

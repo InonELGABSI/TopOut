@@ -45,7 +45,7 @@ class FinishSession(
         val updated = sessionDao.getSessionById(sessionId)
 
         // 4️⃣ PUSH to FIRESTORE via FirebaseRepository
-        firebaseRepository.updateSession(updated)          // summary doc
+        firebaseRepository.createSession(updated)
         firebaseRepository.pushTrackPoints(sessionId, points) // sub-collection
 
         // 5️⃣ CLEAN UP local points

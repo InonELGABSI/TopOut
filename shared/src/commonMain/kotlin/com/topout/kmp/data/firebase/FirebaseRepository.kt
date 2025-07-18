@@ -9,7 +9,7 @@ import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.models.User
 
 interface FirebaseRepository {
-    suspend fun createSession() : Result<Session, SessionsError>
+    suspend fun createSession(session: Session) : Result<Session, SessionsError>
 
     suspend fun getSessions() : Result<List<Session>, SessionsError>
 
