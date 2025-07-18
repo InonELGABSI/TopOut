@@ -16,18 +16,23 @@ import kotlinx.coroutines.launch
 
 /**
  * Live‑tracking Google Map that keeps the camera centred on [location] and
- * provides simple “+ / –” zoom buttons.
+ * provides simple “+ / –” zoom buttons. Optionally displays a route based on [trackPoints].
  */
 @Composable
 fun LiveMap(
     location: com.topout.kmp.models.LatLng?,
+    trackPoints: List<com.topout.kmp.models.TrackPoint>? = null,
     modifier: Modifier = Modifier,
     initialZoom: Float = 17f
 ) {
     /* ── state ---------------------------------------------------------------- */
     val coroutineScope = rememberCoroutineScope()
+    val isRouteMode = !trackPoints.isNullOrEmpty()
 
-    val target = location?.toLatLng() ?: LatLng(32.0853, 34.7818) // Tel‑Aviv fallback
+    val target = when {
+        isRouteMode -> trackPoints!!.mapNotNull { it.latLngOrNull() }.firstOrNull()?.toLatLng()
+        else -> location?.toLatLng()
+    } ?: LatLng(32.0853, 34.7818) // Tel‑Aviv fallback
 
     val cameraState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(target, initialZoom)
@@ -36,11 +41,33 @@ fun LiveMap(
     // MarkerState MUST be remembered – prevents “state object during composition” warning
     val markerState = remember { MarkerState(position = target) }
 
-    /* ── follow the climber --------------------------------------------------- */
+    /* ── follow the climber (live mode) --------------------------------------- */
     LaunchedEffect(location) {
-        location?.let {
-            markerState.position = it.toLatLng()                       // move marker
-            cameraState.animate(CameraUpdateFactory.newLatLng(it.toLatLng()))
+        if (!isRouteMode) {
+            location?.let {
+                val latLng = it.toLatLng()
+                markerState.position = latLng // move marker
+                cameraState.animate(CameraUpdateFactory.newLatLng(latLng))
+            }
+        }
+    }
+
+    /* ── show the whole route (route mode) ------------------------------------ */
+    LaunchedEffect(trackPoints) {
+        if (isRouteMode) {
+            val points = trackPoints!!.mapNotNull { it.latLngOrNull()?.toLatLng() }
+            if (points.size > 1) {
+                val boundsBuilder = com.google.android.gms.maps.model.LatLngBounds.builder()
+                points.forEach { boundsBuilder.include(it) }
+                try {
+                    val bounds = boundsBuilder.build()
+                    cameraState.move(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+                } catch (e: IllegalStateException) {
+                    // Log error or handle, e.g. when no valid points
+                }
+            } else if (points.isNotEmpty()) {
+                cameraState.move(CameraUpdateFactory.newLatLngZoom(points.first(), initialZoom))
+            }
         }
     }
 
@@ -55,11 +82,20 @@ fun LiveMap(
                 myLocationButtonEnabled = false
             )
         ) {
-            Marker(
-                state = markerState,
-                title = "You",
-                snippet = "Live location"
-            )
+            if (isRouteMode) {
+                val points = trackPoints!!.mapNotNull { it.latLngOrNull()?.toLatLng() }
+                if (points.isNotEmpty()) {
+                    Polyline(points = points, color = MaterialTheme.colorScheme.primary, width = 10f)
+                    points.firstOrNull()?.let { Marker(MarkerState(position = it), title = "Start") }
+                    points.lastOrNull()?.let { Marker(MarkerState(position = it), title = "End") }
+                }
+            } else {
+                Marker(
+                    state = markerState,
+                    title = "You",
+                    snippet = "Live location"
+                )
+            }
         }
 
         /* floating “+ / –” buttons */
@@ -87,6 +123,16 @@ private fun ZoomButton(label: String, onClick: () -> Unit) =
 
 private fun com.topout.kmp.models.LatLng.toLatLng() =
     LatLng(latitude, longitude)
+
+private fun com.topout.kmp.models.TrackPoint.latLngOrNull(): com.topout.kmp.models.LatLng? {
+    val lat = latitude
+    val lon = longitude
+    return if (lat != null && lon != null) {
+        com.topout.kmp.models.LatLng(lat, lon)
+    } else {
+        null
+    }
+}
 
 /** Zooms the camera by [delta] steps (+ for in, – for out). Must be called inside a coroutine. */
 private suspend fun CameraPositionState.zoomBy(delta: Float) =
