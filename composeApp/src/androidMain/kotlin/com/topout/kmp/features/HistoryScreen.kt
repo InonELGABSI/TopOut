@@ -26,7 +26,6 @@ fun HistoryScreen(
     onSessionClick: (Session) -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsState().value
-//    val uiState = createDummyUiState("loaded") // Change to "loading", "error", "empty", or "loaded"
 
     Scaffold(
         topBar = {
@@ -50,15 +49,13 @@ fun HistoryScreen(
             when (uiState) {
                 is SessionsState.Error -> ErrorContent(message = uiState.errorMessage)
                 is SessionsState.Loaded -> {
-                    if (uiState.sessions?.isEmpty() == true) {
+                    if (uiState.sessions.isNullOrEmpty()) {
                         EmptyStateContent()
                     } else {
-                        uiState.sessions?.let {
-                            SessionsListContent(
-                                sessions = it,
-                                onSessionClicked = onSessionClick
-                            )
-                        }
+                        SessionsListContent(
+                            sessions = uiState.sessions ?: emptyList(),
+                            onSessionClicked = onSessionClick
+                        )
                     }
                 }
                 SessionsState.Loading -> LoadingContent()
@@ -69,7 +66,7 @@ fun HistoryScreen(
 
 @Composable
 fun SessionsListContent(
-    sessions: List<Session>,  // Remove the ?
+    sessions: List<Session>,
     onSessionClicked: (Session) -> Unit
 ) {
     LazyColumn(

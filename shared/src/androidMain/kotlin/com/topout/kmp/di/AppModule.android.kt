@@ -4,7 +4,7 @@ import app.cash.sqldelight.db.SqlDriver
 import com.topout.kmp.data.dao.DatabaseDriverFactory
 import com.topout.kmp.data.sensors.SensorDataSource
 import com.topout.kmp.features.live_session.LiveSessionViewModel
-import com.topout.kmp.features.session_details.SessionViewModel
+import com.topout.kmp.features.session_details.SessionDetailsViewModel
 import com.topout.kmp.features.sessions.SessionsViewModel
 import com.topout.kmp.features.settings.SettingsViewModel
 import com.topout.kmp.utils.providers.AccelerometerProvider
@@ -31,7 +31,7 @@ actual val platformModule = module {
 
     // ...your ViewModels, DB, etc
     viewModelOf(::SessionsViewModel)
-    viewModelOf(::SessionViewModel)
+    viewModelOf(::SessionDetailsViewModel)
     viewModelOf(::SettingsViewModel)
     viewModelOf(::LiveSessionViewModel)
 

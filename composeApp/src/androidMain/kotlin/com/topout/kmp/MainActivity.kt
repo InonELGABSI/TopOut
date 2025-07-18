@@ -35,6 +35,7 @@ import com.topout.kmp.features.HistoryScreen
 import com.topout.kmp.features.HomeScreen
 import com.topout.kmp.features.LiveSessionScreen
 import com.topout.kmp.features.SettingsScreen
+import com.topout.kmp.features.SessionDetailsScreen
 import com.topout.kmp.models.Session
 import com.topout.kmp.shared_components.BottomNavigationBar
 import org.koin.compose.KoinContext  // add this import
@@ -45,9 +46,9 @@ sealed class NavTab(val route: String, val title: String) {
     data object History : NavTab("history", "History")
     data object Settings : NavTab("settings", "Settings")
     data object LiveSession : NavTab("live_session", "Live Session")
-//    data object SessionDetail : NavTab("session/{sessionId}", "Session") {
-//        fun createRoute(sessionId: String) = "session/$sessionId"
-//    }
+    data object SessionDetail : NavTab("session/{sessionId}", "Session") {
+        fun createRoute(sessionId: String) = "session/$sessionId"
+    }
 }
 
 class MainActivity : ComponentActivity() {
@@ -86,11 +87,9 @@ class MainActivity : ComponentActivity() {
                             val navBackStackEntry by navController.currentBackStackEntryAsState()
                             val sessionId = navBackStackEntry?.arguments?.getString("sessionId")
                             val currentRoute = navBackStackEntry?.destination?.route
-                            val isSessionScreen = currentRoute == "session"
+                            val isSessionScreen = currentRoute == "session/{sessionId}"
                             val appBarTitle: String = when {
-                                currentRoute?.startsWith("session/") == true -> sessionId
-                                    ?: "Session"
-
+                                currentRoute == "session/{sessionId}" -> "Session Details"
                                 else -> "Sessions"
                             }
                             AppBar(
@@ -139,6 +138,13 @@ class MainActivity : ComponentActivity() {
                                     onRequestLocationPermission = {
                                         launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
                                     }
+                                )
+                            }
+                            composable(NavTab.SessionDetail.route) { backStackEntry ->
+                                val sessionId = backStackEntry.arguments?.getString("sessionId") ?: ""
+                                SessionDetailsScreen(
+                                    sessionId = sessionId,
+                                    onNavigateBack = { navController.popBackStack() }
                                 )
                             }
                         }

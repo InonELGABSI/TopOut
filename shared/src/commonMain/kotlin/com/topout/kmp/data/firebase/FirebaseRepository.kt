@@ -2,7 +2,6 @@ package com.topout.kmp.data.firebase
 
 import com.topout.kmp.data.sessions.SessionsError
 import com.topout.kmp.models.Session
-import com.topout.kmp.models.Sessions
 import com.topout.kmp.data.Result
 import com.topout.kmp.data.user.UserError
 import com.topout.kmp.models.TrackPoint
@@ -17,7 +16,7 @@ interface FirebaseRepository {
 
     suspend fun updateSession(session: Session)
 
-    suspend fun deleteSession(sessionId: String)
+    suspend fun deleteSession(sessionId: String) : Result<Unit, SessionsError>
 
     suspend fun signInAnonymously() : Result<User, UserError>
 
@@ -26,5 +25,9 @@ interface FirebaseRepository {
     suspend fun ensureUserDocument(): Result<Unit, UserError>
 
     suspend fun pushTrackPoints(sessionId: String, points: List<TrackPoint>)
+
+    suspend fun getSessionById(sessionId: String): Result<Session?, SessionsError>
+
+    suspend fun getTrackPointsBySession(sessionId: String): Result<List<TrackPoint>, SessionsError>
 
 }

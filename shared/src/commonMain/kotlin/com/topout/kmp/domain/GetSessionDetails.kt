@@ -2,17 +2,19 @@ package com.topout.kmp.domain
 
 import com.topout.kmp.data.Result
 import com.topout.kmp.data.Error
+import com.topout.kmp.data.firebase.FirebaseRepository
 import com.topout.kmp.data.sessions.SessionsRepository
 import com.topout.kmp.data.track_points.TrackPointsRepository
 import com.topout.kmp.models.SessionDetails
 
 class GetSessionDetails(
+    private val remoteFirebaseRepository: FirebaseRepository,
     private val sessionsRepo: SessionsRepository,
     private val pointsRepo: TrackPointsRepository
 ) {
     suspend operator fun invoke(sessionId: String): Result<SessionDetails, Error> {
-        val sessionResult = sessionsRepo.getSessionById(sessionId)
-        val pointsResult = pointsRepo.getBySession(sessionId)
+        val sessionResult = remoteFirebaseRepository.getSessionById(sessionId)
+        val pointsResult = remoteFirebaseRepository.getTrackPointsBySession(sessionId)
 
         return when {
             sessionResult is Result.Failure -> Result.Failure(sessionResult.error)

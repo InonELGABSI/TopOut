@@ -35,8 +35,8 @@ class SessionDao(
         )
     }
 
-    fun deleteSession(session: Session) {
-        session.id.let { queries.deleteSession(id= it) }
+    fun deleteSession(sessionId: String) {
+        queries.deleteSession(sessionId)
     }
 
     fun updateSessionSummary(

@@ -28,7 +28,6 @@ class LiveSessionManager(
     private suspend fun start(): Flow<TrackPoint> {
         sensors.start(scope)
         val result = sessionsRepo.createSession()
-            ?: error("Failed to create session (null Result)")
         return when (result) {
             is Result.Success -> {
                 val sessionId = result.data?.id

@@ -2,7 +2,6 @@ package com.topout.kmp.data.firebase
 
 import com.topout.kmp.data.user.UserError
 import com.topout.kmp.models.Session
-import com.topout.kmp.models.Sessions
 import com.topout.kmp.models.User
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
@@ -13,9 +12,7 @@ import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.utils.extensions.asSessionTitle
 import com.topout.kmp.utils.extensions.toFirestoreMap
 import com.topout.kmp.utils.extensions.toSession
-import dev.gitlive.firebase.firestore.DocumentSnapshot
-import io.ktor.util.date.getTimeMillis
-import dev.gitlive.firebase.firestore.Timestamp
+import com.topout.kmp.utils.extensions.toTrackPoint
 import kotlinx.datetime.Clock
 
 
@@ -32,7 +29,7 @@ class RemoteFirebaseRepository : FirebaseRepository {
                 ?: return Result.Failure(SessionsError("User not authenticated"))
 
             val sessions = sessionsCollection
-                .where { "userId" equalTo uid }
+                .where { "user_id" equalTo uid }
                 .get()
                 .documents
                 .map { it.toSession() }
@@ -57,8 +54,13 @@ class RemoteFirebaseRepository : FirebaseRepository {
         }
     }
 
-    override suspend fun deleteSession(sessionId: String) {
-        sessionsCollection.document(sessionId).delete()
+    override suspend fun deleteSession(sessionId: String): Result<Unit, SessionsError> {
+        return try {
+            sessionsCollection.document(sessionId).delete()
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to delete session"))
+        }
     }
 
     override suspend fun signInAnonymously(): Result<User, UserError> = try {
@@ -142,4 +144,32 @@ class RemoteFirebaseRepository : FirebaseRepository {
         batch.commit()                                                   // ✔ commit
     }
 
+
+    override suspend fun getSessionById(sessionId: String): Result<Session?, SessionsError> {
+        return try {
+            val doc = sessionsCollection.document(sessionId).get()
+            if (doc.exists) {
+                Result.Success(doc.toSession())
+            } else {
+                Result.Success(null)
+            }
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to get session by ID"))
+        }
+    }
+
+    override suspend fun getTrackPointsBySession(sessionId: String): Result<List<TrackPoint>, SessionsError> {
+        return try {
+            val points = sessionsCollection
+                .document(sessionId)
+                .collection("trackPoints")
+                .get()
+                .documents
+                .map { it.toTrackPoint() }
+
+            Result.Success(points)
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to get track points by session"))
+        }
+    }
 }

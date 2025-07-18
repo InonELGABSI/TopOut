@@ -43,8 +43,13 @@ class RemoteSessionsRepository (
     }
 
 
-    override suspend fun deleteSession(session: Session) {
-        sessionDao.deleteSession(session)
+    override suspend fun deleteSession(sessionId: String) : Result<Unit, SessionsError> {
+    return try {
+            sessionDao.deleteSession(sessionId)
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to delete session"))
+        }
     }
 
     override suspend fun createSession(): Result<Session, SessionsError> {
