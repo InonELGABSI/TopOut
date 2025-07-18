@@ -1,9 +1,6 @@
 // androidMain/…/SensorDataSource.kt
 package com.topout.kmp.data.sensors
 
-import android.hardware.*
-import android.os.Handler
-import android.os.HandlerThread
 import com.google.android.gms.location.*
 import com.topout.kmp.models.sensor.*
 import com.topout.kmp.utils.providers.AccelerometerProvider
@@ -11,9 +8,13 @@ import com.topout.kmp.utils.providers.BarometerProvider
 import com.topout.kmp.utils.providers.LocationProvider
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlinx.coroutines.channels.awaitClose   //  ← add this
+
+import kotlinx.coroutines.channels.awaitClose
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import android.os.Looper
+import android.annotation.SuppressLint
 
 actual class SensorDataSource(
     private val context: android.content.Context,
@@ -31,8 +32,32 @@ actual class SensorDataSource(
         baroProvider.getBarometerReading()
     }
 
-    actual val locFlow  : Flow<LocationData>     = sensorLoop(100) { // 10 Hz
-        locProvider.getLocation()
+    @SuppressLint("MissingPermission") // Permissions are checked in the UI layer before starting
+    actual val locFlow: Flow<LocationData> = callbackFlow {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000).apply {
+            setMinUpdateIntervalMillis(500)
+        }.build()
+
+        val locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                locationResult.locations.lastOrNull()?.let { location ->
+                    trySend(location.toModel()).isSuccess
+                }
+            }
+        }
+
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+
+        awaitClose {
+            println("🛑 SensorDataSource stopping location updates")
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
     }
 
     /* lifecycle */
@@ -53,3 +78,12 @@ actual class SensorDataSource(
             awaitClose { job.cancel() }
         }
 }
+
+private fun android.location.Location.toModel() = LocationData(
+    lat = latitude,
+    lon = longitude,
+    altitude = altitude,
+    speed = speed,
+    ts = System.currentTimeMillis()
+)
+

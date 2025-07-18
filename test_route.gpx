@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="TestRoute">
+  <trk>
+    <name>Israel Altitude Test Route</name>
+    <trkseg>
+      <trkpt lat="32.764901" lon="35.560412">
+        <ele>200</ele>
+        <time>2024-01-01T12:00:00Z</time>
+      </trkpt>
+      <trkpt lat="32.764818" lon="35.560296">
+        <ele>210</ele>
+        <time>2024-01-01T12:00:05Z</time>
+      </trkpt>
+      <trkpt lat="32.764725" lon="35.560204">
+        <ele>225</ele>
+        <time>2024-01-01T12:00:10Z</time>
+      </trkpt>
+      <trkpt lat="32.764632" lon="35.560112">
+        <ele>245</ele>
+        <time>2024-01-01T12:00:15Z</time>
+      </trkpt>
+      <trkpt lat="32.764547" lon="35.560011">
+        <ele>270</ele>
+        <time>2024-01-01T12:00:20Z</time>
+      </trkpt>
+      <trkpt lat="32.764462" lon="35.559917">
+        <ele>300</ele>
+        <time>2024-01-01T12:00:25Z</time>
+      </trkpt>
+      <trkpt lat="32.764377" lon="35.559822">
+        <ele>320</ele>
+        <time>2024-01-01T12:00:30Z</time>
+      </trkpt>
+      <trkpt lat="32.764288" lon="35.559731">
+        <ele>315</ele>
+        <time>2024-01-01T12:00:35Z</time>
+      </trkpt>
+      <trkpt lat="32.764201" lon="35.559638">
+        <ele>305</ele>
+        <time>2024-01-01T12:00:40Z</time>
+      </trkpt>
+      <trkpt lat="32.764114" lon="35.559545">
+        <ele>290</ele>
+        <time>2024-01-01T12:00:45Z</time>
+      </trkpt>
+      <trkpt lat="32.764027" lon="35.559453">
+        <ele>270</ele>
+        <time>2024-01-01T12:00:50Z</time>
+      </trkpt>
+      <trkpt lat="32.76394" lon="35.55936">
+        <ele>245</ele>
+        <time>2024-01-01T12:00:55Z</time>
+      </trkpt>
+      <trkpt lat="32.763853" lon="35.559268">
+        <ele>220</ele>
+        <time>2024-01-01T12:01:00Z</time>
+      </trkpt>
+      <trkpt lat="32.763766" lon="35.559175">
+        <ele>195</ele>
+        <time>2024-01-01T12:01:05Z</time>
+      </trkpt>
+      <trkpt lat="32.763679" lon="35.559083">
+        <ele>175</ele>
+        <time>2024-01-01T12:01:10Z</time>
+      </trkpt>
+      <trkpt lat="32.762374" lon="35.557695">
+        <ele>150</ele>
+        <time>2024-01-01T12:01:15Z</time>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>
