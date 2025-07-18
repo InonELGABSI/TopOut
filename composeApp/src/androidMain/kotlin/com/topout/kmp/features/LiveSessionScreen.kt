@@ -157,35 +157,55 @@ fun ActiveSessionContent(
     trackPoint: TrackPoint,
     onStopClick: () -> Unit
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-
+        // Smaller map at the top
         LiveMap(
             location = trackPoint.latLngOrNull(),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(150.dp)
         )
 
-        // Session Status Card
-        SessionStatusCard(trackPoint = trackPoint)
+        // Two-column layout for better use of space
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Left column
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Session Status
+                CompactSessionStatusCard(trackPoint = trackPoint)
 
-        // Location & GPS Data
-        LocationDataCard(trackPoint = trackPoint)
+                // Location & GPS Data
+                CompactLocationDataCard(trackPoint = trackPoint)
 
-        // Speed & Movement Metrics
-        SpeedMetricsCard(trackPoint = trackPoint)
+                // Accelerometer Data
+                CompactAccelerometerDataCard(trackPoint = trackPoint)
+            }
 
-        // Altitude & Climbing Data
-        AltitudeMetricsCard(trackPoint = trackPoint)
+            // Right column
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Speed & Movement Metrics
+                CompactSpeedMetricsCard(trackPoint = trackPoint)
 
-        // Alert Status
-        AlertStatusCard(trackPoint = trackPoint)
+                // Altitude & Climbing Data
+                CompactAltitudeMetricsCard(trackPoint = trackPoint)
+
+//                // Alert Status
+//                CompactAlertStatusCard(trackPoint = trackPoint)
+            }
+        }
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -194,18 +214,18 @@ fun ActiveSessionContent(
             onClick = onStopClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(50.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.error
             ),
-            shape = RoundedCornerShape(28.dp)
+            shape = RoundedCornerShape(25.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Stop,
                 contentDescription = null,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(20.dp)
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Stop Session",
                 style = MaterialTheme.typography.titleMedium.copy(
@@ -216,8 +236,352 @@ fun ActiveSessionContent(
     }
 }
 
+// Compact Cards for two-column layout
+
+@Composable
+fun CompactSessionStatusCard(trackPoint: TrackPoint) {
+    val timestamp = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault())
+        .format(java.util.Date(trackPoint.timestamp))
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.FiberManualRecord,
+                    contentDescription = "Recording",
+                    tint = Color.Red,
+                    modifier = Modifier.size(12.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Session Active",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = timestamp,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Text(
+                text = "ID: ${trackPoint.sessionId.take(8)}...",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun CompactLocationDataCard(trackPoint: TrackPoint) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            // Title
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Location",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Data grid
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                CompactMetricItem(
+                    label = "Lat",
+                    value = trackPoint.latitude?.let { "%.5f°".format(it) } ?: "N/A",
+                    modifier = Modifier.weight(1f)
+                )
+                CompactMetricItem(
+                    label = "Lon",
+                    value = trackPoint.longitude?.let { "%.5f°".format(it) } ?: "N/A",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                CompactMetricItem(
+                    label = "Altitude",
+                    value = trackPoint.altitude?.let { "%.1f m".format(it) } ?: "N/A"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CompactAccelerometerDataCard(trackPoint: TrackPoint) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            // Title
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Vibration,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Accelerometer",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Data grid
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                CompactMetricItem(
+                    label = "X",
+                    value = trackPoint.accelerationX?.let { "%.2f".format(it) } ?: "N/A",
+                    modifier = Modifier.weight(1f)
+                )
+                CompactMetricItem(
+                    label = "Y",
+                    value = trackPoint.accelerationY?.let { "%.2f".format(it) } ?: "N/A",
+                    modifier = Modifier.weight(1f)
+                )
+                CompactMetricItem(
+                    label = "Z",
+                    value = trackPoint.accelerationZ?.let { "%.2f".format(it) } ?: "N/A",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CompactSpeedMetricsCard(trackPoint: TrackPoint) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            // Title
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Speed,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Speed",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Data grid
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                CompactMetricItem(
+                    label = "V-Speed",
+                    value = "%.1f m/min".format(trackPoint.vVertical),
+                    modifier = Modifier.weight(1f)
+                )
+                CompactMetricItem(
+                    label = "H-Speed",
+                    value = "%.1f m/s".format(trackPoint.vHorizontal),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                CompactMetricItem(
+                    label = "Total",
+                    value = "%.1f m/s".format(trackPoint.vTotal),
+                    modifier = Modifier.weight(1f)
+                )
+                CompactMetricItem(
+                    label = "Avg-V",
+                    value = "%.1f m/min".format(trackPoint.avgVertical),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CompactAltitudeMetricsCard(trackPoint: TrackPoint) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            // Title
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Terrain,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Altitude",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Data grid
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                CompactMetricItem(
+                    label = "Gain",
+                    value = "%.1f m".format(trackPoint.gain),
+                    textColor = Color(0xFF4CAF50),
+                    modifier = Modifier.weight(1f)
+                )
+                CompactMetricItem(
+                    label = "Loss",
+                    value = "%.1f m".format(trackPoint.loss),
+                    textColor = Color(0xFFFF5722),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                CompactMetricItem(
+                    label = "Rel. Alt",
+                    value = "%.1f m".format(trackPoint.relAltitude)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CompactAlertStatusCard(trackPoint: TrackPoint) {
+    val alertColor = if (trackPoint.danger) Color(0xFFFF5722) else Color(0xFF4CAF50)
+    val alertText = if (trackPoint.danger) "⚠️ ${trackPoint.alertType.name}" else "✅ OK"
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (trackPoint.danger)
+                Color(0xFFFF5722).copy(alpha = 0.1f)
+            else
+                Color(0xFF4CAF50).copy(alpha = 0.1f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = if (trackPoint.danger) Icons.Default.Warning else Icons.Default.CheckCircle,
+                contentDescription = "Alert Status",
+                tint = alertColor,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = alertText,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = alertColor
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun CompactMetricItem(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    textColor: Color = MaterialTheme.colorScheme.onSurface
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.Bold,
+                color = textColor
+            ),
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
 @Composable
 fun SessionStatusCard(trackPoint: TrackPoint) {
+    val timestamp = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+        .format(java.util.Date(trackPoint.timestamp))
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -244,11 +608,20 @@ fun SessionStatusCard(trackPoint: TrackPoint) {
                 ),
                 modifier = Modifier.weight(1f)
             )
-            Text(
-                text = "Session ID: ${trackPoint.sessionId.take(8)}...",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = "Session ID: ${trackPoint.sessionId.take(8)}...",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Timestamp: $timestamp",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -281,6 +654,35 @@ fun LocationDataCard(trackPoint: TrackPoint) {
             label = "GPS Altitude",
             value = trackPoint.altitude?.let { "%.1f m".format(it) } ?: "N/A"
         )
+    }
+}
+
+@Composable
+fun AccelerometerDataCard(trackPoint: TrackPoint) {
+    MetricCard(
+        title = "Accelerometer Data",
+        icon = Icons.Default.Vibration // Using a suitable icon from Material Icons
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            MetricItem(
+                label = "X-Axis",
+                value = trackPoint.accelerationX?.let { "%.2f".format(it) } ?: "N/A",
+                modifier = Modifier.weight(1f)
+            )
+            MetricItem(
+                label = "Y-Axis",
+                value = trackPoint.accelerationY?.let { "%.2f".format(it) } ?: "N/A",
+                modifier = Modifier.weight(1f)
+            )
+            MetricItem(
+                label = "Z-Axis",
+                value = trackPoint.accelerationZ?.let { "%.2f".format(it) } ?: "N/A",
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 
