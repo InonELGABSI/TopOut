@@ -32,7 +32,8 @@ class SessionTracker(
     fun start() {
         collectJob = scope.launch {
             aggregator.aggregateFlow.collect { sample ->
-                val alt = sample.altitude?.altitude ?: lastAlt
+                // Prioritize GPS altitude when available, fallback to barometric
+                val alt = sample.location?.altitude ?: sample.altitude?.altitude ?: lastAlt
                 if (startAltitude.value == null && alt != null) startAltitude.value = alt
 
                 val vVert = if (alt != null && lastAlt != null) {

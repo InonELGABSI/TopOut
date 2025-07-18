@@ -49,7 +49,7 @@ actual class LocationProvider(private val context: Context) {
                     .addOnSuccessListener { location ->
                         if (location != null) {
                             val locationData = location.toModel()
-                            println("✅ Got location: lat=${locationData.lat}, lon=${locationData.lon}")
+                            println("✅ Got location: lat=${locationData.lat}, lon=${locationData.lon}, altitude=${locationData.altitude}")
                             cont.resume(locationData)
                         } else {
                             // Fallback to lastLocation if getCurrentLocation returns null
@@ -57,7 +57,7 @@ actual class LocationProvider(private val context: Context) {
                                 .addOnSuccessListener { lastLoc ->
                                     if (lastLoc != null) {
                                         val locationData = lastLoc.toModel()
-                                        println("✅ Got lastLocation: lat=${locationData.lat}, lon=${locationData.lon}")
+                                        println("✅ Got lastLocation: lat=${locationData.lat}, lon=${locationData.lon}, altitude=${locationData.altitude}")
                                         cont.resume(locationData)
                                     } else {
                                         cont.resumeWithException(
@@ -77,7 +77,7 @@ actual class LocationProvider(private val context: Context) {
                             .addOnSuccessListener { lastLoc ->
                                 if (lastLoc != null) {
                                     val locationData = lastLoc.toModel()
-                                    println("✅ Got lastLocation fallback: lat=${locationData.lat}, lon=${locationData.lon}")
+                                    println("✅ Got lastLocation fallback: lat=${locationData.lat}, lon=${locationData.lon}, altitude=${locationData.altitude}")
                                     cont.resume(locationData)
                                 } else {
                                     cont.resumeWithException(error)
