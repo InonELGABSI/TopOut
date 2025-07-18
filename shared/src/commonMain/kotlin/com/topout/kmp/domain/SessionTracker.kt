@@ -33,13 +33,15 @@ class SessionTracker(
         collectJob = scope.launch {
             aggregator.aggregateFlow.collect { sample ->
                 // Prioritize GPS altitude when available, fallback to barometric
-                val alt = sample.location?.altitude ?: sample.altitude?.altitude ?: lastAlt
-                if (startAltitude.value == null && alt != null) startAltitude.value = alt
+                val alt = sample.location?.altitude ?: sample.altitude?.altitude
+                if (startAltitude.value == null && alt != null) {
+                    startAltitude.value = alt
+                    println("🏔️ SessionTracker: Set start altitude to $alt meters")
+                }
 
                 val vVert = if (alt != null && lastAlt != null) {
                     RateCalculator.verticalSpeedMetersPerMinute(lastAlt!!, alt)
                 } else 0.0
-                lastAlt = alt
 
                 val vHorizon = sample.location?.speed?.toDouble() ?: 0.0
                 val vTotal = kotlin.math.sqrt(vVert * vVert + vHorizon * vHorizon)
@@ -51,6 +53,10 @@ class SessionTracker(
 
                 vertDistSum += kotlin.math.abs(vVert)
                 vertSampleCount++
+
+                if (alt != null) {
+                    lastAlt = alt
+                }
 
                 val relAltitude = if (alt != null && startAltitude.value != null)
                     alt - startAltitude.value!! else 0.0

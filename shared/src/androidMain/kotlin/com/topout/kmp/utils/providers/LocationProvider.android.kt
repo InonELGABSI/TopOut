@@ -104,7 +104,7 @@ actual class LocationProvider(private val context: Context) {
     private fun android.location.Location.toModel() = LocationData(
         lat = latitude,
         lon = longitude,
-        altitude = altitude,
+        altitude = if (hasAltitude()) altitude else 0.0, // Only use altitude if available
         speed = speed,
         ts = System.currentTimeMillis()
     )

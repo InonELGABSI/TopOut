@@ -19,7 +19,7 @@ class LiveSessionManager(
         accelFlow = sensors.accelFlow,
         altFlow   = sensors.baroFlow,
         locFlow   = sensors.locFlow,
-        hz = 1_000L           // Match location update rate - 1 second ticks
+        hz = 20L           // 50Hz ticks
     )
     private var tracker: SessionTracker? = null
 
