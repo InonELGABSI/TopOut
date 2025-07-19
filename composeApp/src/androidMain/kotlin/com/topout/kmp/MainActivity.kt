@@ -137,6 +137,21 @@ class MainActivity : ComponentActivity() {
                                     hasLocationPermission = hasLocationPermission,
                                     onRequestLocationPermission = {
                                         launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                                    },
+                                    onNavigateToSessionDetails = { sessionId ->
+                                        // Navigate to session details and clear live session from back stack
+                                        navController.navigate("session/$sessionId") {
+                                            // Remove live session from back stack
+                                            popUpTo(NavTab.LiveSession.route) {
+                                                inclusive = true
+                                            }
+                                            // Set history as the parent destination
+                                            popUpTo(NavTab.History.route) {
+                                                saveState = true
+                                            }
+                                        }
+                                        // Update selected tab to history so back navigation is correct
+                                        selectedTab = NavTab.History
                                     }
                                 )
                             }

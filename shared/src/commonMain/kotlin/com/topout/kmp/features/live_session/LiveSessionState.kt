@@ -6,6 +6,10 @@ sealed class LiveSessionState {
     data class Loaded(
         val trackPoint: TrackPoint
     ) : LiveSessionState()
+    object Stopping : LiveSessionState()
+    data class SessionStopped(
+        val sessionId: String
+    ) : LiveSessionState()
     data class Error(
         var errorMessage: String
     ) : LiveSessionState()

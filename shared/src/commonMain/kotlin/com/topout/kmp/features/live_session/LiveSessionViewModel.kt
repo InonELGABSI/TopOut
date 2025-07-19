@@ -36,14 +36,29 @@ class LiveSessionViewModel(
     fun onStopClicked(sessionId: String) {
         trackPointJob?.cancel()
         trackPointJob = null
-        useCases.startSession.stop()
+
+        // Set stopping state to show loading UI
+        _uiState.value = LiveSessionState.Stopping
+
         scope.launch {
             try {
+                // Stop the session tracking
+                useCases.startSession.stop()
+
+                // Finish and save the session
                 val details = useCases.finishSession(sessionId)
-                _uiState.value = LiveSessionState.Loading
+
+                // Navigate to session details
+                _uiState.value = LiveSessionState.SessionStopped(sessionId)
             } catch (e: Exception) {
                 _uiState.value = LiveSessionState.Error(e.message ?: "Error finishing session")
             }
         }
+    }
+
+    fun resetToInitialState() {
+        trackPointJob?.cancel()
+        trackPointJob = null
+        _uiState.value = LiveSessionState.Loading
     }
 }

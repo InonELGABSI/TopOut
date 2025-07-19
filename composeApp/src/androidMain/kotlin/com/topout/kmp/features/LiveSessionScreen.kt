@@ -25,9 +25,22 @@ import org.koin.androidx.compose.koinViewModel
 fun LiveSessionScreen(
     hasLocationPermission: Boolean,
     onRequestLocationPermission: () -> Unit,
+    onNavigateToSessionDetails: (String) -> Unit = {},
     viewModel: LiveSessionViewModel = koinViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsState().value
+
+    // Reset to initial state when entering the screen
+    LaunchedEffect(Unit) {
+        viewModel.resetToInitialState()
+    }
+
+    // Handle navigation when session is stopped
+    LaunchedEffect(uiState) {
+        if (uiState is LiveSessionState.SessionStopped) {
+            onNavigateToSessionDetails(uiState.sessionId)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -58,6 +71,10 @@ fun LiveSessionScreen(
                     trackPoint = uiState.trackPoint,
                     onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) }
                 )
+                is LiveSessionState.Stopping -> StoppingSessionContent()
+                is LiveSessionState.SessionStopped -> {
+                    // Navigation handled in LaunchedEffect
+                }
                 is LiveSessionState.Error -> ErrorContent(
                     errorMessage = uiState.errorMessage,
                     onRetryClick = { viewModel.onStartClicked() }
@@ -233,6 +250,27 @@ fun ActiveSessionContent(
                 )
             )
         }
+    }
+}
+
+@Composable
+fun StoppingSessionContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        CircularProgressIndicator()
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Stopping Session...",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
