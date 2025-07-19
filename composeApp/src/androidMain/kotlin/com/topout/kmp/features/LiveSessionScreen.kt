@@ -17,6 +17,7 @@ import com.topout.kmp.map.LiveMap
 import com.topout.kmp.features.live_session.LiveSessionState
 import com.topout.kmp.features.live_session.LiveSessionViewModel
 import com.topout.kmp.models.TrackPoint
+import com.topout.kmp.shared_components.ConfirmationDialog
 import com.topout.kmp.utils.extensions.latLngOrNull
 import org.koin.androidx.compose.koinViewModel
 
@@ -174,6 +175,9 @@ fun ActiveSessionContent(
     trackPoint: TrackPoint,
     onStopClick: () -> Unit
 ) {
+    // State for stop confirmation dialog
+    var showStopDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -229,7 +233,7 @@ fun ActiveSessionContent(
 
         // Stop Button
         Button(
-            onClick = onStopClick,
+            onClick = { showStopDialog = true },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
@@ -252,6 +256,19 @@ fun ActiveSessionContent(
             )
         }
     }
+
+    // Stop session confirmation dialog
+    ConfirmationDialog(
+        isVisible = showStopDialog,
+        title = "Stop Session",
+        message = "Are you sure you want to stop this climbing session? Your progress will be saved.",
+        confirmText = "Stop Session",
+        cancelText = "Continue",
+        icon = Icons.Default.Stop,
+        isDestructive = true,
+        onConfirm = onStopClick,
+        onDismiss = { showStopDialog = false }
+    )
 }
 
 @Composable

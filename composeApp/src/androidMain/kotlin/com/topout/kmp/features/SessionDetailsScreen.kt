@@ -20,6 +20,7 @@ import com.topout.kmp.models.SessionDetails
 import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.map.LiveMap
 import com.topout.kmp.utils.extensions.latLngOrNull
+import com.topout.kmp.shared_components.ConfirmationDialog
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -32,6 +33,9 @@ fun SessionDetailsScreen(
     viewModel: SessionDetailsViewModel = koinViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsState().value
+
+    // State for delete confirmation dialog
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(sessionId) {
         viewModel.loadSession(sessionId)
@@ -51,12 +55,7 @@ fun SessionDetailsScreen(
                 },
                 actions = {
                     if (uiState is SessionDetailsState.Loaded) {
-                        IconButton(
-                            onClick = {
-                                viewModel.deleteSession(sessionId)
-                                onNavigateBack()
-                            }
-                        ) {
+                        IconButton(onClick = { showDeleteDialog = true }) {
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = "Delete Session",
@@ -84,6 +83,22 @@ fun SessionDetailsScreen(
                 )
             }
         }
+
+        // Delete confirmation dialog
+        ConfirmationDialog(
+            isVisible = showDeleteDialog,
+            title = "Delete Session",
+            message = "Are you sure you want to delete this climbing session? This action cannot be undone.",
+            confirmText = "Delete",
+            cancelText = "Cancel",
+            icon = Icons.Default.Delete,
+            isDestructive = true,
+            onConfirm = {
+                viewModel.deleteSession(sessionId)
+                onNavigateBack() // Navigate back after deletion
+            },
+            onDismiss = { showDeleteDialog = false }
+        )
     }
 }
 
