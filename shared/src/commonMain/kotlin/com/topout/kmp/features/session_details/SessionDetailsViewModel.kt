@@ -19,9 +19,9 @@ class SessionDetailsViewModel (
             when(result) {
                 is Result.Success -> {
                     result.data?.let { sessionDetails ->
-                        //test
-                        _uiState.emit(SessionDetailsState.Loading)
-//                        _uiState.emit(SessionDetailsState.Loaded(sessionDetails))
+                        //test animated loader
+//                        _uiState.emit(SessionDetailsState.Loading)
+                        _uiState.emit(SessionDetailsState.Loaded(sessionDetails))
                     } ?: run {
                         _uiState.emit(SessionDetailsState.Error("Session details not found"))
                     }

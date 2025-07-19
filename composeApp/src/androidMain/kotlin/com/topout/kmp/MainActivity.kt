@@ -31,7 +31,8 @@ import com.topout.kmp.features.SessionDetailsScreen
 import com.topout.kmp.models.Session
 import com.topout.kmp.shared_components.BottomNavigationBar
 import com.topout.kmp.shared_components.ChipControlBar
-import org.koin.compose.KoinContext  // add this import
+import com.topout.kmp.shared_components.LoadingAnimation
+import org.koin.compose.KoinContext
 
 
 sealed class NavTab(val route: String, val title: String) {
@@ -54,6 +55,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             KoinContext {
                 MaterialTheme {
+                    var isAppLoading by remember { mutableStateOf(true) }
                     val navController = rememberNavController()
                     var selectedTab by remember { mutableStateOf<NavTab>(NavTab.History) }
 
@@ -73,101 +75,111 @@ class MainActivity : ComponentActivity() {
                             Manifest.permission.ACCESS_FINE_LOCATION
                         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
                         hasLocationPermission = granted
+
+                        // Simulate app loading time (you can adjust this or add real initialization)
+                        kotlinx.coroutines.delay(2000) // 2 seconds loading
+                        isAppLoading = false
                     }
 
-                    Scaffold(
-                        topBar = {
-                            val navBackStackEntry by navController.currentBackStackEntryAsState()
-                            val currentRoute = navBackStackEntry?.destination?.route
-                            val isSessionScreen = currentRoute == "session/{sessionId}"
-                            val appBarTitle: String = when (currentRoute) {
-                                "session/{sessionId}" -> "Session Details"
-                                NavTab.Home.route -> "Home"
-                                NavTab.History.route -> "Sessions History"
-                                NavTab.LiveSession.route -> "Live Session"
-                                NavTab.Settings.route -> "Settings"
-                                else -> "TopOut"
-                            }
+                    if (isAppLoading) {
+                        LoadingAnimation(
+                            text = "Welcome to TopOut"
+                        )
+                    } else {
+                        Scaffold(
+                            topBar = {
+                                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                                val currentRoute = navBackStackEntry?.destination?.route
+                                val isSessionScreen = currentRoute == "session/{sessionId}"
+                                val appBarTitle: String = when (currentRoute) {
+                                    "session/{sessionId}" -> "Session Details"
+                                    NavTab.Home.route -> "Home"
+                                    NavTab.History.route -> "Sessions History"
+                                    NavTab.LiveSession.route -> "Live Session"
+                                    NavTab.Settings.route -> "Settings"
+                                    else -> "TopOut"
+                                }
 
-                            ChipControlBar(
-                                title = appBarTitle,
-                                showBackButton = isSessionScreen,
-                                onBackClick = { navController.popBackStack() },
-                                onSettingsClick = {
-                                    selectedTab = NavTab.Settings
-                                    navController.navigate(NavTab.Settings.route) {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                }
-                            )
-                        },
-                        bottomBar = {
-                            BottomNavigationBar(
-                                selectedTab = selectedTab,
-                                onTabSelected = {
-                                    selectedTab = it
-                                    navController.navigate(it.route) {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                }
-                            )
-                        }
-                    ) { innerPadding ->
-                        NavHost(
-                            navController = navController,
-                            startDestination = NavTab.History.route,
-                            modifier = Modifier.padding(innerPadding)
-                        ) {
-                            composable(NavTab.Home.route) {
-                                HomeScreen()
-                            }
-                            composable(NavTab.Settings.route) {
-                                SettingsScreen()
-                            }
-                            composable(NavTab.History.route) {
-                                HistoryScreen(
-                                    onSessionClick = { session ->
-                                        navController.navigateToSession(session)
-                                    }
-                                )
-                            }
-                            composable(NavTab.LiveSession.route) {
-                                LiveSessionScreen(
-                                    hasLocationPermission = hasLocationPermission,
-                                    onRequestLocationPermission = {
-                                        launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                                    },
-                                    onNavigateToSessionDetails = { sessionId ->
-                                        // Navigate to session details and clear live session from back stack
-                                        navController.navigate("session/$sessionId") {
-                                            // Remove live session from back stack
-                                            popUpTo(NavTab.LiveSession.route) {
-                                                inclusive = true
-                                            }
-                                            // Set history as the parent destination
-                                            popUpTo(NavTab.History.route) {
+                                ChipControlBar(
+                                    title = appBarTitle,
+                                    showBackButton = isSessionScreen,
+                                    onBackClick = { navController.popBackStack() },
+                                    onSettingsClick = {
+                                        selectedTab = NavTab.Settings
+                                        navController.navigate(NavTab.Settings.route) {
+                                            popUpTo(navController.graph.startDestinationId) {
                                                 saveState = true
                                             }
+                                            launchSingleTop = true
+                                            restoreState = true
                                         }
-                                        // Update selected tab to history so back navigation is correct
-                                        selectedTab = NavTab.History
+                                    }
+                                )
+                            },
+                            bottomBar = {
+                                BottomNavigationBar(
+                                    selectedTab = selectedTab,
+                                    onTabSelected = {
+                                        selectedTab = it
+                                        navController.navigate(it.route) {
+                                            popUpTo(navController.graph.startDestinationId) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
                                     }
                                 )
                             }
-                            composable(NavTab.SessionDetail.route) { backStackEntry ->
-                                val sessionId = backStackEntry.arguments?.getString("sessionId") ?: ""
-                                SessionDetailsScreen(
-                                    sessionId = sessionId,
-                                    onNavigateBack = { navController.popBackStack() }
-                                )
+                        ) { innerPadding ->
+                            NavHost(
+                                navController = navController,
+                                startDestination = NavTab.History.route,
+                                modifier = Modifier.padding(innerPadding)
+                            ) {
+                                composable(NavTab.Home.route) {
+                                    HomeScreen()
+                                }
+                                composable(NavTab.Settings.route) {
+                                    SettingsScreen()
+                                }
+                                composable(NavTab.History.route) {
+                                    HistoryScreen(
+                                        onSessionClick = { session ->
+                                            navController.navigateToSession(session)
+                                        }
+                                    )
+                                }
+                                composable(NavTab.LiveSession.route) {
+                                    LiveSessionScreen(
+                                        hasLocationPermission = hasLocationPermission,
+                                        onRequestLocationPermission = {
+                                            launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                                        },
+                                        onNavigateToSessionDetails = { sessionId ->
+                                            // Navigate to session details and clear live session from back stack
+                                            navController.navigate("session/$sessionId") {
+                                                // Remove live session from back stack
+                                                popUpTo(NavTab.LiveSession.route) {
+                                                    inclusive = true
+                                                }
+                                                // Set history as the parent destination
+                                                popUpTo(NavTab.History.route) {
+                                                    saveState = true
+                                                }
+                                            }
+                                            // Update selected tab to history so back navigation is correct
+                                            selectedTab = NavTab.History
+                                        }
+                                    )
+                                }
+                                composable(NavTab.SessionDetail.route) { backStackEntry ->
+                                    val sessionId = backStackEntry.arguments?.getString("sessionId") ?: ""
+                                    SessionDetailsScreen(
+                                        sessionId = sessionId,
+                                        onNavigateBack = { navController.popBackStack() }
+                                    )
+                                }
                             }
                         }
                     }
