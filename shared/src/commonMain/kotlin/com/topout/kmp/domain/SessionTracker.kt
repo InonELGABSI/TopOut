@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import co.touchlab.kermit.Logger
 
 class SessionTracker(
     private val sessionId: String,
@@ -29,14 +30,18 @@ class SessionTracker(
 
     private var collectJob: Job? = null
 
+    private var log = Logger.withTag("SessionTracker")
+
     fun start() {
         collectJob = scope.launch {
             aggregator.aggregateFlow.collect { sample ->
                 // Prioritize GPS altitude when available, fallback to barometric
-                val alt = sample.location?.altitude ?: sample.altitude?.altitude
+                val alt = sample.location?.altitude
+//                val alt = sample.location?.altitude ?: sample.altitude?.altitude
+
                 if (startAltitude.value == null && alt != null) {
                     startAltitude.value = alt
-                    println("🏔️ SessionTracker: Set start altitude to $alt meters")
+                    log.i { "Set start altitude to $alt meters for session $sessionId" }
                 }
 
                 val vVert = if (alt != null && lastAlt != null) {

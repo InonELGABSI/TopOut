@@ -29,26 +29,46 @@ fun LiveMap(
     val coroutineScope = rememberCoroutineScope()
     val isRouteMode = !trackPoints.isNullOrEmpty()
 
+    // Wait for real location in live mode, use route points in route mode
     val target = when {
         isRouteMode -> trackPoints!!.mapNotNull { it.latLngOrNull() }.firstOrNull()?.toLatLng()
-        else -> location?.toLatLng()
-    } ?: LatLng(32.0853, 34.7818) // Tel‑Aviv fallback
+        else -> location?.toLatLng() // Only set target when we have real location
+    }
+
+    // Don't show map until we have a valid target location
+    if (target == null && !isRouteMode) {
+        // Show loading state while waiting for location
+        Box(
+            modifier = modifier,
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                CircularProgressIndicator()
+                Text(
+                    text = "Waiting for GPS...",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+        return
+    }
 
     val cameraState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(target, initialZoom)
+        position = CameraPosition.fromLatLngZoom(target!!, initialZoom)
     }
 
     // MarkerState MUST be remembered – prevents “state object during composition” warning
-    val markerState = remember { MarkerState(position = target) }
+    val markerState = remember(target) { MarkerState(position = target!!) }
 
     /* ── follow the climber (live mode) --------------------------------------- */
     LaunchedEffect(location) {
-        if (!isRouteMode) {
-            location?.let {
-                val latLng = it.toLatLng()
-                markerState.position = latLng // move marker
-                cameraState.animate(CameraUpdateFactory.newLatLng(latLng))
-            }
+        if (!isRouteMode && location != null) {
+            val latLng = location.toLatLng()
+            markerState.position = latLng // move marker
+            cameraState.animate(CameraUpdateFactory.newLatLng(latLng))
         }
     }
 
