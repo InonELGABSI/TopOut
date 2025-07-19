@@ -41,6 +41,9 @@ data class Session(
     @SerialName("created_at")
     val createdAt: Long? = nowEpochMillis(),
 
+    @SerialName("updated_at")
+    val updatedAt: Long? = nowEpochMillis(),
+
     @SerialName("graph_image_url")
     val graphImageUrl: String? = null
 )

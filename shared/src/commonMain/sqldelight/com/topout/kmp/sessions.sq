@@ -11,6 +11,7 @@ minAltitude REAL ,
 avgRate REAL ,
 alertTriggered INTEGER DEFAULT 0,
 createdAt INTEGER DEFAULT (strftime('%s', 'now')),
+updatedAt INTEGER DEFAULT (strftime('%s', 'now')),
 graphImageUrl TEXT
 );
 
@@ -19,8 +20,8 @@ INSERT OR REPLACE INTO SessionEntity(
   id, userId, title, startTime, endTime,
   totalAscent, totalDescent, maxAltitude,
   minAltitude, avgRate, alertTriggered,
-  createdAt, graphImageUrl
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+  createdAt,updatedAt, graphImageUrl
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getSessionById:
 SELECT * FROM SessionEntity WHERE id = ?;

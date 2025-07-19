@@ -31,6 +31,7 @@ class SessionDao(
             avgRate = session.avgRate,
             alertTriggered = session.alertTriggered,
             createdAt = session.createdAt,
+            updatedAt = session.updatedAt,
             graphImageUrl = session.graphImageUrl
         )
     }

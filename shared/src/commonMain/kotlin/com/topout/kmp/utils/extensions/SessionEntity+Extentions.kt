@@ -17,6 +17,7 @@ fun SessionEntity.toSession(): Session = Session(
     avgRate            = avgRate ?: 0.0,
     alertTriggered     = alertTriggered,
     createdAt          = createdAt,
+    updatedAt          = updatedAt,
     graphImageUrl      = graphImageUrl
 )
 
@@ -34,5 +35,6 @@ fun Session.toEntity(): SessionEntity = SessionEntity(
     avgRate            = avgRate,
     alertTriggered     = alertTriggered ?: 0,
     createdAt          = createdAt,
+    updatedAt          = updatedAt,
     graphImageUrl      = graphImageUrl
 )
