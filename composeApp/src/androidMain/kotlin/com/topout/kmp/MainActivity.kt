@@ -8,14 +8,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,6 +34,7 @@ import com.topout.kmp.features.SettingsScreen
 import com.topout.kmp.features.SessionDetailsScreen
 import com.topout.kmp.models.Session
 import com.topout.kmp.shared_components.BottomNavigationBar
+import com.topout.kmp.shared_components.ChipControlBar
 import org.koin.compose.KoinContext  // add this import
 
 
@@ -85,17 +82,31 @@ class MainActivity : ComponentActivity() {
                     Scaffold(
                         topBar = {
                             val navBackStackEntry by navController.currentBackStackEntryAsState()
-                            val sessionId = navBackStackEntry?.arguments?.getString("sessionId")
                             val currentRoute = navBackStackEntry?.destination?.route
                             val isSessionScreen = currentRoute == "session/{sessionId}"
-                            val appBarTitle: String = when {
-                                currentRoute == "session/{sessionId}" -> "Session Details"
-                                else -> "Sessions"
+                            val appBarTitle: String = when (currentRoute) {
+                                "session/{sessionId}" -> "Session Details"
+                                NavTab.Home.route -> "Home"
+                                NavTab.History.route -> "Sessions History"
+                                NavTab.LiveSession.route -> "Live Session"
+                                NavTab.Settings.route -> "Settings"
+                                else -> "TopOut"
                             }
-                            AppBar(
+
+                            ChipControlBar(
                                 title = appBarTitle,
                                 showBackButton = isSessionScreen,
-                                onBackClick = { navController.popBackStack() }
+                                onBackClick = { navController.popBackStack() },
+                                onSettingsClick = {
+                                    selectedTab = NavTab.Settings
+                                    navController.navigate(NavTab.Settings.route) {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
                             )
                         },
                         bottomBar = {
@@ -172,32 +183,6 @@ class MainActivity : ComponentActivity() {
 fun NavController.navigateToSession(session: Session) {
     this.navigate("session/${session.id}")
 }
-
-// Fix scrollable top app bar
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AppBar(
-    title: String,
-    showBackButton: Boolean = false,
-    onBackClick: () -> Unit = {}
-) {
-    CenterAlignedTopAppBar(
-        windowInsets = TopAppBarDefaults.windowInsets,
-        title = { Text(text = title) },
-        navigationIcon = {
-            if (showBackButton) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
-                    )
-                }
-            }
-        },
-        scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-    )
-}
-
 
 @Preview
 @Composable
