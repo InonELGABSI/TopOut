@@ -280,7 +280,8 @@ fun SessionMapCard(trackPoints: List<TrackPoint>) {
                     trackPoints = trackPoints,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
+                        .height(200.dp),
+                    showTrackFocus = true
                 )
             } else {
                 Box(

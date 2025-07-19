@@ -15,19 +15,21 @@ import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
 
 /**
- * Live‑tracking Google Map that keeps the camera centred on [location] and
- * provides simple “+ / –” zoom buttons. Optionally displays a route based on [trackPoints].
+ * Live‑tracking Google Map that keeps the camera centred on [location] and
+ * provides simple "+ / –" zoom buttons. Optionally displays a route based on [trackPoints].
  */
 @Composable
 fun LiveMap(
     location: com.topout.kmp.models.LatLng?,
     trackPoints: List<com.topout.kmp.models.TrackPoint>? = null,
     modifier: Modifier = Modifier,
-    initialZoom: Float = 17f
+    initialZoom: Float = 17f,
+    showLocationFocus: Boolean = false,
+    showTrackFocus: Boolean = false
 ) {
     /* ── state ---------------------------------------------------------------- */
     val coroutineScope = rememberCoroutineScope()
-    val isRouteMode = !trackPoints.isNullOrEmpty()
+    val isRouteMode = !trackPoints.isNullOrEmpty() && location == null
 
     // Wait for real location in live mode, use route points in route mode
     val target = when {
@@ -60,7 +62,7 @@ fun LiveMap(
         position = CameraPosition.fromLatLngZoom(target!!, initialZoom)
     }
 
-    // MarkerState MUST be remembered – prevents “state object during composition” warning
+    // MarkerState MUST be remembered – prevents "state object during composition" warning
     val markerState = remember(target) { MarkerState(position = target!!) }
 
     /* ── follow the climber (live mode) --------------------------------------- */
@@ -102,14 +104,20 @@ fun LiveMap(
                 myLocationButtonEnabled = false
             )
         ) {
-            if (isRouteMode) {
-                val points = trackPoints!!.mapNotNull { it.latLngOrNull()?.toLatLng() }
+            // Show track points if available (both in live and route mode)
+            if (!trackPoints.isNullOrEmpty()) {
+                val points = trackPoints.mapNotNull { it.latLngOrNull()?.toLatLng() }
                 if (points.isNotEmpty()) {
                     Polyline(points = points, color = MaterialTheme.colorScheme.primary, width = 10f)
-                    points.firstOrNull()?.let { Marker(MarkerState(position = it), title = "Start") }
-                    points.lastOrNull()?.let { Marker(MarkerState(position = it), title = "End") }
+                    if (isRouteMode) {
+                        points.firstOrNull()?.let { Marker(MarkerState(position = it), title = "Start") }
+                        points.lastOrNull()?.let { Marker(MarkerState(position = it), title = "End") }
+                    }
                 }
-            } else {
+            }
+
+            // Show current location marker in live mode
+            if (!isRouteMode && location != null) {
                 Marker(
                     state = markerState,
                     title = "You",
@@ -118,13 +126,42 @@ fun LiveMap(
             }
         }
 
-        /* floating “+ / –” buttons */
+        /* floating controls */
         Column(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
+            // Focus on current location button
+            if (showLocationFocus && location != null) {
+                FocusButton("📍") {
+                    coroutineScope.launch {
+                        val latLng = location.toLatLng()
+                        cameraState.animate(CameraUpdateFactory.newLatLngZoom(latLng, initialZoom))
+                    }
+                }
+            }
+
+            // Focus on track button
+            if (showTrackFocus && !trackPoints.isNullOrEmpty()) {
+                FocusButton("🗺️") {
+                    coroutineScope.launch {
+                        val points = trackPoints.mapNotNull { it.latLngOrNull()?.toLatLng() }
+                        if (points.size > 1) {
+                            val boundsBuilder = com.google.android.gms.maps.model.LatLngBounds.builder()
+                            points.forEach { boundsBuilder.include(it) }
+                            try {
+                                val bounds = boundsBuilder.build()
+                                cameraState.animate(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+                            } catch (e: IllegalStateException) {
+                                // Log error or handle, e.g. when no valid points
+                            }
+                        }
+                    }
+                }
+            }
+
             ZoomButton("+") { coroutineScope.launch { cameraState.zoomBy(+1f) } }
             ZoomButton("–") { coroutineScope.launch { cameraState.zoomBy(-1f) } }
         }
@@ -140,6 +177,14 @@ private fun ZoomButton(label: String, onClick: () -> Unit) =
         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
         shape = MaterialTheme.shapes.small
     ) { Text(label) }
+
+@Composable
+private fun FocusButton(icon: String, onClick: () -> Unit) =
+    ElevatedButton(
+        onClick = onClick,
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+        shape = MaterialTheme.shapes.small
+    ) { Text(icon) }
 
 private fun com.topout.kmp.models.LatLng.toLatLng() =
     LatLng(latitude, longitude)

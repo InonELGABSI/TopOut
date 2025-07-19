@@ -185,7 +185,8 @@ fun ActiveSessionContent(
             location = trackPoint.latLngOrNull(),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(150.dp),
+            showLocationFocus = true
         )
 
         // Two-column layout for better use of space
