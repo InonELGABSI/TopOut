@@ -28,30 +28,13 @@ fun SettingsScreen(
 ) {
     val uiState = viewModel.uiState.collectAsState().value
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Settings",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
-            )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            when (uiState) {
-                is SettingsState.Loading -> LoadingContent()
-                is SettingsState.Error -> ErrorContent(uiState.errorMessage)
-                is SettingsState.Loaded -> UserSettingsContent(uiState.user)
-            }
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        when (uiState) {
+            is SettingsState.Loading -> LoadingContent()
+            is SettingsState.Error -> ErrorContent(uiState.errorMessage)
+            is SettingsState.Loaded -> UserSettingsContent(uiState.user)
         }
     }
 }

@@ -27,39 +27,22 @@ fun HistoryScreen(
 ) {
     val uiState = viewModel.uiState.collectAsState().value
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Session History",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        )
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        when (uiState) {
+            is SessionsState.Error -> ErrorContent(message = uiState.errorMessage)
+            is SessionsState.Loaded -> {
+                if (uiState.sessions.isNullOrEmpty()) {
+                    EmptyStateContent()
+                } else {
+                    SessionsListContent(
+                        sessions = uiState.sessions ?: emptyList(),
+                        onSessionClicked = onSessionClick
                     )
                 }
-            )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            when (uiState) {
-                is SessionsState.Error -> ErrorContent(message = uiState.errorMessage)
-                is SessionsState.Loaded -> {
-                    if (uiState.sessions.isNullOrEmpty()) {
-                        EmptyStateContent()
-                    } else {
-                        SessionsListContent(
-                            sessions = uiState.sessions ?: emptyList(),
-                            onSessionClicked = onSessionClick
-                        )
-                    }
-                }
-                SessionsState.Loading -> LoadingContent()
             }
+            SessionsState.Loading -> LoadingContent()
         }
     }
 }
@@ -208,3 +191,4 @@ private fun createDummyUiState(type: String = "loaded"): SessionsState {
         else -> SessionsState.Loading
     }
 }
+

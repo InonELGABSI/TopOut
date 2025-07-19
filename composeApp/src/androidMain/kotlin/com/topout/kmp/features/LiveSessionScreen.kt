@@ -43,44 +43,28 @@ fun LiveSessionScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Live Session",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
+    // Remove Scaffold with topBar since ChipControlBar handles the title
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        when (uiState) {
+            is LiveSessionState.Loading -> StartSessionContent(
+                hasLocationPermission = hasLocationPermission,
+                onStartClick = { viewModel.onStartClicked() },
+                onRequestLocationPermission = onRequestLocationPermission
             )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            when (uiState) {
-                is LiveSessionState.Loading -> StartSessionContent(
-                    hasLocationPermission = hasLocationPermission,
-                    onStartClick = { viewModel.onStartClicked() },
-                    onRequestLocationPermission = onRequestLocationPermission
-                )
-                is LiveSessionState.Loaded -> ActiveSessionContent(
-                    trackPoint = uiState.trackPoint,
-                    onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) }
-                )
-                is LiveSessionState.Stopping -> StoppingSessionContent()
-                is LiveSessionState.SessionStopped -> {
-                    // Navigation handled in LaunchedEffect
-                }
-                is LiveSessionState.Error -> ErrorContent(
-                    errorMessage = uiState.errorMessage,
-                    onRetryClick = { viewModel.onStartClicked() }
-                )
+            is LiveSessionState.Loaded -> ActiveSessionContent(
+                trackPoint = uiState.trackPoint,
+                onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) }
+            )
+            is LiveSessionState.Stopping -> StoppingSessionContent()
+            is LiveSessionState.SessionStopped -> {
+                // Navigation handled in LaunchedEffect
             }
+            is LiveSessionState.Error -> ErrorContent(
+                errorMessage = uiState.errorMessage,
+                onRetryClick = { viewModel.onStartClicked() }
+            )
         }
     }
 }
