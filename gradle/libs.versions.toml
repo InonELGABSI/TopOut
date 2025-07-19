@@ -43,6 +43,7 @@ uiGraphics = "1.5.0"
 uiToolingPreview = "1.7.7"
 sqlDelight = "2.1.0"
 firebaseFirestoreKtx = "25.1.4"
+lottieCompose = "6.1.0"
 
 [libraries]
 android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqlDelight" }
@@ -101,6 +102,7 @@ play-services-location = { module = "com.google.android.gms:play-services-locati
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqlDelight" }
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

@@ -1,9 +1,9 @@
 package com.topout.kmp.features
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.topout.kmp.features.session_details.SessionDetailsState
 import com.topout.kmp.features.session_details.SessionDetailsViewModel
@@ -21,6 +22,7 @@ import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.map.LiveMap
 import com.topout.kmp.utils.extensions.latLngOrNull
 import com.topout.kmp.shared_components.ConfirmationDialog
+import com.topout.kmp.shared_components.LoadingAnimation
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -41,84 +43,39 @@ fun SessionDetailsScreen(
         viewModel.loadSession(sessionId)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Session Details") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                actions = {
-                    if (uiState is SessionDetailsState.Loaded) {
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete Session",
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            when (uiState) {
-                is SessionDetailsState.Loading -> SessionLoadingContent()
-                is SessionDetailsState.Loaded -> SessionDetailsContent(
-                    sessionDetails = uiState.sessionDetails
-                )
-                is SessionDetailsState.Error -> SessionErrorContent(
-                    errorMessage = uiState.errorMessage,
-                    onRetryClick = { viewModel.loadSession(sessionId) }
-                )
-            }
-        }
-
-        // Delete confirmation dialog
-        ConfirmationDialog(
-            isVisible = showDeleteDialog,
-            title = "Delete Session",
-            message = "Are you sure you want to delete this climbing session? This action cannot be undone.",
-            confirmText = "Delete",
-            cancelText = "Cancel",
-            icon = Icons.Default.Delete,
-            isDestructive = true,
-            onConfirm = {
-                viewModel.deleteSession(sessionId)
-                onNavigateBack() // Navigate back after deletion
-            },
-            onDismiss = { showDeleteDialog = false }
+    when (uiState) {
+        is SessionDetailsState.Loading -> SessionLoadingContent()
+        is SessionDetailsState.Loaded -> SessionDetailsContent(
+            sessionDetails = uiState.sessionDetails
+        )
+        is SessionDetailsState.Error -> SessionErrorContent(
+            errorMessage = uiState.errorMessage,
+            onRetryClick = { viewModel.loadSession(sessionId) }
         )
     }
+
+    // Delete confirmation dialog
+    ConfirmationDialog(
+        isVisible = showDeleteDialog,
+        title = "Delete Session",
+        message = "Are you sure you want to delete this climbing session? This action cannot be undone.",
+        confirmText = "Delete",
+        cancelText = "Cancel",
+        icon = Icons.Default.Delete,
+        isDestructive = true,
+        onConfirm = {
+            viewModel.deleteSession(sessionId)
+            onNavigateBack() // Navigate back after deletion
+        },
+        onDismiss = { showDeleteDialog = false }
+    )
 }
 
 @Composable
 fun SessionLoadingContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CircularProgressIndicator()
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Loading session details...",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-    }
+    LoadingAnimation(
+        text = "Loading session details..."
+    )
 }
 
 @Composable
@@ -627,3 +584,4 @@ private fun formatDuration(durationMs: Long): String {
         "%02d:%02d".format(minutes, seconds)
     }
 }
+

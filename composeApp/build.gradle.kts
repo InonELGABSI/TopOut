@@ -27,6 +27,7 @@ kotlin {
             implementation(project.dependencies.platform(libs.firebase.bom))
 
             implementation(libs.androidx.runtime)
+            implementation(libs.lottie.compose)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -95,11 +96,10 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     debugImplementation(compose.uiTooling)
 
-
     implementation(libs.maps.compose)
     implementation(libs.maps.compose.utils)
     implementation(libs.maps.compose.widgets)
 
-
+    implementation(libs.lottie.compose)
 }
 
