@@ -9,11 +9,11 @@ import com.topout.kmp.data.firebase.RemoteFirebaseRepository
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import com.topout.kmp.data.sessions.RemoteSessionsRepository
+import com.topout.kmp.data.sessions.LocalSessionsRepository
 import com.topout.kmp.data.sessions.SessionsRepository
 import com.topout.kmp.data.track_points.LocalTrackPointsRepository
 import com.topout.kmp.data.track_points.TrackPointsRepository
-import com.topout.kmp.data.user.RemoteUserRepository
+import com.topout.kmp.data.user.LocalUserRepository
 import com.topout.kmp.data.user.UserRepository
 import com.topout.kmp.domain.DeleteSession
 import com.topout.kmp.domain.EnsureAnonymousUser
@@ -85,8 +85,8 @@ val domainModule = module {
 val commonModule = module {
     singleOf(::createJson)
     singleOf(::RemoteFirebaseRepository).bind<FirebaseRepository>()
-    singleOf(::RemoteSessionsRepository).bind<SessionsRepository>()
-    singleOf(::RemoteUserRepository).bind<UserRepository>()
+    singleOf(::LocalSessionsRepository).bind<SessionsRepository>()
+    singleOf(::LocalUserRepository).bind<UserRepository>()
     singleOf(::LocalTrackPointsRepository).bind<TrackPointsRepository>()
 
     single { AppDatabase(get()) }

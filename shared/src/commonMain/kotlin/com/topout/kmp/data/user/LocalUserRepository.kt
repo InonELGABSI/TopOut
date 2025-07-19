@@ -10,7 +10,7 @@ data class UserError(
     override val message: String
 ) : Error
 
-class RemoteUserRepository(
+class LocalUserRepository(
     private val userDao : UserDao
 ) : UserRepository {
 

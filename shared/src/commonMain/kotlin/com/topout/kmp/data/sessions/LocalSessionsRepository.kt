@@ -11,7 +11,7 @@ data class SessionsError (
     override val message: String
 ) : Error
 
-class RemoteSessionsRepository (
+class LocalSessionsRepository (
     private val sessionDao: SessionDao
 ): SessionsRepository {
 
