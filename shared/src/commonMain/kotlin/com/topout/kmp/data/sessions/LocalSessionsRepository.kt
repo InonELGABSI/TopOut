@@ -61,10 +61,21 @@ class LocalSessionsRepository (
             Result.Failure(SessionsError(e.message ?: "Failed to create session"))
         }
     }
-}
 
+    override suspend fun saveSessions(sessions: List<Session>): Result<Unit, SessionsError> {
+        return try {
+            sessions.forEach { session ->
+                sessionDao.saveSession(session)
+            }
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to save sessions"))
+        }
+    }
+}
 
 @Serializable
 data class SessionsResponse(
     val results: Sessions
 )
+

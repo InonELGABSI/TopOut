@@ -43,15 +43,4 @@ SET
   avgRate      = ?
 WHERE id = ?;
 
-getSessionsByUserId:
-SELECT * FROM SessionEntity WHERE userId = ?;
-
-selectSessionById:
-SELECT * FROM SessionEntity WHERE id = ?;
-
-selectAllSessions:
-SELECT * FROM SessionEntity;
-
-selectSessionsByUserId:
-SELECT * FROM SessionEntity WHERE userId = ?;
 

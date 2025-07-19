@@ -21,7 +21,7 @@ class SessionsViewModel (
         scope.launch {
             when (val result = useCases.getSessions()) {
                 is Result.Success -> {
-                    _uiState.emit(SessionsState.Loaded(result.data ))
+                    _uiState.emit(SessionsState.Loaded(result.data?.items))
                 }
                 is Result.Failure -> {
                     _uiState.emit(SessionsState.Error(errorMessage = result.error?.message ?: "N/A"))

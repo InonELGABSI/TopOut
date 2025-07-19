@@ -16,5 +16,6 @@ data class User(
     val totalHeightFromStartThr: Double? = 0.0,
     val currentAvgHeightSpeedThr: Double? = 0.0,
 
-    val createdAt: Long? = nowEpochMillis()
+    val createdAt: Long? = nowEpochMillis(),
+    val updatedAt: Long? = nowEpochMillis()
 )

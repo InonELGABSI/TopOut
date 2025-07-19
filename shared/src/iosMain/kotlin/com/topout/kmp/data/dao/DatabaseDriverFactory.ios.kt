@@ -8,6 +8,7 @@ actual class DatabaseDriverFactory {
     actual fun createDriver(): SqlDriver {
         return NativeSqliteDriver(
             AppDatabase.Schema,
-            name= "sessions.db")
+            name= "topout_db_v4.db")  // Changed to match Android naming
     }
 }
+

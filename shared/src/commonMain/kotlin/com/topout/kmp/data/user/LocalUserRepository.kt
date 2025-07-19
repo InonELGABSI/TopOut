@@ -4,7 +4,6 @@ import com.topout.kmp.data.Result
 import com.topout.kmp.data.Error
 import com.topout.kmp.data.dao.UserDao
 import com.topout.kmp.models.User
-import kotlinx.serialization.Serializable
 
 data class UserError(
     override val message: String
@@ -14,9 +13,7 @@ class LocalUserRepository(
     private val userDao : UserDao
 ) : UserRepository {
 
-    override suspend fun getUser(
-
-    ): Result<User, UserError> {
+    override suspend fun getUser(): Result<User, UserError> {
         return try {
             val user = userDao.getUser()
             Result.Success(user)
@@ -24,8 +21,22 @@ class LocalUserRepository(
             Result.Failure(UserError(e.message ?: "Unknown error"))
         }
     }
+
+    override suspend fun updateLastSessionsUpdateTime(timestamp: Long): Result<Unit, UserError> {
+        return try {
+            userDao.updateLastSessionsUpdateTime(timestamp)
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Failure(UserError(e.message ?: "Failed to update last sessions update time"))
+        }
+    }
+
+    override suspend fun getLastSessionsUpdateTime(): Result<Long?, UserError> {
+        return try {
+            val updateTime = userDao.getLastSessionsUpdateTime()
+            Result.Success(updateTime)
+        } catch (e: Exception) {
+            Result.Failure(UserError(e.message ?: "Failed to get last sessions update time"))
+        }
+    }
 }
-@Serializable
-data class UserResponse(
-    val results: User
-)

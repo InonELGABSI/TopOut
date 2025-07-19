@@ -5,4 +5,7 @@ import com.topout.kmp.models.User
 
 interface UserRepository {
     suspend fun getUser():Result<User, UserError>
+    suspend fun updateLastSessionsUpdateTime(timestamp: Long): Result<Unit, UserError>
+    suspend fun getLastSessionsUpdateTime(): Result<Long?, UserError>
 }
+

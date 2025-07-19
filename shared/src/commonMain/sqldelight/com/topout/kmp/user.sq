@@ -10,8 +10,18 @@ relativeHeightFromStartThr REAL DEFAULT 0.0,
 totalHeightFromStartThr REAL DEFAULT 0.0,
 currentAvgHeightSpeedThr REAL DEFAULT 0.0,
 
+localSessionsUpdateTime INTEGER DEFAULT (strftime('%s', 'now')),
+
+updatedAt INTEGER DEFAULT (strftime('%s', 'now')),
 createdAt INTEGER DEFAULT (strftime('%s', 'now'))
 );
 
 getUser:
 SELECT * FROM UserEntity;
+
+updateLastSessionsUpdateTime:
+UPDATE UserEntity SET localSessionsUpdateTime = ?;
+
+getLastSessionsUpdateTime:
+SELECT localSessionsUpdateTime FROM UserEntity LIMIT 1;
+

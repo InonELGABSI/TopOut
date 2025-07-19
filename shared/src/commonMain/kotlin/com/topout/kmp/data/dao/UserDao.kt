@@ -8,4 +8,13 @@ class UserDao(
     private val queries: UserQueries
 ) {
     fun getUser() :User = queries.getUser().executeAsOne().toUser()
+
+    fun updateLastSessionsUpdateTime(timestamp: Long) {
+        queries.updateLastSessionsUpdateTime(timestamp)
+    }
+
+    fun getLastSessionsUpdateTime(): Long? {
+        return queries.getLastSessionsUpdateTime().executeAsOneOrNull()?.localSessionsUpdateTime
+    }
 }
+

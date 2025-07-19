@@ -40,6 +40,26 @@ class RemoteFirebaseRepository : FirebaseRepository {
         }
     }
 
+    override suspend fun getSessionsUpdatedAfter(timestamp: Long): Result<List<Session>, SessionsError> {
+        return try {
+            val uid = auth.currentUser?.uid
+                ?: return Result.Failure(SessionsError("User not authenticated"))
+
+            val sessions = sessionsCollection
+                .where {
+                    "user_id" equalTo uid
+                    "updated_at" greaterThan timestamp
+                }
+                .get()
+                .documents
+                .map { it.toSession() }
+
+            Result.Success(sessions)
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to get updated sessions"))
+        }
+    }
+
     override suspend fun saveSession(session: Session) {
         val uid = auth.currentUser?.uid ?: return
         val map = session.copy(userId = uid)
@@ -49,7 +69,7 @@ class RemoteFirebaseRepository : FirebaseRepository {
 
     override suspend fun updateSession(session: Session) {
         session.id.let {
-            sessionsCollection.document(it.toString())
+            sessionsCollection.document(it)
                 .set(session)
         }
     }

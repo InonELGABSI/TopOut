@@ -27,7 +27,8 @@ fun DocumentSnapshot.toSession(): Session {
         startTime = millis("start_time"),
         endTime   = get<Long?>("end_time")           // may be null
             ?: get<Timestamp?>("end_time")?.toEpochMillis(),
-        createdAt = millis("created_at")
+        createdAt = millis("created_at"),
+        updatedAt = millis("updatedAt"),
     )
 }
 
@@ -50,6 +51,7 @@ fun Session.toFirestoreMap(serverCreatedAt: Boolean = false): Map<String, Any?> 
         "min_altitude"    to minAltitude,
         "avg_rate"        to avgRate,
         "alert_triggered" to alertTriggered,
+        "updatedAt"      to updatedAt?.toTimestamp(),
         "created_at"      to if (serverCreatedAt)
             FieldValue.serverTimestamp
         else

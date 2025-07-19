@@ -12,6 +12,8 @@ interface FirebaseRepository {
 
     suspend fun getSessions() : Result<List<Session>, SessionsError>
 
+    suspend fun getSessionsUpdatedAfter(timestamp: Long) : Result<List<Session>, SessionsError>
+
     suspend fun saveSession(session: Session)
 
     suspend fun updateSession(session: Session)
