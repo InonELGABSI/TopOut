@@ -3,6 +3,7 @@ package com.topout.kmp.data.dao
 import com.topout.kmp.SessionEntity
 import com.topout.kmp.SessionsQueries
 import com.topout.kmp.models.Session
+import com.topout.kmp.utils.extensions.toEntity
 import com.topout.kmp.utils.extensions.toSession
 import dev.gitlive.firebase.firestore.Timestamp
 
@@ -18,26 +19,36 @@ class SessionDao(
     }
 
     fun saveSession(session: Session) {
+        val entity = session.toEntity()
         queries.saveSession(
-            id = session.id,
-            userId = session.userId,
-            title = session.title,
-            startTime = session.startTime,
-            endTime = session.endTime,
-            totalAscent = session.totalAscent,
-            totalDescent = session.totalDescent,
-            maxAltitude = session.maxAltitude,
-            minAltitude = session.minAltitude,
-            avgRate = session.avgRate,
-            alertTriggered = session.alertTriggered,
-            createdAt = session.createdAt,
-            updatedAt = session.updatedAt,
-            graphImageUrl = session.graphImageUrl
+            id = entity.id,
+            userId = entity.userId,
+            title = entity.title,
+            startTime = entity.startTime,
+            endTime = entity.endTime,
+            totalAscent = entity.totalAscent,
+            totalDescent = entity.totalDescent,
+            maxAltitude = entity.maxAltitude,
+            minAltitude = entity.minAltitude,
+            avgRate = entity.avgRate,
+            alertTriggered = entity.alertTriggered,
+            createdAt = entity.createdAt,
+            updatedAt = entity.updatedAt,
+            sessionDeletedOffline = entity.sessionDeletedOffline,
+            sessionCreatedOffline = entity.sessionCreatedOffline
         )
     }
 
     fun deleteSession(sessionId: String) {
         queries.deleteSession(sessionId)
+    }
+
+    fun markSessionDeletedOffline(sessionId: String) {
+        queries.markSessionDeletedOffline(sessionId)
+    }
+
+    fun markSessionCreatedOffline(sessionId: String) {
+        queries.markSessionCreatedOffline(sessionId)
     }
 
     fun updateSessionSummary(

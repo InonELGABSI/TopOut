@@ -29,6 +29,8 @@ fun DocumentSnapshot.toSession(): Session {
             ?: get<Timestamp?>("end_time")?.toEpochMillis(),
         createdAt = millis("created_at"),
         updatedAt = millis("updatedAt"),
+        sessionDeletedOffline = false,
+        sessionCreatedOffline = false,
     )
 }
 
@@ -56,5 +58,4 @@ fun Session.toFirestoreMap(serverCreatedAt: Boolean = false): Map<String, Any?> 
             FieldValue.serverTimestamp
         else
             createdAt?.toTimestamp(),
-        "graph_image_url" to graphImageUrl
     )

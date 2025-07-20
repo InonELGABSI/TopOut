@@ -18,7 +18,8 @@ fun SessionEntity.toSession(): Session = Session(
     alertTriggered     = alertTriggered,
     createdAt          = createdAt,
     updatedAt          = updatedAt,
-    graphImageUrl      = graphImageUrl
+    sessionDeletedOffline = (sessionDeletedOffline ?: 0L) != 0L,
+    sessionCreatedOffline = (sessionCreatedOffline ?: 0L) != 0L
 )
 
 /* domain ➜ DB row */
@@ -36,5 +37,6 @@ fun Session.toEntity(): SessionEntity = SessionEntity(
     alertTriggered     = alertTriggered ?: 0,
     createdAt          = createdAt,
     updatedAt          = updatedAt,
-    graphImageUrl      = graphImageUrl
+    sessionDeletedOffline = if (sessionDeletedOffline) 1L else 0L,
+    sessionCreatedOffline = if (sessionCreatedOffline) 1L else 0L
 )

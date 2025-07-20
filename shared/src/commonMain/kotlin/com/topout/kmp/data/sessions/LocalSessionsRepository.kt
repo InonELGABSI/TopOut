@@ -44,11 +44,20 @@ class LocalSessionsRepository (
 
 
     override suspend fun deleteSession(sessionId: String) : Result<Unit, SessionsError> {
-    return try {
+        return try {
             sessionDao.deleteSession(sessionId)
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Failure(SessionsError(e.message ?: "Failed to delete session"))
+        }
+    }
+
+    override suspend fun markSessionDeletedOffline(sessionId: String): Result<Unit, SessionsError> {
+        return try {
+            sessionDao.markSessionDeletedOffline(sessionId)
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to mark session as deleted offline"))
         }
     }
 

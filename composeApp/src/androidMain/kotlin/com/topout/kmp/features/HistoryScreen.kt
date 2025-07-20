@@ -157,7 +157,6 @@ private fun createDummyUiState(type: String = "loaded"): SessionsState {
                     avgRate = 1.5,
                     alertTriggered = 0L,
                     createdAt = null,
-                    graphImageUrl = null
                 ),
                 Session(
                     id = "2",
@@ -172,7 +171,6 @@ private fun createDummyUiState(type: String = "loaded"): SessionsState {
                     avgRate = 1.2,
                     alertTriggered = 0L,
                     createdAt = null,
-                    graphImageUrl = null
                 ),
                 Session(
                     id = "3",
@@ -187,7 +185,6 @@ private fun createDummyUiState(type: String = "loaded"): SessionsState {
                     avgRate = 1.8,
                     alertTriggered = 0L,
                     createdAt = null,
-                    graphImageUrl = null
                 )
             )
         )

@@ -44,15 +44,21 @@ class FinishSession(
         )
         val updated = sessionDao.getSessionById(sessionId)
 
-        // 4️⃣ PUSH to FIRESTORE via FirebaseRepository
-        firebaseRepository.createSession(updated)
-        firebaseRepository.pushTrackPoints(sessionId, points) // sub-collection
+        // 4️⃣ Try to PUSH to FIRESTORE via FirebaseRepository
+        try {
+            firebaseRepository.updateSession(updated)
+            firebaseRepository.pushTrackPoints(sessionId, points)
 
-        // 5️⃣ CLEAN UP local points
-        // (optional—errors here are non-fatal)
-        localPointsRepo.deleteBySession(sessionId)
+            // 5️⃣ Remote sync SUCCESS - clean up local points
+            localPointsRepo.deleteBySession(sessionId)
 
-        // 6️⃣ RETURN combined DTO
+        } catch (e: Exception) {
+            // 6️⃣ Remote sync FAILED - mark as offline created session
+            sessionDao.markSessionCreatedOffline(sessionId)
+            // Keep track points in DB for later sync - DO NOT delete them
+        }
+
+        // 7️⃣ RETURN combined DTO
         return SessionDetails(updated, points)
     }
 }

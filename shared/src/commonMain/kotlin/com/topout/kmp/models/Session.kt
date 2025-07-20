@@ -44,6 +44,9 @@ data class Session(
     @SerialName("updated_at")
     val updatedAt: Long? = nowEpochMillis(),
 
-    @SerialName("graph_image_url")
-    val graphImageUrl: String? = null
+    @SerialName("session_deleted_offline")
+    val sessionDeletedOffline: Boolean = false,
+
+    @SerialName("session_created_offline")
+    val sessionCreatedOffline: Boolean = false,
 )
