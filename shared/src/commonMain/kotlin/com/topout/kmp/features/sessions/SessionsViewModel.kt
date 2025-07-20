@@ -17,7 +17,7 @@ class SessionsViewModel (
         fetchSessions()
     }
 
-    private fun fetchSessions() {
+    fun fetchSessions() {
         scope.launch {
             when (val result = useCases.getSessions()) {
                 is Result.Success -> {

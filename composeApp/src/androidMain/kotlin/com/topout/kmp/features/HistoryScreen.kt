@@ -16,8 +16,8 @@ import androidx.compose.ui.unit.sp
 import com.topout.kmp.features.sessions.SessionsState
 import com.topout.kmp.features.sessions.SessionsViewModel
 import com.topout.kmp.models.Session
-import com.topout.kmp.models.Sessions
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.runtime.LaunchedEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,6 +25,10 @@ fun HistoryScreen(
     viewModel: SessionsViewModel = koinViewModel(),
     onSessionClick: (Session) -> Unit
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.fetchSessions()
+    }
+
     val uiState = viewModel.uiState.collectAsState().value
 
     Box(
