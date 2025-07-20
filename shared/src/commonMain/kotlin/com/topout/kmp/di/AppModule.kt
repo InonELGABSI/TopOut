@@ -25,6 +25,7 @@ import com.topout.kmp.domain.GetSettings
 import com.topout.kmp.domain.SaveSession
 import com.topout.kmp.domain.SignInAnonymously
 import com.topout.kmp.domain.LiveSessionManager
+import com.topout.kmp.domain.SyncOfflineChanges
 import com.topout.kmp.domain.session.FinishSession
 import com.topout.kmp.features.live_session.LiveSessionUseCases
 import com.topout.kmp.features.session_details.SessionDetailsUseCases
@@ -59,7 +60,7 @@ expect val platformModule:Module
 val domainModule = module {
     factoryOf(::SignInAnonymously)
     factoryOf(::EnsureAnonymousUser)
-
+    factoryOf(::SyncOfflineChanges)
     // Sessions
     factoryOf(::GetSessions)
     factoryOf(::GetSessionById)

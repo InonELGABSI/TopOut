@@ -81,6 +81,33 @@ class LocalSessionsRepository (
             Result.Failure(SessionsError(e.message ?: "Failed to save sessions"))
         }
     }
+
+    override suspend fun getSessionsForSync(): Result<Sessions, SessionsError> {
+        return try {
+            val sessions = sessionDao.getSessionsForSync()
+            Result.Success(Sessions(sessions))
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to get sessions for sync"))
+        }
+    }
+
+    override suspend fun resolveLocalSync(sessionId: String, syncType: SyncType): Result<Unit, SessionsError> {
+        return try {
+            when (syncType) {
+                SyncType.CREATED_OFFLINE -> {
+                    // Mark session as no longer created offline (sessionCreatedOffline = 0)
+                    sessionDao.resolveCreatedOfflineSync(sessionId)
+                }
+                SyncType.DELETED_OFFLINE -> {
+                    // Permanently delete the session from local DB
+                    sessionDao.resolveDeletedOfflineSync(sessionId)
+                }
+            }
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to resolve local sync"))
+        }
+    }
 }
 
 @Serializable

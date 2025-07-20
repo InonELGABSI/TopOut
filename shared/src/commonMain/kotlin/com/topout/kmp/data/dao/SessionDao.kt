@@ -51,6 +51,18 @@ class SessionDao(
         queries.markSessionCreatedOffline(sessionId)
     }
 
+    fun getSessionsForSync(): List<Session> {
+        return queries.getSessionsForSync().executeAsList().map { it.toSession() }
+    }
+
+    fun resolveCreatedOfflineSync(sessionId: String) {
+        queries.resolveCreatedOfflineSync(sessionId)
+    }
+
+    fun resolveDeletedOfflineSync(sessionId: String) {
+        queries.resolveDeletedOfflineSync(sessionId)
+    }
+
     fun updateSessionSummary(
         id: String,
         endTime: Long,

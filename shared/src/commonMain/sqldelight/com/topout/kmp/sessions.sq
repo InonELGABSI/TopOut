@@ -55,3 +55,14 @@ UPDATE SessionEntity
 SET sessionCreatedOffline = 1
 WHERE id = ?;
 
+getSessionsForSync:
+SELECT * FROM SessionEntity WHERE sessionCreatedOffline = 1 OR sessionDeletedOffline = 1;
+
+resolveCreatedOfflineSync:
+UPDATE SessionEntity
+SET sessionCreatedOffline = 0
+WHERE id = ?;
+
+resolveDeletedOfflineSync:
+DELETE FROM SessionEntity
+WHERE id = ? AND sessionDeletedOffline = 1;
