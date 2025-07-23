@@ -46,7 +46,7 @@ class FinishSession(
 
         // 4️⃣ Try to PUSH to FIRESTORE via FirebaseRepository
         try {
-            firebaseRepository.updateSession(updated)
+            firebaseRepository.saveSession(updated)
             firebaseRepository.pushTrackPoints(sessionId, points)
 
             // 5️⃣ Remote sync SUCCESS - clean up local points

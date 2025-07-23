@@ -18,8 +18,8 @@ fun SessionEntity.toSession(): Session = Session(
     alertTriggered     = alertTriggered,
     createdAt          = createdAt,
     updatedAt          = updatedAt,
-    sessionDeletedOffline = (sessionDeletedOffline ?: 0L) != 0L,
-    sessionCreatedOffline = (sessionCreatedOffline ?: 0L) != 0L
+    sessionDeletedOffline = sessionDeletedOffline == 1L,
+    sessionCreatedOffline = sessionCreatedOffline == 1L
 )
 
 /* domain ➜ DB row */
