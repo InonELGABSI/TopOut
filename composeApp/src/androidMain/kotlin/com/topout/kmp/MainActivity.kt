@@ -8,7 +8,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +33,16 @@ import com.topout.kmp.shared_components.ChipControlBar
 import com.topout.kmp.shared_components.LoadingAnimation
 import org.koin.compose.KoinContext
 
+import androidx.compose.ui.platform.LocalContext
+import com.topout.kmp.utils.observeNetworkStatus
+import com.topout.kmp.utils.NetworkStatus
+import com.topout.kmp.domain.SyncOfflineChanges
+import kotlinx.coroutines.flow.collectLatest
+import org.koin.compose.koinInject
+import kotlinx.coroutines.flow.distinctUntilChanged
+
+import android.widget.Toast
+
 
 sealed class NavTab(val route: String, val title: String) {
     data object Home : NavTab("home", "Home")
@@ -58,6 +67,26 @@ class MainActivity : ComponentActivity() {
                     var isAppLoading by remember { mutableStateOf(true) }
                     val navController = rememberNavController()
                     var selectedTab by remember { mutableStateOf<NavTab>(NavTab.History) }
+
+
+                    // Get the DI use case
+                    val syncOfflineChanges = koinInject<SyncOfflineChanges>()
+                    val context = LocalContext.current
+
+                    // Launch a coroutine to observe network and trigger sync
+                    LaunchedEffect(Unit) {
+                        observeNetworkStatus(context)
+                            .distinctUntilChanged()
+                            .collectLatest { status ->
+                            if (status == NetworkStatus.Available) {
+                                Toast.makeText(context, "Network reconnected, syncing!", Toast.LENGTH_SHORT).show()
+                                syncOfflineChanges.invoke()
+                            } else {
+                                Toast.makeText(context, "Network disconnected!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+
 
                     // --- Permission State ---
                     var hasLocationPermission by remember { mutableStateOf(false) }
@@ -190,10 +219,4 @@ class MainActivity : ComponentActivity() {
 }
 fun NavController.navigateToSession(session: Session) {
     this.navigate("session/${session.id}")
-}
-
-@Preview
-@Composable
-fun AppAndroidPreview() {
-    App()
 }

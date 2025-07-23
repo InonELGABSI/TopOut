@@ -28,7 +28,7 @@ fun DocumentSnapshot.toSession(): Session {
         endTime   = get<Long?>("end_time")           // may be null
             ?: get<Timestamp?>("end_time")?.toEpochMillis(),
         createdAt = millis("created_at"),
-        updatedAt = millis("updatedAt"),
+        updatedAt = millis("updated_at"),
         sessionDeletedOffline = false,
         sessionCreatedOffline = false,
     )

@@ -31,15 +31,14 @@ fun LiveSessionScreen(
 ) {
     val uiState = viewModel.uiState.collectAsState().value
 
-    // Reset to initial state when entering the screen
-    LaunchedEffect(Unit) {
-        viewModel.resetToInitialState()
-    }
 
     // Handle navigation when session is stopped
     LaunchedEffect(uiState) {
         if (uiState is LiveSessionState.SessionStopped) {
             onNavigateToSessionDetails(uiState.sessionId)
+            // Reset to initial state when entering the screen
+            viewModel.resetToInitialState()
+
         }
     }
 
