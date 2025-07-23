@@ -25,7 +25,7 @@ fun DocumentSnapshot.toSession(): Session {
 
     return Session(
         id = id,
-        userId = get<String?>("userId") ?: "",
+        userId = get<String?>("user_id") ?: "",
         title = get<String?>("title") ?: "",
         startTime = millis("start_time"),
         endTime = millis("end_time"),
@@ -36,7 +36,7 @@ fun DocumentSnapshot.toSession(): Session {
         avgRate = get<Double?>("avg_rate") ?: 0.0,
         alertTriggered = get<Long?>("alert_triggered") ?: 0,
         createdAt = millis("created_at"),
-        updatedAt = millis("updatedAt"), // Note: different field name convention
+        updatedAt = millis("updated_at"), // Note: different field name convention
         sessionDeletedOffline = false,
         sessionCreatedOffline = false
     )
@@ -51,7 +51,7 @@ fun DocumentSnapshot.toSession(): Session {
 fun Session.toFirestoreMap(serverCreatedAt: Boolean = false): Map<String, Any?> =
     mutableMapOf<String, Any?>(
         "id"              to id,
-        "userId"          to userId,
+        "user_id"          to userId,
         "title"           to title,
         "start_time"      to startTime,
         "end_time"        to endTime,
@@ -61,6 +61,6 @@ fun Session.toFirestoreMap(serverCreatedAt: Boolean = false): Map<String, Any?> 
         "min_altitude"    to minAltitude,
         "avg_rate"        to avgRate,
         "alert_triggered" to alertTriggered,
-        "updatedAt"       to updatedAt,
+        "updated_at"       to updatedAt,
         "created_at"      to createdAt
     )
