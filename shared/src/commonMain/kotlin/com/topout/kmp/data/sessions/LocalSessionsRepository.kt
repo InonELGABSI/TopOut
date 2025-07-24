@@ -5,6 +5,8 @@ import com.topout.kmp.data.Result
 import com.topout.kmp.data.dao.SessionDao
 import com.topout.kmp.models.Session
 import com.topout.kmp.models.Sessions
+import com.topout.kmp.utils.extensions.asSessionTitle
+import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 
 data class SessionsError (
@@ -63,7 +65,11 @@ class LocalSessionsRepository (
 
     override suspend fun createSession(): Result<Session, SessionsError> {
         return try {
-            val newSession = Session()
+            val now = Clock.System.now()
+
+            val newSession = Session(
+                title = now.asSessionTitle()
+            )
             sessionDao.saveSession(newSession)
             Result.Success(newSession)
         } catch (e: Exception) {

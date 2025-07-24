@@ -14,7 +14,7 @@ actual class DatabaseDriverFactory(
         return AndroidSqliteDriver(
             schema = AppDatabase.Schema,
             context = context,
-            name = "topout_db_v15.db",
+            name = "topout_db_v1.db",
         )
     }
 }

@@ -31,9 +31,15 @@ class SyncOfflineChanges(
                             session.sessionCreatedOffline == true -> {
                                 try {
                                     // Upload session to remote
-                                    val createResult = remoteRepository.createSession(session)
+                                    val createResult = remoteRepository.saveSession(session)
 
                                     if (createResult is Result.Success) {
+                                        // Save the updated session (with userId and title) to local database
+                                        val updatedSession = createResult.data
+                                        if (updatedSession != null) {
+                                            sessionsRepository.saveSession(updatedSession)
+                                        }
+
                                         // Get track points for this session
                                         val trackPointsResult = trackPointsRepository.getBySession(session.id)
 

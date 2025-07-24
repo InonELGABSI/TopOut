@@ -45,17 +45,32 @@ class FinishSession(
         val updated = sessionDao.getSessionById(sessionId)
 
         // 4️⃣ Try to PUSH to FIRESTORE via FirebaseRepository
-        try {
-            firebaseRepository.saveSession(updated)
-            firebaseRepository.pushTrackPoints(sessionId, points)
+        when (val saveResult = firebaseRepository.saveSession(updated)) {
+            is Result.Success -> {
+                // Save the updated session (with userId and title) to local database
+                val updatedSessionFromRemote = saveResult.data
+                if (updatedSessionFromRemote != null) {
+                    sessionDao.saveSession(updatedSessionFromRemote)
+                }
 
-            // 5️⃣ Remote sync SUCCESS - clean up local points
-            localPointsRepo.deleteBySession(sessionId)
-
-        } catch (e: Exception) {
-            // 6️⃣ Remote sync FAILED - mark as offline created session
-            sessionDao.markSessionCreatedOffline(sessionId)
-            // Keep track points in DB for later sync - DO NOT delete them
+                // Session save succeeded, now try to push track points
+                when (val pushResult = firebaseRepository.pushTrackPoints(sessionId, points)) {
+                    is Result.Success -> {
+                        // 5️⃣ Remote sync SUCCESS - clean up local points
+                        localPointsRepo.deleteBySession(sessionId)
+                    }
+                    is Result.Failure -> {
+                        // 6️⃣ Track points push FAILED - mark as offline created session
+                        sessionDao.markSessionCreatedOffline(sessionId)
+                        // Keep track points in DB for later sync - DO NOT delete them
+                    }
+                }
+            }
+            is Result.Failure -> {
+                // 6️⃣ Session save FAILED - mark as offline created session
+                sessionDao.markSessionCreatedOffline(sessionId)
+                // Keep track points in DB for later sync - DO NOT delete them
+            }
         }
 
         // 7️⃣ RETURN combined DTO

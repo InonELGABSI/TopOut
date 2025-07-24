@@ -48,7 +48,7 @@ fun DocumentSnapshot.toSession(): Session {
  * Pass `serverCreatedAt = true` to store `created_at`
  * using FieldValue.serverTimestamp().
  */
-fun Session.toFirestoreMap(serverCreatedAt: Boolean = false): Map<String, Any?> =
+fun Session.toFirestoreMap(): Map<String, Any?> =
     mutableMapOf<String, Any?>(
         "id"              to id,
         "user_id"          to userId,
