@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -43,15 +44,49 @@ fun SessionDetailsScreen(
         viewModel.loadSession(sessionId)
     }
 
-    when (uiState) {
-        is SessionDetailsState.Loading -> SessionLoadingContent()
-        is SessionDetailsState.Loaded -> SessionDetailsContent(
-            sessionDetails = uiState.sessionDetails
-        )
-        is SessionDetailsState.Error -> SessionErrorContent(
-            errorMessage = uiState.errorMessage,
-            onRetryClick = { viewModel.loadSession(sessionId) }
-        )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Session Details") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    // Delete button - only show when session is loaded
+                    if (uiState is SessionDetailsState.Loaded) {
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete Session",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            when (uiState) {
+                is SessionDetailsState.Loading -> SessionLoadingContent()
+                is SessionDetailsState.Loaded -> SessionDetailsContent(
+                    sessionDetails = uiState.sessionDetails
+                )
+                is SessionDetailsState.Error -> SessionErrorContent(
+                    errorMessage = uiState.errorMessage,
+                    onRetryClick = { viewModel.loadSession(sessionId) }
+                )
+            }
+        }
     }
 
     // Delete confirmation dialog
