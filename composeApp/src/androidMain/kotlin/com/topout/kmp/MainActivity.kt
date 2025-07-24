@@ -23,7 +23,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.FirebaseApp
 import com.topout.kmp.features.HistoryScreen
-import com.topout.kmp.features.HomeScreen
 import com.topout.kmp.features.LiveSessionScreen
 import com.topout.kmp.features.SettingsScreen
 import com.topout.kmp.features.SessionDetailsScreen
@@ -45,7 +44,6 @@ import android.widget.Toast
 
 
 sealed class NavTab(val route: String, val title: String) {
-    data object Home : NavTab("home", "Home")
     data object History : NavTab("history", "History")
     data object Settings : NavTab("settings", "Settings")
     data object LiveSession : NavTab("live_session", "Live Session")
@@ -66,7 +64,7 @@ class MainActivity : ComponentActivity() {
                 MaterialTheme {
                     var isAppLoading by remember { mutableStateOf(true) }
                     val navController = rememberNavController()
-                    var selectedTab by remember { mutableStateOf<NavTab>(NavTab.History) }
+                    var selectedTab by remember { mutableStateOf<NavTab>(NavTab.LiveSession) }
 
 
                     // Get the DI use case
@@ -122,7 +120,6 @@ class MainActivity : ComponentActivity() {
                                 val isSessionScreen = currentRoute == "session/{sessionId}"
                                 val appBarTitle: String = when (currentRoute) {
                                     "session/{sessionId}" -> "Session Details"
-                                    NavTab.Home.route -> "Home"
                                     NavTab.History.route -> "Sessions History"
                                     NavTab.LiveSession.route -> "Live Session"
                                     NavTab.Settings.route -> "Settings"
@@ -132,17 +129,7 @@ class MainActivity : ComponentActivity() {
                                 ChipControlBar(
                                     title = appBarTitle,
                                     showBackButton = isSessionScreen,
-                                    onBackClick = { navController.popBackStack() },
-                                    onSettingsClick = {
-                                        selectedTab = NavTab.Settings
-                                        navController.navigate(NavTab.Settings.route) {
-                                            popUpTo(navController.graph.startDestinationId) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
-                                    }
+                                    onBackClick = { navController.popBackStack() }
                                 )
                             },
                             bottomBar = {
@@ -163,12 +150,9 @@ class MainActivity : ComponentActivity() {
                         ) { innerPadding ->
                             NavHost(
                                 navController = navController,
-                                startDestination = NavTab.History.route,
+                                startDestination = NavTab.LiveSession.route,
                                 modifier = Modifier.padding(innerPadding)
                             ) {
-                                composable(NavTab.Home.route) {
-                                    HomeScreen()
-                                }
                                 composable(NavTab.Settings.route) {
                                     SettingsScreen()
                                 }

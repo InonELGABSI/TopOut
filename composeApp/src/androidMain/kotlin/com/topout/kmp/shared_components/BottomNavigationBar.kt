@@ -1,9 +1,7 @@
 package com.topout.kmp.shared_components
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -19,12 +17,7 @@ fun BottomNavigationBar(
     onTabSelected: (NavTab) -> Unit
 ) {
     NavigationBar {
-        NavigationBarItem(
-            selected = selectedTab is NavTab.Home,
-            onClick = { onTabSelected(NavTab.Home) },
-            icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-            label = { Text("Home") }
-        )
+
         NavigationBarItem(
             selected = selectedTab is NavTab.History,
             onClick = { onTabSelected(NavTab.History) },
@@ -32,16 +25,17 @@ fun BottomNavigationBar(
             label = { Text("History") }
         )
         NavigationBarItem(
-            selected = selectedTab is NavTab.Settings,
-            onClick = { onTabSelected(NavTab.Settings) },
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-            label = { Text("Settings") }
-        )
-        NavigationBarItem(
             selected = selectedTab is NavTab.LiveSession,
             onClick = { onTabSelected(NavTab.LiveSession) },
             icon = { Icon(Icons.Default.PlayArrow, contentDescription = "Live Session") },
             label = { Text("Live") }
         )
+        NavigationBarItem(
+            selected = selectedTab is NavTab.Settings,
+            onClick = { onTabSelected(NavTab.Settings) },
+            icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
+            label = { Text("Settings") }
+        )
+
     }
 }

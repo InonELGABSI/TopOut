@@ -11,6 +11,7 @@ totalHeightFromStartThr REAL DEFAULT 0.0,
 currentAvgHeightSpeedThr REAL DEFAULT 0.0,
 
 localSessionsUpdateTime INTEGER DEFAULT (strftime('%s', 'now')),
+localUserUpdateTime INTEGER DEFAULT (strftime('%s', 'now')),
 
 updatedAt INTEGER DEFAULT (strftime('%s', 'now')),
 createdAt INTEGER DEFAULT (strftime('%s', 'now'))
@@ -19,9 +20,23 @@ createdAt INTEGER DEFAULT (strftime('%s', 'now'))
 getUser:
 SELECT * FROM UserEntity;
 
+saveUser:
+INSERT OR REPLACE INTO UserEntity (
+    id, name, email, imgUrl,
+    unitPreference, enabledNotifications,
+    relativeHeightFromStartThr, totalHeightFromStartThr, currentAvgHeightSpeedThr,
+    localSessionsUpdateTime, localUserUpdateTime,
+    updatedAt, createdAt
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
 updateLastSessionsUpdateTime:
 UPDATE UserEntity SET localSessionsUpdateTime = ?;
 
 getLastSessionsUpdateTime:
 SELECT localSessionsUpdateTime FROM UserEntity LIMIT 1;
 
+updateLastUserUpdateTime:
+UPDATE UserEntity SET localUserUpdateTime = ?;
+
+getLastUserUpdateTime:
+SELECT localUserUpdateTime FROM UserEntity LIMIT 1;

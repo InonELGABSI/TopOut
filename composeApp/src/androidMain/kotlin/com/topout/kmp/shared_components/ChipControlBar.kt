@@ -19,7 +19,6 @@ fun ChipControlBar(
     title: String,
     showBackButton: Boolean = false,
     onBackClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {}
 ) {
     // Add proper window insets handling
     Column(
@@ -70,18 +69,6 @@ fun ChipControlBar(
                     )
                 }
 
-                // Right side - Settings icon
-                IconButton(
-                    onClick = onSettingsClick,
-                    modifier = Modifier.size(40.dp)
-
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Settings",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
             }
         }
     }
@@ -95,7 +82,6 @@ fun ChipControlBarPreview() {
             title = "Sample Title",
             showBackButton = true,
             onBackClick = { /* Handle back click */ },
-            onSettingsClick = { /* Handle settings click */ }
         )
     }
 }

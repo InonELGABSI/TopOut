@@ -22,6 +22,15 @@ class LocalUserRepository(
         }
     }
 
+    override suspend fun saveUser(user: User): Result<Unit, UserError> {
+        return try {
+            userDao.saveUser(user)
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Failure(UserError(e.message ?: "Failed to save user"))
+        }
+    }
+
     override suspend fun updateLastSessionsUpdateTime(timestamp: Long): Result<Unit, UserError> {
         return try {
             userDao.updateLastSessionsUpdateTime(timestamp)
@@ -37,6 +46,24 @@ class LocalUserRepository(
             Result.Success(updateTime)
         } catch (e: Exception) {
             Result.Failure(UserError(e.message ?: "Failed to get last sessions update time"))
+        }
+    }
+
+    override suspend fun updateLastUserUpdateTime(timestamp: Long): Result<Unit, UserError> {
+        return try {
+            userDao.updateLastUserUpdateTime(timestamp)
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Failure(UserError(e.message ?: "Failed to update last user update time"))
+        }
+    }
+
+    override suspend fun getLastUserUpdateTime(): Result<Long?, UserError> {
+        return try {
+            val updateTime = userDao.getLastUserUpdateTime()
+            Result.Success(updateTime)
+        } catch (e: Exception) {
+            Result.Failure(UserError(e.message ?: "Failed to get last user update time"))
         }
     }
 }
