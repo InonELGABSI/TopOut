@@ -1,11 +1,9 @@
 package com.topout.kmp.features
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import com.topout.kmp.features.session_details.SessionDetailsState
 import com.topout.kmp.features.session_details.SessionDetailsViewModel
 import com.topout.kmp.models.SessionDetails
@@ -24,6 +22,7 @@ import com.topout.kmp.map.LiveMap
 import com.topout.kmp.utils.extensions.latLngOrNull
 import com.topout.kmp.shared_components.ConfirmationDialog
 import com.topout.kmp.shared_components.LoadingAnimation
+import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -36,6 +35,7 @@ fun SessionDetailsScreen(
     viewModel: SessionDetailsViewModel = koinViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsState().value
+    val topContentSpacing = rememberTopContentSpacingDp()
 
     // State for delete confirmation dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -44,46 +44,33 @@ fun SessionDetailsScreen(
         viewModel.loadSession(sessionId)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Session Details") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                actions = {
-                    // Delete button - only show when session is loaded
-                    if (uiState is SessionDetailsState.Loaded) {
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete Session",
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                }
+    Box(modifier = Modifier.fillMaxSize()) {
+        when (uiState) {
+            is SessionDetailsState.Loading -> SessionLoadingContent()
+            is SessionDetailsState.Loaded -> SessionDetailsContent(
+                sessionDetails = uiState.sessionDetails,
+                topContentSpacing = topContentSpacing
+            )
+            is SessionDetailsState.Error -> SessionErrorContent(
+                errorMessage = uiState.errorMessage,
+                onRetryClick = { viewModel.loadSession(sessionId) },
+                topContentSpacing = topContentSpacing
             )
         }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            when (uiState) {
-                is SessionDetailsState.Loading -> SessionLoadingContent()
-                is SessionDetailsState.Loaded -> SessionDetailsContent(
-                    sessionDetails = uiState.sessionDetails
-                )
-                is SessionDetailsState.Error -> SessionErrorContent(
-                    errorMessage = uiState.errorMessage,
-                    onRetryClick = { viewModel.loadSession(sessionId) }
+
+        // Delete button - only show when session is loaded
+        if (uiState is SessionDetailsState.Loaded) {
+            FloatingActionButton(
+                onClick = { showDeleteDialog = true },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                containerColor = MaterialTheme.colorScheme.error
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete Session",
+                    tint = MaterialTheme.colorScheme.onError
                 )
             }
         }
@@ -115,12 +102,17 @@ fun SessionLoadingContent() {
 
 @Composable
 fun SessionDetailsContent(
-    sessionDetails: SessionDetails
+    sessionDetails: SessionDetails,
+    topContentSpacing: Dp
 ) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            top = topContentSpacing,
+            start = 16.dp,
+            end = 16.dp,
+            bottom = 80.dp // Extra bottom padding for FAB
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Session Overview Card
@@ -545,54 +537,65 @@ fun StatisticItem(
 @Composable
 fun SessionErrorContent(
     errorMessage: String,
-    onRetryClick: () -> Unit
+    onRetryClick: () -> Unit,
+    topContentSpacing: Dp
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            top = topContentSpacing,
+            start = 24.dp,
+            end = 24.dp,
+            bottom = 24.dp
+        ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            imageVector = Icons.Default.Error,
-            contentDescription = "Error",
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.error
-        )
+        item {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Error,
+                    contentDescription = "Error",
+                    modifier = Modifier.size(64.dp),
+                    tint = MaterialTheme.colorScheme.error
+                )
 
-        Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "Failed to Load Session",
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Bold
-            ),
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center
-        )
+                Text(
+                    text = "Failed to Load Session",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
 
-        Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = errorMessage,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
 
-        Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-        Button(
-            onClick = onRetryClick,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                imageVector = Icons.Default.Refresh,
-                contentDescription = null
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Try Again")
+                Button(
+                    onClick = onRetryClick,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Try Again")
+                }
+            }
         }
     }
 }

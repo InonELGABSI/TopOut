@@ -14,9 +14,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import com.topout.kmp.features.settings.SettingsState
 import com.topout.kmp.features.settings.SettingsViewModel
 import com.topout.kmp.models.User
+import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -27,20 +29,79 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = koinViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsState().value
+    val topContentSpacing = rememberTopContentSpacingDp()
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         when (uiState) {
-            is SettingsState.Loading -> LoadingContent()
-            is SettingsState.Error -> ErrorContent(uiState.errorMessage)
-            is SettingsState.Loaded -> UserSettingsContent(uiState.user)
+            is SettingsState.Loading -> LoadingContent(topContentSpacing)
+            is SettingsState.Error -> ErrorContent(uiState.errorMessage, topContentSpacing)
+            is SettingsState.Loaded -> UserSettingsContent(uiState.user, topContentSpacing)
         }
     }
 }
 
 @Composable
-fun UserSettingsContent(user: User) {
+fun LoadingContent(topContentSpacing: Dp) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(
+                top = topContentSpacing,
+                start = 24.dp,
+                end = 24.dp,
+                bottom = 24.dp
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        CircularProgressIndicator()
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Loading settings...",
+            style = MaterialTheme.typography.bodyLarge
+        )
+    }
+}
+
+@Composable
+fun ErrorContent(errorMessage: String, topContentSpacing: Dp) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(
+                top = topContentSpacing,
+                start = 24.dp,
+                end = 24.dp,
+                bottom = 24.dp
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Error,
+            contentDescription = "Error",
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.error
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Settings Error",
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Bold
+            ),
+            color = MaterialTheme.colorScheme.error
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = errorMessage,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+fun UserSettingsContent(user: User, topContentSpacing: Dp) {
     var editableUser by remember { mutableStateOf(user) }
     var isEditing by remember { mutableStateOf(false) }
 
@@ -48,7 +109,12 @@ fun UserSettingsContent(user: User) {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(
+                top = topContentSpacing,
+                start = 16.dp,
+                end = 16.dp,
+                bottom = 16.dp
+            ),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Profile Section
