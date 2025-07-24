@@ -19,8 +19,9 @@ fun ChipControlBar(
     title: String,
     showBackButton: Boolean = false,
     onBackClick: () -> Unit = {},
+    isTransparent: Boolean = false,
 ) {
-    // Add proper window insets handling
+    // The actual chip control bar
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -29,12 +30,17 @@ fun ChipControlBar(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = 32.dp, vertical = 16.dp),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
+                containerColor = if (isTransparent)
+                    MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                else
+                    MaterialTheme.colorScheme.primaryContainer
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = if (isTransparent) 8.dp else 4.dp
+            )
         ) {
             Row(
                 modifier = Modifier
@@ -55,7 +61,10 @@ fun ChipControlBar(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                tint = if (isTransparent)
+                                    MaterialTheme.colorScheme.onSurface
+                                else
+                                    MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     }
@@ -65,10 +74,12 @@ fun ChipControlBar(
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold
                         ),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = if (isTransparent)
+                            MaterialTheme.colorScheme.onSurface
+                        else
+                            MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
-
             }
         }
     }

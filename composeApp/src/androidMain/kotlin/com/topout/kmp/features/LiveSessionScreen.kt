@@ -19,6 +19,7 @@ import com.topout.kmp.features.live_session.LiveSessionViewModel
 import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.shared_components.ConfirmationDialog
 import com.topout.kmp.shared_components.MountainAnimation
+import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import com.topout.kmp.utils.extensions.latLngOrNull
 import org.koin.androidx.compose.koinViewModel
 
@@ -31,7 +32,7 @@ fun LiveSessionScreen(
     viewModel: LiveSessionViewModel = koinViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsState().value
-
+    val topContentSpacing = rememberTopContentSpacingDp()
 
     // Handle navigation when session is stopped
     LaunchedEffect(uiState) {
@@ -45,7 +46,9 @@ fun LiveSessionScreen(
 
     // Remove Scaffold with topBar since ChipControlBar handles the title
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = topContentSpacing)
     ) {
         when (uiState) {
             is LiveSessionState.Loading -> StartSessionContent(

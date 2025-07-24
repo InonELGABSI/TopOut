@@ -5,7 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
@@ -13,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
@@ -30,6 +34,7 @@ import com.topout.kmp.models.Session
 import com.topout.kmp.shared_components.BottomNavigationBar
 import com.topout.kmp.shared_components.ChipControlBar
 import com.topout.kmp.shared_components.LoadingAnimation
+import com.topout.kmp.shared_components.TopFadeGradient
 import org.koin.compose.KoinContext
 
 import androidx.compose.ui.platform.LocalContext
@@ -41,6 +46,8 @@ import org.koin.compose.koinInject
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 import android.widget.Toast
+import com.topout.kmp.ui.theme.TopOutAppTheme
+import com.topout.kmp.ui.theme.ThemePalette
 
 
 sealed class NavTab(val route: String, val title: String) {
@@ -61,7 +68,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             KoinContext {
-                MaterialTheme {
+                // You can change this to any palette you want!
+                TopOutAppTheme(palette = ThemePalette.SUNSET_PEAK) {
                     var isAppLoading by remember { mutableStateOf(true) }
                     val navController = rememberNavController()
                     var selectedTab by remember { mutableStateOf<NavTab>(NavTab.LiveSession) }
@@ -129,9 +137,12 @@ class MainActivity : ComponentActivity() {
                                 ChipControlBar(
                                     title = appBarTitle,
                                     showBackButton = isSessionScreen,
-                                    onBackClick = { navController.popBackStack() }
+                                    onBackClick = { navController.popBackStack() },
+                                    isTransparent = true
                                 )
                             },
+                            // Remove contentWindowInsets to allow content to go under system bars
+                            contentWindowInsets = WindowInsets(0),
                             bottomBar = {
                                 BottomNavigationBar(
                                     selectedTab = selectedTab,
@@ -148,51 +159,60 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
                         ) { innerPadding ->
-                            NavHost(
-                                navController = navController,
-                                startDestination = NavTab.LiveSession.route,
-                                modifier = Modifier.padding(innerPadding)
-                            ) {
-                                composable(NavTab.Settings.route) {
-                                    SettingsScreen()
-                                }
-                                composable(NavTab.History.route) {
-                                    HistoryScreen(
-                                        onSessionClick = { session ->
-                                            navController.navigateToSession(session)
-                                        }
-                                    )
-                                }
-                                composable(NavTab.LiveSession.route) {
-                                    LiveSessionScreen(
-                                        hasLocationPermission = hasLocationPermission,
-                                        onRequestLocationPermission = {
-                                            launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                                        },
-                                        onNavigateToSessionDetails = { sessionId ->
-                                            // Navigate to session details and clear live session from back stack
-                                            navController.navigate("session/$sessionId") {
-                                                // Remove live session from back stack
-                                                popUpTo(NavTab.LiveSession.route) {
-                                                    inclusive = true
-                                                }
-                                                // Set history as the parent destination
-                                                popUpTo(NavTab.History.route) {
-                                                    saveState = true
-                                                }
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                NavHost(
+                                    navController = navController,
+                                    startDestination = NavTab.LiveSession.route,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(bottom = innerPadding.calculateBottomPadding()) // Only bottom padding for nav bar
+                                ) {
+                                    composable(NavTab.Settings.route) {
+                                        SettingsScreen()
+                                    }
+                                    composable(NavTab.History.route) {
+                                        HistoryScreen(
+                                            onSessionClick = { session ->
+                                                navController.navigateToSession(session)
                                             }
-                                            // Update selected tab to history so back navigation is correct
-                                            selectedTab = NavTab.History
-                                        }
-                                    )
+                                        )
+                                    }
+                                    composable(NavTab.LiveSession.route) {
+                                        LiveSessionScreen(
+                                            hasLocationPermission = hasLocationPermission,
+                                            onRequestLocationPermission = {
+                                                launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                                            },
+                                            onNavigateToSessionDetails = { sessionId ->
+                                                // Navigate to session details and clear live session from back stack
+                                                navController.navigate("session/$sessionId") {
+                                                    // Remove live session from back stack
+                                                    popUpTo(NavTab.LiveSession.route) {
+                                                        inclusive = true
+                                                    }
+                                                    // Set history as the parent destination
+                                                    popUpTo(NavTab.History.route) {
+                                                        saveState = true
+                                                    }
+                                                }
+                                                // Update selected tab to history so back navigation is correct
+                                                selectedTab = NavTab.History
+                                            }
+                                        )
+                                    }
+                                    composable(NavTab.SessionDetail.route) { backStackEntry ->
+                                        val sessionId = backStackEntry.arguments?.getString("sessionId") ?: ""
+                                        SessionDetailsScreen(
+                                            sessionId = sessionId,
+                                            onNavigateBack = { navController.popBackStack() }
+                                        )
+                                    }
                                 }
-                                composable(NavTab.SessionDetail.route) { backStackEntry ->
-                                    val sessionId = backStackEntry.arguments?.getString("sessionId") ?: ""
-                                    SessionDetailsScreen(
-                                        sessionId = sessionId,
-                                        onNavigateBack = { navController.popBackStack() }
-                                    )
-                                }
+
+                                // Add the fade gradient overlay on top
+                                TopFadeGradient(
+                                    modifier = Modifier.align(Alignment.TopCenter)
+                                )
                             }
                         }
                     }

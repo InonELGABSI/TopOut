@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import com.topout.kmp.features.sessions.SessionsState
 import com.topout.kmp.features.sessions.SessionsViewModel
 import com.topout.kmp.models.Session
+import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.runtime.LaunchedEffect
 
@@ -25,28 +26,78 @@ fun HistoryScreen(
     viewModel: SessionsViewModel = koinViewModel(),
     onSessionClick: (Session) -> Unit
 ) {
+    val topContentSpacing = rememberTopContentSpacingDp()
+
     LaunchedEffect(Unit) {
         viewModel.fetchSessions()
     }
 
     val uiState = viewModel.uiState.collectAsState().value
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         when (uiState) {
-            is SessionsState.Error -> ErrorContent(message = uiState.errorMessage)
-            is SessionsState.Loaded -> {
-                if (uiState.sessions.isNullOrEmpty()) {
-                    EmptyStateContent()
-                } else {
-                    SessionsListContent(
-                        sessions = uiState.sessions ?: emptyList(),
-                        onSessionClicked = onSessionClick
-                    )
+            is SessionsState.Error -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        top = topContentSpacing,
+                        bottom = 8.dp
+                    ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    item {
+                        ErrorContent(message = uiState.errorMessage)
+                    }
                 }
             }
-            SessionsState.Loading -> LoadingContent()
+            is SessionsState.Loaded -> {
+                if (uiState.sessions.isNullOrEmpty()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            top = topContentSpacing,
+                            bottom = 8.dp
+                        ),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        item {
+                            EmptyStateContent()
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            top = topContentSpacing,
+                            bottom = 8.dp
+                        )
+                    ) {
+                        items(uiState.sessions ?: emptyList()) { session ->
+                            SessionItem(
+                                session = session,
+                                onSessionClick = onSessionClick
+                            )
+                        }
+                    }
+                }
+            }
+            SessionsState.Loading -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        top = topContentSpacing,
+                        bottom = 8.dp
+                    ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    item {
+                        LoadingContent()
+                    }
+                }
+            }
         }
     }
 }
@@ -72,7 +123,6 @@ fun SessionsListContent(
 @Composable
 fun EmptyStateContent() {
     Column(
-        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -105,33 +155,22 @@ fun EmptyStateContent() {
 
 @Composable
 fun ErrorContent(message: String) {
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = message,
-            style = TextStyle(
-                fontSize = 28.sp,
-                textAlign = TextAlign.Center
-            )
+    Text(
+        text = message,
+        style = TextStyle(
+            fontSize = 28.sp,
+            textAlign = TextAlign.Center
         )
-    }
+    )
 }
 
 @Composable
 fun LoadingContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(
-            modifier = Modifier.width(64.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            trackColor = MaterialTheme.colorScheme.secondary
-        )
-    }
+    CircularProgressIndicator(
+        modifier = Modifier.width(64.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        trackColor = MaterialTheme.colorScheme.secondary
+    )
 }
 
 private fun createDummyUiState(type: String = "loaded"): SessionsState {
