@@ -7,6 +7,8 @@ plugins {
     id("co.touchlab.skie") version "0.10.1"
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.sqldelight)
+    id("com.github.ben-manes.versions") version "0.51.0"
+
 }
 
 kotlin {

@@ -33,6 +33,7 @@ class SessionTracker(
     private var log = Logger.withTag("SessionTracker")
 
     fun start() {
+        log.i { "start() for session $sessionId" }
         collectJob = scope.launch {
             aggregator.aggregateFlow.collect { sample ->
                 // Prioritize GPS altitude when available, fallback to barometric
@@ -125,6 +126,7 @@ class SessionTracker(
     }
 
     fun stop() {
+        log.i { "stop() for session $sessionId" }
         collectJob?.cancel()
         collectJob = null
     }

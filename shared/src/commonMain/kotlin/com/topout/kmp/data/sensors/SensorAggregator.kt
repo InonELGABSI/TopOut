@@ -5,6 +5,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 import kotlinx.datetime.Clock
+import co.touchlab.kermit.Logger
 
 class SensorAggregator(
     private val accelFlow: Flow<AccelerationData>,
@@ -18,6 +19,8 @@ class SensorAggregator(
         val location: LocationData?,
         val ts: Long
     )
+
+    private val log = Logger.withTag("SensorAggregator")
 
     private val _tick = MutableSharedFlow<Unit>(
         replay = 0,
@@ -52,6 +55,7 @@ class SensorAggregator(
     private var jobTick: Job? = null
 
     suspend fun start(scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)) {
+        log.i { "start()" }
         jobAccel = scope.launch { accelFlow.collect { latestAccel = it } }
         jobAlt   = scope.launch { altFlow.collect { latestAlt = it } }
         jobLoc   = scope.launch { locFlow.collect { latestLoc = it } }
@@ -66,6 +70,7 @@ class SensorAggregator(
     }
 
     fun stop() {
+        log.i { "stop()" }
         jobAccel?.cancel(); jobAccel = null
         jobAlt?.cancel(); jobAlt = null
         jobLoc?.cancel(); jobLoc = null

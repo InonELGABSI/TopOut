@@ -1,4 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -72,6 +71,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
@@ -101,5 +103,9 @@ dependencies {
     implementation(libs.maps.compose.widgets)
 
     implementation(libs.lottie.compose)
+
+    implementation(libs.play.services.location)
+    implementation(libs.google.play.services.location)
+
 }
 

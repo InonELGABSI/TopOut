@@ -39,6 +39,7 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.json.Json
 import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
@@ -70,9 +71,11 @@ val domainModule = module {
 
     factoryOf(::FinishSession)
     factoryOf(::GetLiveMetrics)
-    factoryOf(::LiveSessionUseCases)
+    factory { (scope: CoroutineScope) ->
+        LiveSessionManager(get(), get(), get(), scope)
+    }
 
-    singleOf(::LiveSessionManager)
+    factoryOf(::LiveSessionUseCases)
 
     factoryOf(::SessionsUseCases)
     factoryOf(::SessionDetailsUseCases)

@@ -10,6 +10,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import co.touchlab.kermit.Logger
 
 /**
  * Reads a single accelerometer sample and returns it as an [AccelerationData] record.
@@ -25,6 +26,7 @@ actual class AccelerometerProvider(private val context: Context) {
 
     private val sensorManager =
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    private val log = Logger.withTag("AccelerometerProvider")
 
     private val accelerometer: Sensor =
         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -33,11 +35,13 @@ actual class AccelerometerProvider(private val context: Context) {
     /** One-shot read — ideal for KMP coroutines. */
     actual suspend fun getAcceleration(): AccelerationData =
         suspendCancellableCoroutine { cont ->
+            //log.d { "getAcceleration()" }
 
             val listener = object : SensorEventListener {
 
                 override fun onSensorChanged(event: SensorEvent) {
                     sensorManager.unregisterListener(this)
+                    //log.d { "onSensorChanged" }
 
                     // event.values = [x, y, z, …] expressed in m/s².:contentReference[oaicite:2]{index=2}
                     val v = event.values
@@ -61,6 +65,7 @@ actual class AccelerometerProvider(private val context: Context) {
             )
 
             cont.invokeOnCancellation {                // tidy-up if the coroutine is cancelled
+                log.d { "invokeOnCancellation: unregistering listener" }
                 sensorManager.unregisterListener(listener)
                 cont.resumeWithException(
                     CancellationException("getAcceleration() was cancelled")
