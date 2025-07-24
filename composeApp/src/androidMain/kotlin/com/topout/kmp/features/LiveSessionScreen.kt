@@ -18,6 +18,7 @@ import com.topout.kmp.features.live_session.LiveSessionState
 import com.topout.kmp.features.live_session.LiveSessionViewModel
 import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.shared_components.ConfirmationDialog
+import com.topout.kmp.shared_components.MountainAnimation
 import com.topout.kmp.utils.extensions.latLngOrNull
 import org.koin.androidx.compose.koinViewModel
 
@@ -81,26 +82,13 @@ fun StartSessionContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Session Icon
-        Card(
-            modifier = Modifier.size(120.dp),
-            shape = RoundedCornerShape(60.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.PlayArrow,
-                    contentDescription = "Start Session",
-                    modifier = Modifier.size(60.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
+        // Mountain Animation - larger and no background
+        MountainAnimation(
+            modifier = Modifier.size(200.dp),
+            animationAsset = "Travel_Mountain.json",
+            speed = 1.0f,
+            iterations = 1
+        )
 
         Spacer(modifier = Modifier.height(32.dp))
 
