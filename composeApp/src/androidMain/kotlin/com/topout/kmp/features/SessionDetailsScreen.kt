@@ -3,7 +3,6 @@ package com.topout.kmp.features
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,9 +19,7 @@ import com.topout.kmp.models.SessionDetails
 import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.map.LiveMap
 import com.topout.kmp.utils.extensions.latLngOrNull
-import com.topout.kmp.shared_components.ConfirmationDialog
-import com.topout.kmp.shared_components.LoadingAnimation
-import com.topout.kmp.shared_components.rememberTopContentSpacingDp
+import com.topout.kmp.shared_components.*
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -35,7 +32,6 @@ fun SessionDetailsScreen(
     viewModel: SessionDetailsViewModel = koinViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsState().value
-    val topContentSpacing = rememberTopContentSpacingDp()
 
     // State for delete confirmation dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -47,32 +43,14 @@ fun SessionDetailsScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         when (uiState) {
             is SessionDetailsState.Loading -> SessionLoadingContent()
-            is SessionDetailsState.Loaded -> SessionDetailsContent(
+            is SessionDetailsState.Loaded -> NewSessionDetailsContent(
                 sessionDetails = uiState.sessionDetails,
-                topContentSpacing = topContentSpacing
+                onDeleteClick = { showDeleteDialog = true }
             )
             is SessionDetailsState.Error -> SessionErrorContent(
                 errorMessage = uiState.errorMessage,
-                onRetryClick = { viewModel.loadSession(sessionId) },
-                topContentSpacing = topContentSpacing
+                onRetryClick = { viewModel.loadSession(sessionId) }
             )
-        }
-
-        // Delete button - only show when session is loaded
-        if (uiState is SessionDetailsState.Loaded) {
-            FloatingActionButton(
-                onClick = { showDeleteDialog = true },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-                containerColor = MaterialTheme.colorScheme.error
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete Session",
-                    tint = MaterialTheme.colorScheme.onError
-                )
-            }
         }
     }
 
@@ -94,199 +72,31 @@ fun SessionDetailsScreen(
 }
 
 @Composable
-fun SessionLoadingContent() {
-    LoadingAnimation(
-        text = "Loading session details..."
-    )
-}
-
-@Composable
-fun SessionDetailsContent(
+fun NewSessionDetailsContent(
     sessionDetails: SessionDetails,
-    topContentSpacing: Dp
+    onDeleteClick: () -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            top = topContentSpacing,
-            start = 16.dp,
-            end = 16.dp,
-            bottom = 80.dp // Extra bottom padding for FAB
-        ),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    Column(
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Session Overview Card
-        item {
-            SessionOverviewCard(sessionDetails = sessionDetails)
-        }
-
-        // Map with track points
-        item {
+        // Top card with map - takes full width, no spacing, rounded bottom corners
+        TopRoundedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(500.dp),
+            cornerRadius = 24.dp
+        ) {
+            // Map takes full card space
             if (sessionDetails.points.isNotEmpty()) {
-                SessionMapCard(trackPoints = sessionDetails.points)
-            }
-        }
-
-        // Session Statistics
-        item {
-            SessionStatisticsCard(sessionDetails = sessionDetails)
-        }
-
-        // Track Points List
-        item {
-            TrackPointsCard(trackPoints = sessionDetails.points)
-        }
-    }
-}
-
-@Composable
-fun SessionOverviewCard(sessionDetails: SessionDetails) {
-    val session = sessionDetails.session
-    val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-    val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Session Overview",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-                Icon(
-                    imageVector = Icons.Default.Timeline,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = "Session ID",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = session.id.take(8) + "...",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Medium
-                        )
-                    )
-                }
-
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "Date",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = session.startTime?.let { dateFormat.format(Date(it)) } ?: "N/A",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Medium
-                        )
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = "Start Time",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = session.startTime?.let { timeFormat.format(Date(it)) } ?: "N/A",
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Medium
-                        )
-                    )
-                }
-
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "Duration",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = calculateSessionDuration(sessionDetails),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Medium
-                        )
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun SessionMapCard(trackPoints: List<TrackPoint>) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Map,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Route Map",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Show map with the first point that has location data
-            if (trackPoints.any { it.latLngOrNull() != null }) {
                 LiveMap(
                     location = null, // Not needed in route mode
-                    trackPoints = trackPoints,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
+                    trackPoints = sessionDetails.points,
+                    modifier = Modifier.fillMaxSize(),
                     showTrackFocus = true
                 )
             } else {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -297,6 +107,213 @@ fun SessionMapCard(trackPoints: List<TrackPoint>) {
                 }
             }
         }
+
+        // Bottom card with session info - rounded top corners
+        BottomRoundedCard(
+            modifier = Modifier.fillMaxWidth(),
+            cornerRadius = 24.dp
+        ) {
+            SessionInfoSection(
+                sessionDetails = sessionDetails,
+                onDeleteClick = onDeleteClick
+            )
+        }
+
+        // Session name outside cards
+        Text(
+            text = "Climbing Session", // You can make this dynamic based on session data
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontWeight = FontWeight.Bold
+            ),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+        )
+
+        // Rest of content in scrollable area
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Session Statistics
+            item {
+                SessionStatisticsCard(sessionDetails = sessionDetails)
+            }
+
+            // Track Points List
+            item {
+                TrackPointsCard(trackPoints = sessionDetails.points)
+            }
+        }
+    }
+}
+
+@Composable
+fun SessionInfoSection(
+    sessionDetails: SessionDetails,
+    onDeleteClick: () -> Unit
+) {
+    val session = sessionDetails.session
+    val dateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
+    val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Date + Start Time
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = session.startTime?.let { dateFormat.format(Date(it)) } ?: "N/A",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+            Text(
+                text = session.startTime?.let { timeFormat.format(Date(it)) } ?: "N/A",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Duration
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = calculateSessionDuration(sessionDetails),
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+            Text(
+                text = "Duration",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Delete Button
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            IconButton(
+                onClick = onDeleteClick,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete Session"
+                )
+            }
+            Text(
+                text = "Delete",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+}
+
+@Composable
+fun SessionLoadingContent() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        LoadingAnimation(
+            text = "Loading session details..."
+        )
+    }
+}
+
+@Composable
+fun SessionErrorContent(
+    errorMessage: String,
+    onRetryClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(24.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Error,
+                contentDescription = "Error",
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.error
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Failed to Load Session",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = errorMessage,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = onRetryClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Try Again")
+            }
+        }
+    }
+}
+
+private fun calculateSessionDuration(sessionDetails: SessionDetails): String {
+    val points = sessionDetails.points
+    if (points.isEmpty()) return "N/A"
+
+    val startTime = points.firstOrNull()?.timestamp ?: 0L
+    val endTime = points.lastOrNull()?.timestamp ?: 0L
+    val durationMs = endTime - startTime
+
+    return formatDuration(durationMs)
+}
+
+private fun formatDuration(durationMs: Long): String {
+    val seconds = (durationMs / 1000) % 60
+    val minutes = (durationMs / (1000 * 60)) % 60
+    val hours = (durationMs / (1000 * 60 * 60))
+
+    return if (hours > 0) {
+        "%02d:%02d:%02d".format(hours, minutes, seconds)
+    } else {
+        "%02d:%02d".format(minutes, seconds)
     }
 }
 
@@ -364,13 +381,13 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
                 StatisticItem(
                     label = "Total Gain",
                     value = "%.1f m".format(totalGain),
-                    textColor = Color(0xFF4CAF50),
+                    textColor = androidx.compose.ui.graphics.Color(0xFF4CAF50),
                     modifier = Modifier.weight(1f)
                 )
                 StatisticItem(
                     label = "Total Loss",
                     value = "%.1f m".format(totalLoss),
-                    textColor = Color(0xFFFF5722),
+                    textColor = androidx.compose.ui.graphics.Color(0xFFFF5722),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -408,7 +425,7 @@ fun TrackPointsCard(trackPoints: List<TrackPoint>) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.List,
+                    imageVector = Icons.Default.List,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
@@ -490,14 +507,14 @@ fun TrackPointItem(trackPoint: TrackPoint) {
                         Icon(
                             imageVector = Icons.Default.Warning,
                             contentDescription = "Alert",
-                            tint = Color(0xFFFF5722),
+                            tint = androidx.compose.ui.graphics.Color(0xFFFF5722),
                             modifier = Modifier.size(12.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = trackPoint.alertType.name,
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFFFF5722)
+                            color = androidx.compose.ui.graphics.Color(0xFFFF5722)
                         )
                     }
                 }
@@ -511,7 +528,7 @@ fun StatisticItem(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
-    textColor: Color = MaterialTheme.colorScheme.onSurface
+    textColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
 ) {
     Column(
         modifier = modifier,
@@ -531,95 +548,6 @@ fun StatisticItem(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
-    }
-}
-
-@Composable
-fun SessionErrorContent(
-    errorMessage: String,
-    onRetryClick: () -> Unit,
-    topContentSpacing: Dp
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            top = topContentSpacing,
-            start = 24.dp,
-            end = 24.dp,
-            bottom = 24.dp
-        ),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        item {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Error,
-                    contentDescription = "Error",
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.error
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Failed to Load Session",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = errorMessage,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Button(
-                    onClick = onRetryClick,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = null
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Try Again")
-                }
-            }
-        }
-    }
-}
-
-private fun calculateSessionDuration(sessionDetails: SessionDetails): String {
-    val points = sessionDetails.points
-    if (points.isEmpty()) return "N/A"
-
-    val startTime = points.firstOrNull()?.timestamp ?: 0L
-    val endTime = points.lastOrNull()?.timestamp ?: 0L
-    val durationMs = endTime - startTime
-
-    return formatDuration(durationMs)
-}
-
-private fun formatDuration(durationMs: Long): String {
-    val seconds = (durationMs / 1000) % 60
-    val minutes = (durationMs / (1000 * 60)) % 60
-    val hours = (durationMs / (1000 * 60 * 60))
-
-    return if (hours > 0) {
-        "%02d:%02d:%02d".format(hours, minutes, seconds)
-    } else {
-        "%02d:%02d".format(minutes, seconds)
     }
 }
 

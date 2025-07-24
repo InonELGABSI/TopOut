@@ -3,6 +3,9 @@ package com.topout.kmp.map
 
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CenterFocusStrong
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -129,9 +132,9 @@ fun LiveMap(
         /* floating controls */
         Column(
             modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // Focus on current location button
             if (showLocationFocus && location != null) {
@@ -172,19 +175,50 @@ fun LiveMap(
 
 @Composable
 private fun ZoomButton(label: String, onClick: () -> Unit) =
-    ElevatedButton(
+    FloatingActionButton(
         onClick = onClick,
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-        shape = MaterialTheme.shapes.small
-    ) { Text(label) }
+        modifier = Modifier.size(48.dp),
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        elevation = FloatingActionButtonDefaults.elevation(
+            defaultElevation = 6.dp,
+            pressedElevation = 8.dp
+        )
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+            )
+        )
+    }
 
 @Composable
 private fun FocusButton(icon: String, onClick: () -> Unit) =
-    ElevatedButton(
+    FloatingActionButton(
         onClick = onClick,
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-        shape = MaterialTheme.shapes.small
-    ) { Text(icon) }
+        modifier = Modifier.size(48.dp),
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        elevation = FloatingActionButtonDefaults.elevation(
+            defaultElevation = 6.dp,
+            pressedElevation = 8.dp
+        )
+    ) {
+        Icon(
+            imageVector = when (icon) {
+                "📍" -> Icons.Default.MyLocation
+                "🗺️" -> Icons.Default.CenterFocusStrong
+                else -> Icons.Default.CenterFocusStrong
+            },
+            contentDescription = when (icon) {
+                "📍" -> "Focus on my location"
+                "🗺️" -> "Focus on route"
+                else -> "Focus"
+            },
+            modifier = Modifier.size(24.dp)
+        )
+    }
 
 private fun com.topout.kmp.models.LatLng.toLatLng() =
     LatLng(latitude, longitude)
