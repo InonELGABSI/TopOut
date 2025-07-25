@@ -12,8 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 import com.topout.kmp.map.LiveMap
 import com.topout.kmp.features.live_session.LiveSessionState
@@ -39,7 +37,6 @@ fun LiveSessionScreen(
     LaunchedEffect(uiState) {
         if (uiState is LiveSessionState.SessionStopped) {
             onNavigateToSessionDetails(uiState.sessionId)
-            // Reset to initial state when entering the screen
             viewModel.resetToInitialState()
         }
     }
@@ -54,7 +51,8 @@ fun LiveSessionScreen(
             )
             is LiveSessionState.Loaded -> ActiveSessionContent(
                 trackPoint = uiState.trackPoint,
-                onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) }
+                onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
+                onCancelClick = { viewModel.onCancelClicked(uiState.trackPoint.sessionId) }
             )
             is LiveSessionState.Stopping -> StoppingSessionContent()
             is LiveSessionState.SessionStopped -> {
@@ -143,10 +141,12 @@ fun StartSessionContent(
 @Composable
 fun ActiveSessionContent(
     trackPoint: TrackPoint,
-    onStopClick: () -> Unit
+    onStopClick: () -> Unit,
+    onCancelClick: () -> Unit
 ) {
     // State for stop confirmation dialog
     var showStopDialog by remember { mutableStateOf(false) }
+    var showCancelDialog by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Live Data Card - positioned first so it appears behind the map
@@ -182,13 +182,12 @@ fun ActiveSessionContent(
                 ) {
                     // Cancel chip button
                     FilterChip(
-                        onClick = { /* TODO: Add cancel functionality */ },
+                        onClick = { showCancelDialog = true },
                         label = {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxWidth() // This is the key addition
-
+                                modifier = Modifier.fillMaxWidth()
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Cancel,
@@ -208,7 +207,6 @@ fun ActiveSessionContent(
                         modifier = Modifier
                             .height(48.dp)
                             .width(160.dp),
-
                         colors = FilterChipDefaults.filterChipColors(
                             containerColor = MaterialTheme.colorScheme.secondary,
                             labelColor = MaterialTheme.colorScheme.onSecondary
@@ -228,8 +226,7 @@ fun ActiveSessionContent(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxWidth() // This is the key addition
-
+                                modifier = Modifier.fillMaxWidth()
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Stop,
@@ -292,6 +289,19 @@ fun ActiveSessionContent(
         isDestructive = true,
         onConfirm = onStopClick,
         onDismiss = { showStopDialog = false }
+    )
+
+    // Cancel session confirmation dialog
+    ConfirmationDialog(
+        isVisible = showCancelDialog,
+        title = "Cancel Session",
+        message = "Are you sure you want to cancel this session? All tracking data will be permanently deleted and cannot be recovered.",
+        confirmText = "Cancel Session",
+        cancelText = "Keep Session",
+        icon = Icons.Default.Cancel,
+        isDestructive = true,
+        onConfirm = onCancelClick,
+        onDismiss = { showCancelDialog = false }
     )
 }
 
@@ -687,3 +697,4 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
         }
     }
 }
+

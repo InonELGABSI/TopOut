@@ -71,6 +71,24 @@ class LiveSessionViewModel(
         }
     }
 
+    fun onCancelClicked(sessionId: String) {
+        // Always cancel jobs and manager first
+        stopSessionAndCleanup()
+
+        _uiState.value = LiveSessionState.Stopping
+
+        // Cancel and delete session locally without saving to remote
+        scope.launch {
+            try {
+                // Delete the session and its track points locally
+                useCases.cancelLocalSession(sessionId)
+                resetToInitialState()
+            } catch (e: Exception) {
+                _uiState.value = LiveSessionState.Error(e.message ?: "Error cancelling session")
+            }
+        }
+    }
+
     fun resetToInitialState() {
         stopSessionAndCleanup()
         _uiState.value = LiveSessionState.Loading
