@@ -12,6 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 import com.topout.kmp.map.LiveMap
 import com.topout.kmp.features.live_session.LiveSessionState
@@ -20,7 +22,6 @@ import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.shared_components.ConfirmationDialog
 import com.topout.kmp.shared_components.MountainAnimation
 import com.topout.kmp.shared_components.TopRoundedCard
-import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import com.topout.kmp.utils.extensions.latLngOrNull
 import org.koin.androidx.compose.koinViewModel
 
@@ -165,49 +166,13 @@ fun ActiveSessionContent(
                 LiveDataOverviewCard(trackPoint = trackPoint)
             }
 
-            // Content area with detailed metrics
+            // Content area with stop button
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Two-column layout for better use of space
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Left column
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        // Session Status
-                        CompactSessionStatusCard(trackPoint = trackPoint)
-
-                        // Location & GPS Data
-                        CompactLocationDataCard(trackPoint = trackPoint)
-
-                        // Accelerometer Data
-                        CompactAccelerometerDataCard(trackPoint = trackPoint)
-                    }
-
-                    // Right column
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        // Speed & Movement Metrics
-                        CompactSpeedMetricsCard(trackPoint = trackPoint)
-
-                        // Altitude & Climbing Data
-                        CompactAltitudeMetricsCard(trackPoint = trackPoint)
-
-//                        // Alert Status
-//                        CompactAlertStatusCard(trackPoint = trackPoint)
-                    }
-                }
-
                 Spacer(modifier = Modifier.weight(1f))
 
                 // Stop Button
@@ -269,6 +234,90 @@ fun ActiveSessionContent(
 }
 
 @Composable
+fun StoppingSessionContent() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        CircularProgressIndicator()
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Stopping Session...",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun ErrorContent(
+    errorMessage: String,
+    onRetryClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Error,
+            contentDescription = "Error",
+            tint = MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(64.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Session Error",
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Bold
+            ),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = errorMessage,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = onRetryClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(28.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Refresh,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "Try Again",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        }
+    }
+}
+
+@Composable
 fun LiveDataOverviewCard(trackPoint: TrackPoint) {
     val topContentSpacing = 50.dp // Use a fixed top content spacing
 
@@ -283,7 +332,7 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
             ),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Title with live indicator
+        // First Row: Live data title and clock
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -310,781 +359,269 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
             Text(
                 text = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault())
                     .format(java.util.Date(trackPoint.timestamp)),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.Medium
+                ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
-        // Key metrics in a horizontal layout
+        // Second Row: Location data with icon and title on left, coordinates with space around
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            // Location
-            LiveDataItem(
-                icon = Icons.Default.LocationOn,
-                label = "Location",
-                value = if (trackPoint.latitude != null && trackPoint.longitude != null)
-                    "%.4f°, %.4f°".format(trackPoint.latitude, trackPoint.longitude)
-                else "No GPS",
-                modifier = Modifier.weight(1f)
-            )
-
-            // Speed
-            LiveDataItem(
-                icon = Icons.Default.Speed,
-                label = "Speed",
-                value = "%.1f m/s".format(trackPoint.vTotal),
-                modifier = Modifier.weight(1f)
-            )
-
-            // Altitude
-            LiveDataItem(
-                icon = Icons.Default.Terrain,
-                label = "Altitude",
-                value = trackPoint.altitude?.let { "%.1f m".format(it) } ?: "N/A",
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-fun LiveDataItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold
-            ),
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
-fun StoppingSessionContent() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        CircularProgressIndicator()
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Stopping Session...",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-// Compact Cards for two-column layout
-
-@Composable
-fun CompactSessionStatusCard(trackPoint: TrackPoint) {
-    val timestamp = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault())
-        .format(java.util.Date(trackPoint.timestamp))
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.FiberManualRecord,
-                    contentDescription = "Recording",
-                    tint = Color.Red,
-                    modifier = Modifier.size(12.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "Session Active",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = timestamp,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Text(
-                text = "ID: ${trackPoint.sessionId.take(8)}...",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-fun CompactLocationDataCard(trackPoint: TrackPoint) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            // Title
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "Location",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Data grid
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                CompactMetricItem(
-                    label = "Lat",
-                    value = trackPoint.latitude?.let { "%.5f°".format(it) } ?: "N/A",
-                    modifier = Modifier.weight(1f)
-                )
-                CompactMetricItem(
-                    label = "Lon",
-                    value = trackPoint.longitude?.let { "%.5f°".format(it) } ?: "N/A",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                CompactMetricItem(
-                    label = "Altitude",
-                    value = trackPoint.altitude?.let { "%.1f m".format(it) } ?: "N/A"
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun CompactAccelerometerDataCard(trackPoint: TrackPoint) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            // Title
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Vibration,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "Accelerometer",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Data grid
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                CompactMetricItem(
-                    label = "X",
-                    value = trackPoint.accelerationX?.let { "%.2f".format(it) } ?: "N/A",
-                    modifier = Modifier.weight(1f)
-                )
-                CompactMetricItem(
-                    label = "Y",
-                    value = trackPoint.accelerationY?.let { "%.2f".format(it) } ?: "N/A",
-                    modifier = Modifier.weight(1f)
-                )
-                CompactMetricItem(
-                    label = "Z",
-                    value = trackPoint.accelerationZ?.let { "%.2f".format(it) } ?: "N/A",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun CompactSpeedMetricsCard(trackPoint: TrackPoint) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            // Title
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Speed,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "Speed",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Data grid
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                CompactMetricItem(
-                    label = "V-Speed",
-                    value = "%.1f m/min".format(trackPoint.vVertical),
-                    modifier = Modifier.weight(1f)
-                )
-                CompactMetricItem(
-                    label = "H-Speed",
-                    value = "%.1f m/s".format(trackPoint.vHorizontal),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                CompactMetricItem(
-                    label = "Total",
-                    value = "%.1f m/s".format(trackPoint.vTotal),
-                    modifier = Modifier.weight(1f)
-                )
-                CompactMetricItem(
-                    label = "Avg-V",
-                    value = "%.1f m/min".format(trackPoint.avgVertical),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun CompactAltitudeMetricsCard(trackPoint: TrackPoint) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            // Title
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Terrain,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "Altitude",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Data grid
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                CompactMetricItem(
-                    label = "Gain",
-                    value = "%.1f m".format(trackPoint.gain),
-                    textColor = Color(0xFF4CAF50),
-                    modifier = Modifier.weight(1f)
-                )
-                CompactMetricItem(
-                    label = "Loss",
-                    value = "%.1f m".format(trackPoint.loss),
-                    textColor = Color(0xFFFF5722),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                CompactMetricItem(
-                    label = "Rel. Alt",
-                    value = "%.1f m".format(trackPoint.relAltitude)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun CompactAlertStatusCard(trackPoint: TrackPoint) {
-    val alertColor = if (trackPoint.danger) Color(0xFFFF5722) else Color(0xFF4CAF50)
-    val alertText = if (trackPoint.danger) "⚠️ ${trackPoint.alertType.name}" else "✅ OK"
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (trackPoint.danger)
-                Color(0xFFFF5722).copy(alpha = 0.1f)
-            else
-                Color(0xFF4CAF50).copy(alpha = 0.1f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = if (trackPoint.danger) Icons.Default.Warning else Icons.Default.CheckCircle,
-                contentDescription = "Alert Status",
-                tint = alertColor,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = alertText,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = alertColor
-                )
-            )
-        }
-    }
-}
-
-@Composable
-fun CompactMetricItem(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    textColor: Color = MaterialTheme.colorScheme.onSurface
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = textColor
-            ),
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
-fun SessionStatusCard(trackPoint: TrackPoint) {
-    val timestamp = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
-        .format(java.util.Date(trackPoint.timestamp))
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.FiberManualRecord,
-                contentDescription = "Recording",
-                tint = Color.Red,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Session Active",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                modifier = Modifier.weight(1f)
-            )
-            Column(
-                horizontalAlignment = Alignment.End
-            ) {
-                Text(
-                    text = "Session ID: ${trackPoint.sessionId.take(8)}...",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = "Timestamp: $timestamp",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun LocationDataCard(trackPoint: TrackPoint) {
-    MetricCard(
-        title = "Location & GPS",
-        icon = Icons.Default.LocationOn
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            MetricItem(
-                label = "Latitude",
-                value = trackPoint.latitude?.let { "%.6f°".format(it) } ?: "N/A",
-                modifier = Modifier.weight(1f)
-            )
-            MetricItem(
-                label = "Longitude",
-                value = trackPoint.longitude?.let { "%.6f°".format(it) } ?: "N/A",
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        MetricItem(
-            label = "GPS Altitude",
-            value = trackPoint.altitude?.let { "%.1f m".format(it) } ?: "N/A"
-        )
-    }
-}
-
-@Composable
-fun AccelerometerDataCard(trackPoint: TrackPoint) {
-    MetricCard(
-        title = "Accelerometer Data",
-        icon = Icons.Default.Vibration // Using a suitable icon from Material Icons
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            MetricItem(
-                label = "X-Axis",
-                value = trackPoint.accelerationX?.let { "%.2f".format(it) } ?: "N/A",
-                modifier = Modifier.weight(1f)
-            )
-            MetricItem(
-                label = "Y-Axis",
-                value = trackPoint.accelerationY?.let { "%.2f".format(it) } ?: "N/A",
-                modifier = Modifier.weight(1f)
-            )
-            MetricItem(
-                label = "Z-Axis",
-                value = trackPoint.accelerationZ?.let { "%.2f".format(it) } ?: "N/A",
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-fun SpeedMetricsCard(trackPoint: TrackPoint) {
-    MetricCard(
-        title = "Speed & Movement",
-        icon = Icons.Default.Speed
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            MetricItem(
-                label = "Vertical Speed",
-                value = "%.1f m/min".format(trackPoint.vVertical),
-                modifier = Modifier.weight(1f)
-            )
-            MetricItem(
-                label = "Horizontal Speed",
-                value = "%.1f m/s".format(trackPoint.vHorizontal),
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            MetricItem(
-                label = "Total Speed",
-                value = "%.1f m/s".format(trackPoint.vTotal),
-                modifier = Modifier.weight(1f)
-            )
-            MetricItem(
-                label = "Avg Vertical",
-                value = "%.1f m/min".format(trackPoint.avgVertical),
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-fun AltitudeMetricsCard(trackPoint: TrackPoint) {
-    MetricCard(
-        title = "Altitude & Climbing",
-        icon = Icons.Default.Terrain
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            MetricItem(
-                label = "Total Gain",
-                value = "%.1f m".format(trackPoint.gain),
-                textColor = Color(0xFF4CAF50),
-                modifier = Modifier.weight(1f)
-            )
-            MetricItem(
-                label = "Total Loss",
-                value = "%.1f m".format(trackPoint.loss),
-                textColor = Color(0xFFFF5722),
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        MetricItem(
-            label = "Relative Altitude",
-            value = "%.1f m".format(trackPoint.relAltitude)
-        )
-    }
-}
-
-@Composable
-fun AlertStatusCard(trackPoint: TrackPoint) {
-    val alertColor = if (trackPoint.danger) Color(0xFFFF5722) else Color(0xFF4CAF50)
-    val alertText = if (trackPoint.danger) "⚠️ ${trackPoint.alertType.name}" else "✅ All Good"
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (trackPoint.danger)
-                Color(0xFFFF5722).copy(alpha = 0.1f)
-            else
-                Color(0xFF4CAF50).copy(alpha = 0.1f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = if (trackPoint.danger) Icons.Default.Warning else Icons.Default.CheckCircle,
-                contentDescription = "Alert Status",
-                tint = alertColor,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = alertText,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = alertColor
-                )
-            )
-        }
-    }
-}
-
-@Composable
-fun MetricCard(
-    title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
+                    contentDescription = "Location",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = title,
+                    text = "Location",
                     style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.SemiBold
                     )
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = trackPoint.latitude?.let { "%.4f°".format(it) } ?: "N/A",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Text(
+                        text = "Lat",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-            content()
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = trackPoint.longitude?.let { "%.4f°".format(it) } ?: "N/A",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Text(
+                        text = "Lon",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = trackPoint.altitude?.let { "%.1fm".format(it) } ?: "N/A",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Text(
+                        text = "Alt",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
-    }
-}
 
-@Composable
-fun MetricItem(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    textColor: Color = MaterialTheme.colorScheme.onSurface
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.Bold,
-                color = textColor
-            ),
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
-fun ErrorContent(
-    errorMessage: String,
-    onRetryClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.Error,
-            contentDescription = "Error",
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.error
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Session Error",
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Bold
-            ),
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = errorMessage,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = onRetryClick,
-            modifier = Modifier.fillMaxWidth()
+        // Third Row: Split into two sections - Speed and Altitude
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Refresh,
-                contentDescription = null
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Try Again")
+            // Left side: Speed section
+            Card(
+                modifier = Modifier.weight(1f),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Speed,
+                            contentDescription = "Speed",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Speed",
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "%.1f".format(trackPoint.vHorizontal),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            Text(
+                                text = "H",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "%.1f".format(trackPoint.vVertical),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            Text(
+                                text = "V",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "%.1f".format(trackPoint.avgVertical),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            Text(
+                                text = "Avg-V",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Right side: Altitude section
+            Card(
+                modifier = Modifier.weight(1f),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Terrain,
+                            contentDescription = "Altitude",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Altitude",
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "${trackPoint.gain.toInt()}",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = Color(0xFF4CAF50)
+                            )
+                            Text(
+                                text = "Gain",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "${trackPoint.loss.toInt()}",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = Color(0xFFFF5722)
+                            )
+                            Text(
+                                text = "Loss",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "${trackPoint.relAltitude.toInt()}",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                            Text(
+                                text = "Rel",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
