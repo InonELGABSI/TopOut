@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             KoinContext {
                 // You can change this to any palette you want!
-                TopOutAppTheme(palette = ThemePalette.SUNSET_PEAK) {
+                TopOutAppTheme(palette = ThemePalette.DARK_MOUNTAIN) {
                     var isAppLoading by remember { mutableStateOf(true) }
                     val navController = rememberNavController()
                     var selectedTab by remember { mutableStateOf<NavTab>(NavTab.LiveSession) }

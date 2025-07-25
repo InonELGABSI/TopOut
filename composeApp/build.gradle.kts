@@ -27,6 +27,8 @@ kotlin {
 
             implementation(libs.androidx.runtime)
             implementation(libs.lottie.compose)
+            implementation(libs.vico.compose)
+            implementation(libs.vico.compose.m3)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -106,6 +108,11 @@ dependencies {
 
     implementation(libs.play.services.location)
     implementation(libs.google.play.services.location)
+
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
+
+
 
 }
 

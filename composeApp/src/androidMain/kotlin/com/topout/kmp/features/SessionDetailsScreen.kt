@@ -2,8 +2,10 @@ package com.topout.kmp.features
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -61,7 +63,7 @@ fun SessionDetailsScreen(
         message = "Are you sure you want to delete this climbing session? This action cannot be undone.",
         confirmText = "Delete",
         cancelText = "Cancel",
-        icon = Icons.Default.Delete,
+        icon = Icons.Outlined.DeleteOutline,
         isDestructive = true,
         onConfirm = {
             viewModel.deleteSession(sessionId)
@@ -76,72 +78,76 @@ fun NewSessionDetailsContent(
     sessionDetails: SessionDetails,
     onDeleteClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize()
+    // Make the entire content scrollable
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        // Top card with map - takes full width, no spacing, rounded bottom corners
-        TopRoundedCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(500.dp),
-            cornerRadius = 24.dp
-        ) {
-            // Map takes full card space
-            if (sessionDetails.points.isNotEmpty()) {
-                LiveMap(
-                    location = null, // Not needed in route mode
-                    trackPoints = sessionDetails.points,
-                    modifier = Modifier.fillMaxSize(),
-                    showTrackFocus = true
-                )
-            } else {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No location data available",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+        // Map section
+        item {
+            TopRoundedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(500.dp),
+                cornerRadius = 24.dp
+            ) {
+                // Map takes full card space
+                if (sessionDetails.points.isNotEmpty()) {
+                    LiveMap(
+                        location = null, // Not needed in route mode
+                        trackPoints = sessionDetails.points,
+                        modifier = Modifier.fillMaxSize(),
+                        showTrackFocus = true
                     )
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No location data available",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
 
-        // Bottom card with session info - rounded top corners
-        BottomRoundedCard(
-            modifier = Modifier.fillMaxWidth(),
-            cornerRadius = 24.dp
-        ) {
+        // Session info section
+        item {
             SessionInfoSection(
                 sessionDetails = sessionDetails,
                 onDeleteClick = onDeleteClick
             )
         }
 
-        // Session name outside cards
-        Text(
-            text = "Climbing Session", // You can make this dynamic based on session data
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontWeight = FontWeight.Bold
-            ),
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-        )
+        // Session name with statistics and track points wrapped together
+        item {
+            BottomRoundedCard(
+                modifier = Modifier.fillMaxWidth(),
+                cornerRadius = 24.dp,
+                elevation = 6.dp,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Title
+                    Text(
+                        text = "Climbing Session", // You can make this dynamic based on session data
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                    )
 
-        // Rest of content in scrollable area
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Session Statistics
-            item {
-                SessionStatisticsCard(sessionDetails = sessionDetails)
-            }
+                    // Statistics (without background)
+                    SessionStatisticsCard(sessionDetails = sessionDetails)
 
-            // Track Points List
-            item {
-                TrackPointsCard(trackPoints = sessionDetails.points)
+                    // Track Points (without background)
+                    TrackPointsCardContent(trackPoints = sessionDetails.points)
+                }
             }
         }
     }
@@ -212,7 +218,7 @@ fun SessionInfoSection(
                 )
             ) {
                 Icon(
-                    imageVector = Icons.Default.Delete,
+                    imageVector = Icons.Outlined.DeleteOutline,
                     contentDescription = "Delete Session"
                 )
             }
@@ -329,145 +335,146 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
     val totalLoss = points.lastOrNull()?.loss ?: 0.0
     val maxSpeed = points.maxOfOrNull { it.vTotal } ?: 0.0
 
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // First row - 3 items
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Analytics,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Session Statistics",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
+            StatisticItemWithIcon(
+                icon = Icons.Default.KeyboardArrowUp,
+                label = "Max Altitude",
+                value = "%.1f m".format(maxAltitude)
+            )
+            StatisticItemWithIcon(
+                icon = Icons.Default.KeyboardArrowDown,
+                label = "Min Altitude",
+                value = "%.1f m".format(minAltitude)
+            )
+            StatisticItemWithIcon(
+                icon = Icons.Default.TrendingUp,
+                label = "Total Gain",
+                value = "%.1f m".format(totalGain),
+                textColor = androidx.compose.ui.graphics.Color(0xFF4CAF50)
+            )
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // First row of stats
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                StatisticItem(
-                    label = "Max Altitude",
-                    value = "%.1f m".format(maxAltitude),
-                    modifier = Modifier.weight(1f)
-                )
-                StatisticItem(
-                    label = "Min Altitude",
-                    value = "%.1f m".format(minAltitude),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Second row of stats
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                StatisticItem(
-                    label = "Total Gain",
-                    value = "%.1f m".format(totalGain),
-                    textColor = androidx.compose.ui.graphics.Color(0xFF4CAF50),
-                    modifier = Modifier.weight(1f)
-                )
-                StatisticItem(
-                    label = "Total Loss",
-                    value = "%.1f m".format(totalLoss),
-                    textColor = androidx.compose.ui.graphics.Color(0xFFFF5722),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Third row of stats
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                StatisticItem(
-                    label = "Max Speed",
-                    value = "%.1f m/s".format(maxSpeed),
-                    modifier = Modifier.weight(1f)
-                )
-                StatisticItem(
-                    label = "Track Points",
-                    value = points.size.toString(),
-                    modifier = Modifier.weight(1f)
-                )
-            }
+        // Second row - 2 items
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            StatisticItemWithIcon(
+                icon = Icons.Default.TrendingDown,
+                label = "Total Loss",
+                value = "%.1f m".format(totalLoss),
+                textColor = androidx.compose.ui.graphics.Color(0xFFFF5722)
+            )
+            StatisticItemWithIcon(
+                icon = Icons.Default.Speed,
+                label = "Max Speed",
+                value = "%.1f m/s".format(maxSpeed)
+            )
         }
     }
 }
 
 @Composable
-fun TrackPointsCard(trackPoints: List<TrackPoint>) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+fun StatisticItemWithIcon(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    textColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
+) {
+    Row(
+        modifier = modifier.padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp)
+        )
+
         Column(
-            modifier = Modifier.padding(16.dp)
+            horizontalAlignment = Alignment.Start
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun TrackPointsCardContent(trackPoints: List<TrackPoint>) {
+    Column(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                imageVector = Icons.Default.List,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Track Points (${trackPoints.size})",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        if (trackPoints.isEmpty()) {
+            Text(
+                text = "No track points recorded",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.List,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Track Points (${trackPoints.size})",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
+            )
+        } else {
+            // Show first few track points as preview
+            trackPoints.take(3).forEach { point ->
+                TrackPointItem(trackPoint = point)
+                if (point != trackPoints.take(3).last()) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            if (trackPoints.isEmpty()) {
+            if (trackPoints.size > 3) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "No track points recorded",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = "... and ${trackPoints.size - 3} more points",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-            } else {
-                // Show first few track points as preview
-                trackPoints.take(3).forEach { point ->
-                    TrackPointItem(trackPoint = point)
-                    if (point != trackPoints.take(3).last()) {
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    }
-                }
-
-                if (trackPoints.size > 3) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "... and ${trackPoints.size - 3} more points",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
             }
         }
     }

@@ -4,8 +4,7 @@ package com.topout.kmp.map
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CenterFocusStrong
-import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -207,9 +206,9 @@ private fun FocusButton(icon: String, onClick: () -> Unit) =
     ) {
         Icon(
             imageVector = when (icon) {
-                "📍" -> Icons.Default.MyLocation
-                "🗺️" -> Icons.Default.CenterFocusStrong
-                else -> Icons.Default.CenterFocusStrong
+                "📍" -> Icons.Default.GpsFixed
+                "🗺️" -> Icons.Default.GpsFixed
+                else -> Icons.Default.GpsFixed
             },
             contentDescription = when (icon) {
                 "📍" -> "Focus on my location"
