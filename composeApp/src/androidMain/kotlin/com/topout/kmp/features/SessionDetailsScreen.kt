@@ -99,7 +99,8 @@ fun NewSessionDetailsContent(
                         location = null, // Not needed in route mode
                         trackPoints = sessionDetails.points,
                         modifier = Modifier.fillMaxSize(),
-                        showTrackFocus = true
+                        showTrackFocus = true,
+                        useTopContentSpacing = true
                     )
                 } else {
                     Box(

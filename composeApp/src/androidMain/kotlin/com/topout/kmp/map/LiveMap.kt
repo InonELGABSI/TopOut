@@ -1,6 +1,4 @@
-// NEW  LiveMap.kt  ────────────────────────────────────────────────────────────
 package com.topout.kmp.map
-
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -9,11 +7,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
+import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import kotlinx.coroutines.launch
 
 /**
@@ -27,11 +27,28 @@ fun LiveMap(
     modifier: Modifier = Modifier,
     initialZoom: Float = 17f,
     showLocationFocus: Boolean = false,
-    showTrackFocus: Boolean = false
+    showTrackFocus: Boolean = false,
+    useTopContentSpacing: Boolean = false
 ) {
     /* ── state ---------------------------------------------------------------- */
     val coroutineScope = rememberCoroutineScope()
     val isRouteMode = !trackPoints.isNullOrEmpty() && location == null
+
+    // Get top content spacing and convert to pixels for map padding (optional)
+    val topContentSpacing = if (useTopContentSpacing) rememberTopContentSpacingDp() else 0.dp
+    val density = LocalDensity.current
+    val topPaddingPx = with(density) { topContentSpacing.toPx().toInt() }
+    val bottomPaddingPx = 100 // Keep some bottom padding for controls
+    val sidePaddingPx = 50 // Side padding
+
+    // Calculate effective padding - use top spacing for uniform padding but ensure bottom stays reasonable
+    val effectivePadding = if (useTopContentSpacing && topPaddingPx > sidePaddingPx) {
+        // When top spacing is significant, use it but cap the effective bottom padding
+        maxOf(topPaddingPx, bottomPaddingPx)
+    } else {
+        // Use standard padding when top spacing is not significant
+        maxOf(sidePaddingPx, bottomPaddingPx)
+    }
 
     // Wait for real location in live mode, use route points in route mode
     val target = when {
@@ -85,7 +102,36 @@ fun LiveMap(
                 points.forEach { boundsBuilder.include(it) }
                 try {
                     val bounds = boundsBuilder.build()
-                    cameraState.move(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+                    if (useTopContentSpacing && topPaddingPx > 0) {
+                        // Calculate the bounds with additional top padding by expanding the north bound
+                        val latSpan = bounds.northeast.latitude - bounds.southwest.latitude
+                        val lngSpan = bounds.northeast.longitude - bounds.southwest.longitude
+
+                        // Calculate how much extra latitude we need to add based on the screen height and top padding
+                        // This is an approximation - adjust the multiplier as needed
+                        val topPaddingRatio = topPaddingPx.toFloat() / 500f // Assuming 500dp map height
+                        val extraLatTop = latSpan * topPaddingRatio
+
+                        val adjustedBounds = com.google.android.gms.maps.model.LatLngBounds.builder()
+                            .include(com.google.android.gms.maps.model.LatLng(
+                                bounds.southwest.latitude,
+                                bounds.southwest.longitude
+                            ))
+                            .include(com.google.android.gms.maps.model.LatLng(
+                                bounds.northeast.latitude + extraLatTop,
+                                bounds.northeast.longitude
+                            ))
+                            .build()
+
+                        cameraState.move(
+                            CameraUpdateFactory.newLatLngBounds(adjustedBounds, sidePaddingPx)
+                        )
+                    } else {
+                        // Standard uniform padding
+                        cameraState.move(
+                            CameraUpdateFactory.newLatLngBounds(bounds, sidePaddingPx)
+                        )
+                    }
                 } catch (e: IllegalStateException) {
                     // Log error or handle, e.g. when no valid points
                 }
@@ -155,7 +201,31 @@ fun LiveMap(
                             points.forEach { boundsBuilder.include(it) }
                             try {
                                 val bounds = boundsBuilder.build()
-                                cameraState.animate(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+                                if (useTopContentSpacing && topPaddingPx > 0) {
+                                    // Apply the same top-only padding logic as in route mode
+                                    val latSpan = bounds.northeast.latitude - bounds.southwest.latitude
+                                    val topPaddingRatio = topPaddingPx.toFloat() / 500f // Assuming 500dp map height
+                                    val extraLatTop = latSpan * topPaddingRatio
+
+                                    val adjustedBounds = com.google.android.gms.maps.model.LatLngBounds.builder()
+                                        .include(com.google.android.gms.maps.model.LatLng(
+                                            bounds.southwest.latitude,
+                                            bounds.southwest.longitude
+                                        ))
+                                        .include(com.google.android.gms.maps.model.LatLng(
+                                            bounds.northeast.latitude + extraLatTop,
+                                            bounds.northeast.longitude
+                                        ))
+                                        .build()
+
+                                    cameraState.animate(
+                                        CameraUpdateFactory.newLatLngBounds(adjustedBounds, sidePaddingPx)
+                                    )
+                                } else {
+                                    cameraState.animate(
+                                        CameraUpdateFactory.newLatLngBounds(bounds, sidePaddingPx)
+                                    )
+                                }
                             } catch (e: IllegalStateException) {
                                 // Log error or handle, e.g. when no valid points
                             }
