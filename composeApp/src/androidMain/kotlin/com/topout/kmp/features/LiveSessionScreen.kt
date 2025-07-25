@@ -166,36 +166,98 @@ fun ActiveSessionContent(
                 LiveDataOverviewCard(trackPoint = trackPoint)
             }
 
-            // Content area with stop button
+            // Content area with chip buttons
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Stop Button
-                Button(
-                    onClick = { showStopDialog = true },
+                // Chip buttons row
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    ),
-                    shape = RoundedCornerShape(25.dp)
+                        .padding(bottom = 32.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Stop,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
+                    // Cancel chip button
+                    FilterChip(
+                        onClick = { /* TODO: Add cancel functionality */ },
+                        label = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth() // This is the key addition
+
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Cancel,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Cancel",
+                                    style = MaterialTheme.typography.labelLarge.copy(
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        },
+                        selected = false,
+                        modifier = Modifier
+                            .height(48.dp)
+                            .width(160.dp),
+
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            labelColor = MaterialTheme.colorScheme.onSecondary
+                        ),
+                        shape = RoundedCornerShape(
+                            topStart = 0.dp,
+                            topEnd = 24.dp,
+                            bottomStart = 0.dp,
+                            bottomEnd = 24.dp
+                        )
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Stop Session",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold
+
+                    // Stop & Save chip button
+                    FilterChip(
+                        onClick = { showStopDialog = true },
+                        label = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth() // This is the key addition
+
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Stop,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Stop & Save",
+                                    style = MaterialTheme.typography.labelLarge.copy(
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        },
+                        selected = false,
+                        modifier = Modifier
+                            .height(48.dp)
+                            .width(160.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            labelColor = MaterialTheme.colorScheme.onError
+                        ),
+                        shape = RoundedCornerShape(
+                            topStart = 24.dp,
+                            topEnd = 0.dp,
+                            bottomStart = 24.dp,
+                            bottomEnd = 0.dp
                         )
                     )
                 }
