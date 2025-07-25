@@ -145,11 +145,25 @@ fun NewSessionDetailsContent(
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)
                     )
 
+                    // Horizontal divider under title
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 24.dp),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     // Statistics (without background)
                     SessionStatisticsCard(sessionDetails = sessionDetails)
 
+                    // Horizontal divider under statistics
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                    )
+
                     // Add spacing before the chart section
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // Time-Height Chart
                     if (sessionDetails.points.isNotEmpty()) {
