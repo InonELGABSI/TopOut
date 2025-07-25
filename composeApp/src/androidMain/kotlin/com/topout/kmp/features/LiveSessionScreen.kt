@@ -19,6 +19,7 @@ import com.topout.kmp.features.live_session.LiveSessionViewModel
 import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.shared_components.ConfirmationDialog
 import com.topout.kmp.shared_components.MountainAnimation
+import com.topout.kmp.shared_components.TopRoundedCard
 import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import com.topout.kmp.utils.extensions.latLngOrNull
 import org.koin.androidx.compose.koinViewModel
@@ -32,7 +33,6 @@ fun LiveSessionScreen(
     viewModel: LiveSessionViewModel = koinViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsState().value
-    val topContentSpacing = rememberTopContentSpacingDp()
 
     // Handle navigation when session is stopped
     LaunchedEffect(uiState) {
@@ -40,16 +40,11 @@ fun LiveSessionScreen(
             onNavigateToSessionDetails(uiState.sessionId)
             // Reset to initial state when entering the screen
             viewModel.resetToInitialState()
-
         }
     }
 
     // Remove Scaffold with topBar since ChipControlBar handles the title
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = topContentSpacing)
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         when (uiState) {
             is LiveSessionState.Loading -> StartSessionContent(
                 hasLocationPermission = hasLocationPermission,
@@ -153,81 +148,93 @@ fun ActiveSessionContent(
     var showStopDialog by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        // Smaller map at the top
-        LiveMap(
-            location = trackPoint.latLngOrNull(),
+        // Map section in TopRoundedCard
+        TopRoundedCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp),
-            showLocationFocus = true
-        )
-
-        // Two-column layout for better use of space
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .height(500.dp),
+            cornerRadius = 24.dp
         ) {
-            // Left column
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Session Status
-                CompactSessionStatusCard(trackPoint = trackPoint)
-
-                // Location & GPS Data
-                CompactLocationDataCard(trackPoint = trackPoint)
-
-                // Accelerometer Data
-                CompactAccelerometerDataCard(trackPoint = trackPoint)
-            }
-
-            // Right column
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Speed & Movement Metrics
-                CompactSpeedMetricsCard(trackPoint = trackPoint)
-
-                // Altitude & Climbing Data
-                CompactAltitudeMetricsCard(trackPoint = trackPoint)
-
-//                // Alert Status
-//                CompactAlertStatusCard(trackPoint = trackPoint)
-            }
+            LiveMap(
+                location = trackPoint.latLngOrNull(),
+                modifier = Modifier.fillMaxSize(),
+                showLocationFocus = true,
+                useTopContentSpacing = true
+            )
         }
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Stop Button
-        Button(
-            onClick = { showStopDialog = true },
+        // Content area with padding
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error
-            ),
-            shape = RoundedCornerShape(25.dp)
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Stop,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Stop Session",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold
+            // Two-column layout for better use of space
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Left column
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Session Status
+                    CompactSessionStatusCard(trackPoint = trackPoint)
+
+                    // Location & GPS Data
+                    CompactLocationDataCard(trackPoint = trackPoint)
+
+                    // Accelerometer Data
+                    CompactAccelerometerDataCard(trackPoint = trackPoint)
+                }
+
+                // Right column
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Speed & Movement Metrics
+                    CompactSpeedMetricsCard(trackPoint = trackPoint)
+
+                    // Altitude & Climbing Data
+                    CompactAltitudeMetricsCard(trackPoint = trackPoint)
+
+//                    // Alert Status
+//                    CompactAlertStatusCard(trackPoint = trackPoint)
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Stop Button
+            Button(
+                onClick = { showStopDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                ),
+                shape = RoundedCornerShape(25.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Stop,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
                 )
-            )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Stop Session",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
         }
     }
 

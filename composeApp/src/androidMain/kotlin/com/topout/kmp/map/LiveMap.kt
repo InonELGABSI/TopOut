@@ -89,7 +89,44 @@ fun LiveMap(
         if (!isRouteMode && location != null) {
             val latLng = location.toLatLng()
             markerState.position = latLng // move marker
-            cameraState.animate(CameraUpdateFactory.newLatLng(latLng))
+
+            if (useTopContentSpacing && topPaddingPx > 0) {
+                // Use the same top spacing logic as the focus button for live following
+                val offset = 0.001 // Small offset to create bounds around the point
+                val bounds = com.google.android.gms.maps.model.LatLngBounds.builder()
+                    .include(com.google.android.gms.maps.model.LatLng(
+                        latLng.latitude - offset,
+                        latLng.longitude - offset
+                    ))
+                    .include(com.google.android.gms.maps.model.LatLng(
+                        latLng.latitude + offset,
+                        latLng.longitude + offset
+                    ))
+                    .build()
+
+                // Apply the same top-only padding logic as in route mode
+                val latSpan = bounds.northeast.latitude - bounds.southwest.latitude
+                val topPaddingRatio = topPaddingPx.toFloat() / 500f
+                val extraLatTop = latSpan * topPaddingRatio
+
+                val adjustedBounds = com.google.android.gms.maps.model.LatLngBounds.builder()
+                    .include(com.google.android.gms.maps.model.LatLng(
+                        bounds.southwest.latitude,
+                        bounds.southwest.longitude
+                    ))
+                    .include(com.google.android.gms.maps.model.LatLng(
+                        bounds.northeast.latitude + extraLatTop,
+                        bounds.northeast.longitude
+                    ))
+                    .build()
+
+                cameraState.animate(
+                    CameraUpdateFactory.newLatLngBounds(adjustedBounds, sidePaddingPx)
+                )
+            } else {
+                // Standard behavior - just center on location
+                cameraState.animate(CameraUpdateFactory.newLatLng(latLng))
+            }
         }
     }
 
@@ -186,7 +223,43 @@ fun LiveMap(
                 FocusButton("📍") {
                     coroutineScope.launch {
                         val latLng = location.toLatLng()
-                        cameraState.animate(CameraUpdateFactory.newLatLngZoom(latLng, initialZoom))
+                        if (useTopContentSpacing && topPaddingPx > 0) {
+                            // Create a small bounds around the location point to account for top spacing
+                            val offset = 0.001 // Small offset to create bounds around the point
+                            val bounds = com.google.android.gms.maps.model.LatLngBounds.builder()
+                                .include(com.google.android.gms.maps.model.LatLng(
+                                    latLng.latitude - offset,
+                                    latLng.longitude - offset
+                                ))
+                                .include(com.google.android.gms.maps.model.LatLng(
+                                    latLng.latitude + offset,
+                                    latLng.longitude + offset
+                                ))
+                                .build()
+
+                            // Apply the same top-only padding logic as in route mode
+                            val latSpan = bounds.northeast.latitude - bounds.southwest.latitude
+                            val topPaddingRatio = topPaddingPx.toFloat() / 500f
+                            val extraLatTop = latSpan * topPaddingRatio
+
+                            val adjustedBounds = com.google.android.gms.maps.model.LatLngBounds.builder()
+                                .include(com.google.android.gms.maps.model.LatLng(
+                                    bounds.southwest.latitude,
+                                    bounds.southwest.longitude
+                                ))
+                                .include(com.google.android.gms.maps.model.LatLng(
+                                    bounds.northeast.latitude + extraLatTop,
+                                    bounds.northeast.longitude
+                                ))
+                                .build()
+
+                            cameraState.animate(
+                                CameraUpdateFactory.newLatLngBounds(adjustedBounds, sidePaddingPx)
+                            )
+                        } else {
+                            // Standard behavior - just center on location
+                            cameraState.animate(CameraUpdateFactory.newLatLngZoom(latLng, initialZoom))
+                        }
                     }
                 }
             }
