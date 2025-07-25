@@ -25,6 +25,8 @@ import com.topout.kmp.shared_components.*
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,6 +146,43 @@ fun NewSessionDetailsContent(
 
                     // Statistics (without background)
                     SessionStatisticsCard(sessionDetails = sessionDetails)
+
+                    // Time-Height Chart
+                    if (sessionDetails.points.isNotEmpty()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Timeline,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Altitude over Time",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            TimeHeightChart(
+                                samples = prepareChartData(sessionDetails.points),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                            )
+                        }
+                    }
 
                     // Track Points (without background)
                     TrackPointsCardContent(trackPoints = sessionDetails.points)
@@ -558,3 +597,53 @@ fun StatisticItem(
     }
 }
 
+/**
+ * Prepares chart data from track points with a maximum of 50 points.
+ * Calculates time from session start and aggregates points if necessary.
+ */
+private fun prepareChartData(trackPoints: List<TrackPoint>): List<Pair<Float, Float>> {
+    if (trackPoints.isEmpty()) return emptyList()
+
+    // Filter points that have altitude or relAltitude data
+    val pointsWithAltitude = trackPoints.filter { it.altitude != null || it.relAltitude != 0.0 }
+    if (pointsWithAltitude.isEmpty()) return emptyList()
+
+    val sessionStartTime = pointsWithAltitude.first().timestamp
+
+    // If we have 50 or fewer points, use all of them
+    if (pointsWithAltitude.size <= 50) {
+        return pointsWithAltitude.map { point ->
+            val timeFromStart = ((point.timestamp - sessionStartTime) / 1000f) // Convert to seconds
+            // Use altitude if available, otherwise use relAltitude
+            val altitude = (point.altitude ?: point.relAltitude).toFloat()
+            Pair(timeFromStart, altitude)
+        }
+    }
+
+    // If we have more than 50 points, aggregate them
+    val step = pointsWithAltitude.size / 50
+    val aggregatedPoints = mutableListOf<Pair<Float, Float>>()
+
+    for (i in 0 until 50) {
+        val startIndex = i * step
+        val endIndex = if (i == 49) pointsWithAltitude.size else (i + 1) * step
+
+        // Take points in this range and average their values
+        val pointsInRange = pointsWithAltitude.subList(startIndex, min(endIndex, pointsWithAltitude.size))
+
+        if (pointsInRange.isNotEmpty()) {
+            // Use the middle point's timestamp for time calculation
+            val middlePoint = pointsInRange[pointsInRange.size / 2]
+            val timeFromStart = ((middlePoint.timestamp - sessionStartTime) / 1000f)
+
+            // Average the altitude values in this range (use altitude if available, otherwise relAltitude)
+            val averageAltitude = pointsInRange.map { point ->
+                point.altitude ?: point.relAltitude
+            }.average().toFloat()
+
+            aggregatedPoints.add(Pair(timeFromStart, averageAltitude))
+        }
+    }
+
+    return aggregatedPoints
+}
