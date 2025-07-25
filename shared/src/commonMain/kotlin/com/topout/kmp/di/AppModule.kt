@@ -28,6 +28,7 @@ import com.topout.kmp.domain.LiveSessionManager
 import com.topout.kmp.domain.SyncOfflineChanges
 import com.topout.kmp.domain.session.FinishSession
 import com.topout.kmp.domain.CancelLocalSession
+import com.topout.kmp.domain.GetLocalTrackPointsFlow
 import com.topout.kmp.features.live_session.LiveSessionUseCases
 import com.topout.kmp.features.session_details.SessionDetailsUseCases
 import com.topout.kmp.features.sessions.SessionsUseCases
@@ -73,6 +74,7 @@ val domainModule = module {
     factoryOf(::FinishSession)
     factoryOf(::CancelLocalSession)
     factoryOf(::GetLiveMetrics)
+    factoryOf(::GetLocalTrackPointsFlow)
     factory { (scope: CoroutineScope) ->
         LiveSessionManager(get(), get(), get(), scope)
     }

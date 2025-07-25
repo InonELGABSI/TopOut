@@ -51,6 +51,7 @@ fun LiveSessionScreen(
             )
             is LiveSessionState.Loaded -> ActiveSessionContent(
                 trackPoint = uiState.trackPoint,
+                historyTrackPoints = uiState.historyTrackPoints,
                 onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
                 onCancelClick = { viewModel.onCancelClicked(uiState.trackPoint.sessionId) }
             )
@@ -141,6 +142,7 @@ fun StartSessionContent(
 @Composable
 fun ActiveSessionContent(
     trackPoint: TrackPoint,
+    historyTrackPoints: List<TrackPoint>,
     onStopClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
@@ -271,6 +273,7 @@ fun ActiveSessionContent(
         ) {
             LiveMap(
                 location = trackPoint.latLngOrNull(),
+                trackPoints = historyTrackPoints,
                 modifier = Modifier.fillMaxSize(),
                 showLocationFocus = true,
                 useTopContentSpacing = true

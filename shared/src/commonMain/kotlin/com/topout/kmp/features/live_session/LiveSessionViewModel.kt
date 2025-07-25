@@ -23,10 +23,15 @@ class LiveSessionViewModel(
     val uiState: StateFlow<LiveSessionState> = _uiState
 
     private var trackPointJob: Job? = null
+    private var historyTrackPointsJob: Job? = null
 
     // 1. Hold references to manager and scope per session
     private var liveSessionManager: LiveSessionManager? = null
     private var sessionScope: CoroutineScope? = null
+
+    // Store current state to combine live point with history
+    private var currentTrackPoint: TrackPoint? = null
+    private var currentHistoryPoints: List<TrackPoint> = emptyList()
 
     fun onStartClicked() {
         // 2. Always stop/clean old session before starting new
@@ -38,18 +43,48 @@ class LiveSessionViewModel(
         sessionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         liveSessionManager = inject<LiveSessionManager> { parametersOf(sessionScope) }.value
 
-
         trackPointJob = sessionScope!!.launch {
             try {
                 val trackPointFlow = liveSessionManager!!.invoke()
                 trackPointFlow.collect { point: TrackPoint ->
-                    _uiState.value = LiveSessionState.Loaded(point)
+                    currentTrackPoint = point
+                    updateUIState()
+
+                    // Start history tracking once we have a session ID
+                    if (historyTrackPointsJob == null) {
+                        startHistoryTracking(point.sessionId)
+                    }
                 }
             } catch (ce: CancellationException) {
                 // cancellation (user stopped) – ignore
             } catch (e: Exception) {
                 _uiState.value = LiveSessionState.Error(e.message ?: "Unknown error")
             }
+        }
+    }
+
+    private fun startHistoryTracking(sessionId: String) {
+        historyTrackPointsJob = sessionScope!!.launch {
+            try {
+                useCases.getLocalTrackPointsFlow(sessionId).collect { historyPoints ->
+                    currentHistoryPoints = historyPoints
+                    updateUIState()
+                }
+            } catch (ce: CancellationException) {
+                // cancellation (user stopped) – ignore
+            } catch (e: Exception) {
+                // Log error but don't break the session for history tracking failure
+                println("Error tracking history points: ${e.message}")
+            }
+        }
+    }
+
+    private fun updateUIState() {
+        currentTrackPoint?.let { trackPoint ->
+            _uiState.value = LiveSessionState.Loaded(
+                trackPoint = trackPoint,
+                historyTrackPoints = currentHistoryPoints
+            )
         }
     }
 
@@ -103,8 +138,15 @@ class LiveSessionViewModel(
         trackPointJob?.cancel()
         trackPointJob = null
 
+        historyTrackPointsJob?.cancel()
+        historyTrackPointsJob = null
+
         // Properly cancel the scope
         sessionScope?.coroutineContext?.get(Job)?.cancel()
         sessionScope = null
+
+        // Reset combined state
+        currentTrackPoint = null
+        currentHistoryPoints = emptyList()
     }
 }

@@ -4,7 +4,8 @@ import com.topout.kmp.models.TrackPoint
 sealed class LiveSessionState {
     object Loading : LiveSessionState()
     data class Loaded(
-        val trackPoint: TrackPoint
+        val trackPoint: TrackPoint,
+        val historyTrackPoints: List<TrackPoint> = emptyList()
     ) : LiveSessionState()
     object Stopping : LiveSessionState()
     data class SessionStopped(

@@ -193,7 +193,7 @@ fun LiveMap(
             if (!trackPoints.isNullOrEmpty()) {
                 val points = trackPoints.mapNotNull { it.latLngOrNull()?.toLatLng() }
                 if (points.isNotEmpty()) {
-                    Polyline(points = points, color = MaterialTheme.colorScheme.primary, width = 10f)
+                    Polyline(points = points, color = MaterialTheme.colorScheme.primary, width = 25f)
                     if (isRouteMode) {
                         points.firstOrNull()?.let { Marker(MarkerState(position = it), title = "Start") }
                         points.lastOrNull()?.let { Marker(MarkerState(position = it), title = "End") }
