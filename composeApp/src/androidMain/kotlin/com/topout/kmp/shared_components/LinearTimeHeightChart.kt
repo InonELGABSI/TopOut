@@ -10,6 +10,7 @@ import com.patrykandpatrick.vico.compose.cartesian.axis.rememberBottom
 import com.patrykandpatrick.vico.compose.cartesian.axis.rememberStart
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
 import com.patrykandpatrick.vico.core.cartesian.CartesianMeasuringContext
 import com.patrykandpatrick.vico.core.cartesian.axis.Axis
 import com.patrykandpatrick.vico.core.cartesian.axis.HorizontalAxis
@@ -23,9 +24,18 @@ import java.util.Locale
 @Composable
 fun TimeHeightChart(
     samples: List<Pair<Float, Float>>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    useHighContrast: Boolean = false,
+    useDarkTheme: Boolean = false
 ) {
     val modelProducer = remember { CartesianChartModelProducer() }
+
+    // Select the appropriate theme OUTSIDE of remember blocks
+    val vicoTheme = when {
+        useHighContrast -> rememberTopOutHighContrastVicoTheme()
+        useDarkTheme -> rememberTopOutDarkVicoTheme()
+        else -> rememberTopOutVicoTheme()
+    }
 
     // Create a custom value formatter for the bottom axis
     val bottomAxisValueFormatter = remember(samples) {
@@ -72,27 +82,29 @@ fun TimeHeightChart(
         return
     }
 
-    CartesianChartHost(
-        chart = rememberCartesianChart(
-            rememberLineCartesianLayer(),
-            startAxis = VerticalAxis.rememberStart(
-                title = "Height (m)",
-                titleComponent = TextComponent(
-                    textSizeSp = 12f
-                )
-            ),
-            bottomAxis = HorizontalAxis.rememberBottom(
-                title = "Time (s)",
-                titleComponent = TextComponent(
-                    textSizeSp = 12f
+    ProvideVicoTheme(vicoTheme) {
+        CartesianChartHost(
+            chart = rememberCartesianChart(
+                rememberLineCartesianLayer(),
+                startAxis = VerticalAxis.rememberStart(
+                    title = "Height (m)",
+                    titleComponent = TextComponent(
+                        textSizeSp = 12f
+                    )
                 ),
-                valueFormatter = bottomAxisValueFormatter
+                bottomAxis = HorizontalAxis.rememberBottom(
+                    title = "Time (s)",
+                    titleComponent = TextComponent(
+                        textSizeSp = 12f
+                    ),
+                    valueFormatter = bottomAxisValueFormatter
+                ),
             ),
-        ),
-        modelProducer = modelProducer,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(250.dp)
-            .padding(8.dp)
-    )
+            modelProducer = modelProducer,
+            modifier = modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .padding(8.dp)
+        )
+    }
 }
