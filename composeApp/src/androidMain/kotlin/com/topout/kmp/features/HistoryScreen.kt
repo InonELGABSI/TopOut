@@ -1,9 +1,14 @@
 package com.topout.kmp.features
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -13,9 +18,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.topout.kmp.features.sessions.SessionsState
@@ -25,6 +33,15 @@ import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import com.topout.kmp.shared_components.TopRoundedCard
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.times
+import androidx.compose.ui.zIndex
+import com.topout.kmp.shared_components.BottomRoundedCard
+import com.topout.kmp.shared_components.FullRoundedCard
+import com.topout.kmp.shared_components.MiddleRoundedCard
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,20 +109,10 @@ fun HistoryScreen(
                             }
                         }
                     } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(
-                                top = 8.dp,
-                                bottom = 8.dp
-                            )
-                        ) {
-                            items(uiState.sessions ?: emptyList()) { session ->
-                                SessionItem(
-                                    session = session,
-                                    onSessionClick = onSessionClick
-                                )
-                            }
-                        }
+                        StackedSessionCards(
+                            sessions = uiState.sessions ?: emptyList(),
+                            onSessionClick = onSessionClick
+                        )
                     }
                 }
                 SessionsState.Loading -> {
@@ -246,6 +253,105 @@ fun HistoryControlsSection(
                 )
             )
         }
+    }
+}
+
+
+@Composable
+fun StackedSessionCards(
+    sessions: List<Session>,
+    onSessionClick: (Session) -> Unit,
+    overlap: Dp = 40.dp,
+    modifier: Modifier = Modifier
+) {
+    val palette = listOf(
+        MaterialTheme.colorScheme.surfaceContainerHigh,
+        MaterialTheme.colorScheme.surfaceContainer
+    )
+
+    val scrollState = rememberScrollState()
+    val overlapPx = with(LocalDensity.current) { overlap.toPx() }
+
+    Box(modifier = modifier) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .padding(bottom = overlap * (sessions.size - 1) + 80.dp)
+        ) {
+            sessions.asReversed().forEachIndexed { revIndex, session ->
+                val originalIndex = sessions.lastIndex - revIndex
+                val color = palette[revIndex % palette.size]
+                val elevation = 6.dp + (revIndex * 2).dp
+                val cardContent: @Composable () -> Unit = {
+                    SessionCardContent(
+                        session = session,
+                        onSessionClick = onSessionClick,
+                        topContentSpacing = 0.dp,
+                        isFirstItem = originalIndex == 0
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .offset(y = -(revIndex * overlap))
+                        .padding(horizontal = 16.dp)
+                        .zIndex(revIndex.toFloat())
+                ) {
+                    when {
+                        sessions.size == 1 -> FullRoundedCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            elevation = elevation,
+                            containerColor = color,
+                            content = cardContent
+                        )
+                        revIndex == sessions.lastIndex -> TopRoundedCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            elevation = elevation,
+                            containerColor = color,
+                            content = cardContent
+                        )
+                        else -> BottomRoundedCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            elevation = elevation,
+                            containerColor = color,
+                            content = cardContent
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+@Composable
+fun SessionCardContent(
+    session: Session,
+    onSessionClick: (Session) -> Unit,
+    topContentSpacing: Dp,
+    isFirstItem: Boolean
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                top = 20.dp,
+                start = 20.dp,
+                end = 20.dp,
+                bottom = 20.dp
+            )
+    ) {
+        // Session content - reuse existing SessionItem content or create new layout
+        SessionItem(
+            session = session,
+            onSessionClick = onSessionClick
+        )
     }
 }
 
