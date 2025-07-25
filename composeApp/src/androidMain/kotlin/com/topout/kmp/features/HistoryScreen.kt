@@ -1,5 +1,8 @@
 package com.topout.kmp.features
 
+import androidx.compose.animation.core.EaseInOutCubic
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
@@ -58,23 +61,6 @@ fun HistoryScreen(
     val uiState = viewModel.uiState.collectAsState().value
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Top rounded card with controls
-        TopRoundedCard(
-            modifier = Modifier.fillMaxWidth(),
-            cornerRadius = 24.dp,
-            elevation = 2.dp,
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        ) {
-            HistoryControlsSection(
-                modifier = Modifier.padding(
-                    top = topContentSpacing + 16.dp,
-                    start = 16.dp,
-                    end = 16.dp,
-                    bottom = 16.dp
-                )
-            )
-        }
-
         // Content area
         Box(modifier = Modifier.fillMaxSize()) {
             when (uiState) {
@@ -265,12 +251,47 @@ fun StackedSessionCards(
     modifier: Modifier = Modifier
 ) {
     val palette = listOf(
+        MaterialTheme.colorScheme.primaryContainer,
+        MaterialTheme.colorScheme.secondaryContainer,
+        MaterialTheme.colorScheme.tertiaryContainer,
         MaterialTheme.colorScheme.surfaceContainerHigh,
         MaterialTheme.colorScheme.surfaceContainer
     )
-
     val scrollState = rememberScrollState()
-    val overlapPx = with(LocalDensity.current) { overlap.toPx() }
+    val topContentSpacing = rememberTopContentSpacingDp()
+
+    // State for header visibility
+    var headerOffset by remember { mutableFloatStateOf(0f) }
+    var lastScrollValue by remember { mutableIntStateOf(0) }
+    val headerHeight = 200.dp
+    val density = LocalDensity.current
+    val headerHeightPx = with(density) { headerHeight.toPx() }
+
+    // Animate header offset
+    val animatedHeaderOffset by animateFloatAsState(
+        targetValue = headerOffset,
+        animationSpec = tween(300, easing = EaseInOutCubic),
+        label = "headerOffset"
+    )
+
+    // Track scroll direction
+    LaunchedEffect(scrollState.value) {
+        val currentScroll = scrollState.value
+        val scrollDelta = currentScroll - lastScrollValue
+
+        when {
+            scrollDelta > 0 -> {
+                // Scrolling down - hide header
+                headerOffset = -headerHeightPx
+            }
+            scrollDelta < 0 -> {
+                // Scrolling up - show header
+                headerOffset = 0f
+            }
+        }
+
+        lastScrollValue = currentScroll
+    }
 
     Box(modifier = modifier) {
         Column(
@@ -278,8 +299,14 @@ fun StackedSessionCards(
                 .verticalScroll(scrollState)
                 .padding(bottom = overlap * (sessions.size - 1) + 80.dp)
         ) {
+
+            // Add space for the fixed header
+            Spacer(Modifier.height(headerHeight))
+
+            Spacer(Modifier.height(overlap + 24.dp))
+
+            // SESSION CARDS (with negative offset)
             sessions.asReversed().forEachIndexed { revIndex, session ->
-                val originalIndex = sessions.lastIndex - revIndex
                 val color = palette[revIndex % palette.size]
                 val elevation = 6.dp + (revIndex * 2).dp
                 val cardContent: @Composable () -> Unit = {
@@ -287,7 +314,7 @@ fun StackedSessionCards(
                         session = session,
                         onSessionClick = onSessionClick,
                         topContentSpacing = 0.dp,
-                        isFirstItem = originalIndex == 0
+                        isFirstItem = revIndex == sessions.lastIndex
                     )
                 }
                 Box(
@@ -319,16 +346,39 @@ fun StackedSessionCards(
                 }
             }
         }
+
+        // Fixed/Sticky Header that reacts to scroll
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset(y = with(density) { animatedHeaderOffset.toDp() })
+                .zIndex((sessions.size + 1).toFloat())
+        ) {
+            TopRoundedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(headerHeight),
+                elevation = 8.dp,
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.BottomStart
+                ) {
+                    HistoryControlsSection(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = 16.dp,
+                                end = 16.dp,
+                                bottom = 16.dp
+                            )
+                    )
+                }
+            }
+        }
     }
 }
-
-
-
-
-
-
-
-
 
 @Composable
 fun SessionCardContent(
