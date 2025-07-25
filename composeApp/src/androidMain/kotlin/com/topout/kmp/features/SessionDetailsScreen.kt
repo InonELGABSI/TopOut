@@ -141,11 +141,14 @@ fun NewSessionDetailsContent(
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontWeight = FontWeight.Bold
                         ),
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)
                     )
 
                     // Statistics (without background)
                     SessionStatisticsCard(sessionDetails = sessionDetails)
+
+                    // Add spacing before the chart section
+                    Spacer(modifier = Modifier.height(32.dp))
 
                     // Time-Height Chart
                     if (sessionDetails.points.isNotEmpty()) {
@@ -486,86 +489,7 @@ fun TrackPointsCardContent(trackPoints: List<TrackPoint>) {
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        if (trackPoints.isEmpty()) {
-            Text(
-                text = "No track points recorded",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-        } else {
-            // Show first few track points as preview
-            trackPoints.take(3).forEach { point ->
-                TrackPointItem(trackPoint = point)
-                if (point != trackPoints.take(3).last()) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                }
-            }
-
-            if (trackPoints.size > 3) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "... and ${trackPoints.size - 3} more points",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun TrackPointItem(trackPoint: TrackPoint) {
-    val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-
-    Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = timeFormat.format(Date(trackPoint.timestamp)),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium
-                    )
-                )
-                Text(
-                    text = "Alt: ${trackPoint.altitude?.let { "%.1f m".format(it) } ?: "N/A"}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "Speed: %.1f m/s".format(trackPoint.vTotal),
-                    style = MaterialTheme.typography.bodySmall
-                )
-                if (trackPoint.danger) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Warning,
-                            contentDescription = "Alert",
-                            tint = androidx.compose.ui.graphics.Color(0xFFFF5722),
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = trackPoint.alertType.name,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = androidx.compose.ui.graphics.Color(0xFFFF5722)
-                        )
-                    }
-                }
-            }
-        }
+        // Removed the detailed track points table - only showing the count above
     }
 }
 
