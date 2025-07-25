@@ -43,7 +43,7 @@ fun LiveSessionScreen(
         }
     }
 
-    // Remove Scaffold with topBar since ChipControlBar handles the title
+    // Remove the screen-level top padding
     Box(modifier = Modifier.fillMaxSize()) {
         when (uiState) {
             is LiveSessionState.Loading -> StartSessionContent(
@@ -147,16 +147,103 @@ fun ActiveSessionContent(
     // State for stop confirmation dialog
     var showStopDialog by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(0.dp)
-    ) {
-        // Map section in TopRoundedCard
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Live Data Card - positioned first so it appears behind the map
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 450.dp), // Start 50dp before map ends to create overlap
+            verticalArrangement = Arrangement.spacedBy(0.dp)
+        ) {
+            // Live data overview card
+            TopRoundedCard(
+                modifier = Modifier.fillMaxWidth(),
+                cornerRadius = 24.dp,
+                elevation = 2.dp, // Lower elevation to appear behind map
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            ) {
+                LiveDataOverviewCard(trackPoint = trackPoint)
+            }
+
+            // Content area with detailed metrics
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Two-column layout for better use of space
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Left column
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Session Status
+                        CompactSessionStatusCard(trackPoint = trackPoint)
+
+                        // Location & GPS Data
+                        CompactLocationDataCard(trackPoint = trackPoint)
+
+                        // Accelerometer Data
+                        CompactAccelerometerDataCard(trackPoint = trackPoint)
+                    }
+
+                    // Right column
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Speed & Movement Metrics
+                        CompactSpeedMetricsCard(trackPoint = trackPoint)
+
+                        // Altitude & Climbing Data
+                        CompactAltitudeMetricsCard(trackPoint = trackPoint)
+
+//                        // Alert Status
+//                        CompactAlertStatusCard(trackPoint = trackPoint)
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Stop Button
+                Button(
+                    onClick = { showStopDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    ),
+                    shape = RoundedCornerShape(25.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Stop,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Stop Session",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+            }
+        }
+
+        // Map section in TopRoundedCard - positioned last so it appears above the live data card
         TopRoundedCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(500.dp),
-            cornerRadius = 24.dp
+            cornerRadius = 24.dp,
+            elevation = 6.dp // Higher elevation to appear above live data card
         ) {
             LiveMap(
                 location = trackPoint.latLngOrNull(),
@@ -164,77 +251,6 @@ fun ActiveSessionContent(
                 showLocationFocus = true,
                 useTopContentSpacing = true
             )
-        }
-
-        // Content area with padding
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Two-column layout for better use of space
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Left column
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Session Status
-                    CompactSessionStatusCard(trackPoint = trackPoint)
-
-                    // Location & GPS Data
-                    CompactLocationDataCard(trackPoint = trackPoint)
-
-                    // Accelerometer Data
-                    CompactAccelerometerDataCard(trackPoint = trackPoint)
-                }
-
-                // Right column
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Speed & Movement Metrics
-                    CompactSpeedMetricsCard(trackPoint = trackPoint)
-
-                    // Altitude & Climbing Data
-                    CompactAltitudeMetricsCard(trackPoint = trackPoint)
-
-//                    // Alert Status
-//                    CompactAlertStatusCard(trackPoint = trackPoint)
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Stop Button
-            Button(
-                onClick = { showStopDialog = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                ),
-                shape = RoundedCornerShape(25.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Stop,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Stop Session",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
         }
     }
 
@@ -250,6 +266,121 @@ fun ActiveSessionContent(
         onConfirm = onStopClick,
         onDismiss = { showStopDialog = false }
     )
+}
+
+@Composable
+fun LiveDataOverviewCard(trackPoint: TrackPoint) {
+    val topContentSpacing = 50.dp // Use a fixed top content spacing
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                top = topContentSpacing + 20.dp, // Add top content spacing plus card padding
+                start = 20.dp,
+                end = 20.dp,
+                bottom = 20.dp
+            ),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Title with live indicator
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.FiberManualRecord,
+                    contentDescription = "Live",
+                    tint = Color.Red,
+                    modifier = Modifier.size(12.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Live Data",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+
+            Text(
+                text = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault())
+                    .format(java.util.Date(trackPoint.timestamp)),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        // Key metrics in a horizontal layout
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            // Location
+            LiveDataItem(
+                icon = Icons.Default.LocationOn,
+                label = "Location",
+                value = if (trackPoint.latitude != null && trackPoint.longitude != null)
+                    "%.4f°, %.4f°".format(trackPoint.latitude, trackPoint.longitude)
+                else "No GPS",
+                modifier = Modifier.weight(1f)
+            )
+
+            // Speed
+            LiveDataItem(
+                icon = Icons.Default.Speed,
+                label = "Speed",
+                value = "%.1f m/s".format(trackPoint.vTotal),
+                modifier = Modifier.weight(1f)
+            )
+
+            // Altitude
+            LiveDataItem(
+                icon = Icons.Default.Terrain,
+                label = "Altitude",
+                value = trackPoint.altitude?.let { "%.1f m".format(it) } ?: "N/A",
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun LiveDataItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold
+            ),
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+    }
 }
 
 @Composable
