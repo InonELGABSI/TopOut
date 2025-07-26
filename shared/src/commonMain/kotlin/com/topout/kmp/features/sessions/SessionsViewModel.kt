@@ -25,6 +25,14 @@ class SessionsViewModel (
 
     private var originalSessions: List<Session> = emptyList()
     private var currentSortOption: SortOption = SortOption.DATE_NEWEST
+    private var currentSearchText: String = ""
+
+    // Expose current search text and sort option as state
+    private val _currentSearchText = MutableStateFlow("")
+    val currentSearchTextState: StateFlow<String> = _currentSearchText
+
+    private val _currentSortOption = MutableStateFlow(SortOption.DATE_NEWEST)
+    val currentSortOptionState: StateFlow<SortOption> = _currentSortOption
 
     init {
         fetchSessions()
@@ -35,7 +43,7 @@ class SessionsViewModel (
             when (val result = useCases.getSessions()) {
                 is Result.Success -> {
                     originalSessions = result.data?.items ?: emptyList()
-                    applySorting(currentSortOption)
+                    applyFiltersAndSorting()
                 }
                 is Result.Failure -> {
                     _uiState.emit(SessionsState.Error(errorMessage = result.error?.message ?: "N/A"))
@@ -44,28 +52,52 @@ class SessionsViewModel (
         }
     }
 
-    fun sortSessions(sortOption: SortOption) {
-        currentSortOption = sortOption
-        applySorting(sortOption)
+    fun searchSessions(searchText: String) {
+        currentSearchText = searchText
+        _currentSearchText.value = searchText
+        applyFiltersAndSorting()
     }
 
-    private fun applySorting(sortOption: SortOption) {
-        val sortedSessions = when (sortOption) {
-            SortOption.DATE_NEWEST -> originalSessions.sortedBy { it.createdAt ?: 0L }
-            SortOption.DATE_OLDEST -> originalSessions.sortedByDescending { it.createdAt ?: 0L }
-            SortOption.DURATION_LONGEST -> originalSessions.sortedBy {
+    fun sortSessions(sortOption: SortOption) {
+        currentSortOption = sortOption
+        _currentSortOption.value = sortOption
+        applyFiltersAndSorting()
+    }
+
+    private fun applyFiltersAndSorting() {
+        // First apply search filter
+        val filteredSessions = if (currentSearchText.isBlank()) {
+            originalSessions
+        } else {
+            originalSessions.filter { session ->
+                val title = session.title ?: ""
+                title.contains(currentSearchText, ignoreCase = true)
+            }
+        }
+
+        // Then apply sorting
+        val sortedSessions = when (currentSortOption) {
+            SortOption.DATE_NEWEST -> filteredSessions.sortedBy { it.createdAt ?: 0L }
+            SortOption.DATE_OLDEST -> filteredSessions.sortedByDescending { it.createdAt ?: 0L }
+            SortOption.DURATION_LONGEST -> filteredSessions.sortedBy {
                 calculateDuration(it.startTime, it.endTime)
             }
-            SortOption.DURATION_SHORTEST -> originalSessions.sortedByDescending {
+            SortOption.DURATION_SHORTEST -> filteredSessions.sortedByDescending {
                 calculateDuration(it.startTime, it.endTime)
             }
-            SortOption.ASCENT_HIGHEST -> originalSessions.sortedBy { it.totalAscent ?: 0.0 }
-            SortOption.ASCENT_LOWEST -> originalSessions.sortedByDescending { it.totalAscent ?: 0.0 }
+            SortOption.ASCENT_HIGHEST -> filteredSessions.sortedBy { it.totalAscent ?: 0.0 }
+            SortOption.ASCENT_LOWEST -> filteredSessions.sortedByDescending { it.totalAscent ?: 0.0 }
         }
 
         scope.launch {
             _uiState.emit(SessionsState.Loaded(sortedSessions))
         }
+    }
+
+    private fun applySorting(sortOption: SortOption) {
+        // This method is deprecated, use applyFiltersAndSorting instead
+        currentSortOption = sortOption
+        applyFiltersAndSorting()
     }
 
     private fun calculateDuration(startTime: Long?, endTime: Long?): Long {

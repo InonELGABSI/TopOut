@@ -83,19 +83,13 @@ fun HistoryScreen(
                 }
                 is SessionsState.Loaded -> {
                     if (uiState.sessions.isNullOrEmpty()) {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(
-                                top = 8.dp,
-                                bottom = 8.dp
-                            ),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            item {
-                                EmptyStateContent()
-                            }
-                        }
+                        // Show empty state with search/sort controls still visible
+                        StackedSessionCards(
+                            sessions = emptyList(),
+                            onSessionClick = onSessionClick,
+                            viewModel = viewModel,
+                            showEmptyState = true
+                        )
                     } else {
                         StackedSessionCards(
                             sessions = uiState.sessions ?: emptyList(),
@@ -129,9 +123,10 @@ fun HistoryControlsSection(
     viewModel: SessionsViewModel,
     modifier: Modifier = Modifier
 ) {
-    var searchText by remember { mutableStateOf("") }
+    // Get state from ViewModel instead of using local remember
+    val searchText by viewModel.currentSearchTextState.collectAsState()
+    val currentSortOption by viewModel.currentSortOptionState.collectAsState()
     var showSortMenu by remember { mutableStateOf(false) }
-    var selectedSortOption by remember { mutableStateOf("Date (Newest)") }
 
     val sortOptions = listOf(
         "Date (Newest)",
@@ -141,6 +136,18 @@ fun HistoryControlsSection(
         "Ascent (Highest)",
         "Ascent (Lowest)"
     )
+
+    // Function to convert SortOption enum to string
+    fun sortOptionToString(sortOption: SortOption): String {
+        return when (sortOption) {
+            SortOption.DATE_NEWEST -> "Date (Newest)"
+            SortOption.DATE_OLDEST -> "Date (Oldest)"
+            SortOption.DURATION_LONGEST -> "Duration (Longest)"
+            SortOption.DURATION_SHORTEST -> "Duration (Shortest)"
+            SortOption.ASCENT_HIGHEST -> "Ascent (Highest)"
+            SortOption.ASCENT_LOWEST -> "Ascent (Lowest)"
+        }
+    }
 
     // Function to convert string to SortOption enum
     fun stringToSortOption(sortString: String): SortOption {
@@ -184,7 +191,7 @@ fun HistoryControlsSection(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = selectedSortOption,
+                        text = sortOptionToString(currentSortOption),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.width(4.dp))
@@ -203,7 +210,6 @@ fun HistoryControlsSection(
                         DropdownMenuItem(
                             text = { Text(option) },
                             onClick = {
-                                selectedSortOption = option
                                 showSortMenu = false
                                 // Apply sorting through ViewModel
                                 viewModel.sortSessions(stringToSortOption(option))
@@ -216,7 +222,10 @@ fun HistoryControlsSection(
             // Search input on the right
             OutlinedTextField(
                 value = searchText,
-                onValueChange = { searchText = it },
+                onValueChange = { newText ->
+                    // Call ViewModel search method whenever text changes
+                    viewModel.searchSessions(newText)
+                },
                 modifier = Modifier
                     .weight(1f)
                     .height(48.dp),
@@ -236,7 +245,10 @@ fun HistoryControlsSection(
                 trailingIcon = {
                     if (searchText.isNotEmpty()) {
                         IconButton(
-                            onClick = { searchText = "" }
+                            onClick = {
+                                // Clear search in ViewModel
+                                viewModel.searchSessions("")
+                            }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
@@ -266,7 +278,8 @@ fun StackedSessionCards(
     onSessionClick: (Session) -> Unit,
     viewModel: SessionsViewModel,
     overlap: Dp = 40.dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showEmptyState: Boolean = false
 ) {
     val palette = listOf(
         MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -403,6 +416,18 @@ fun StackedSessionCards(
                             )
                     )
                 }
+            }
+        }
+
+        if (showEmptyState) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = headerHeight)
+                    .zIndex((sessions.size + 2).toFloat()),
+                contentAlignment = Alignment.Center
+            ) {
+                EmptyStateContent()
             }
         }
     }
