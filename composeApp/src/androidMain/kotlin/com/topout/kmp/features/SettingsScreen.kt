@@ -15,10 +15,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.zIndex
 import com.topout.kmp.features.settings.SettingsState
 import com.topout.kmp.features.settings.SettingsViewModel
 import com.topout.kmp.models.User
 import com.topout.kmp.shared_components.rememberTopContentSpacingDp
+import com.topout.kmp.shared_components.BottomRoundedCard
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -29,24 +32,447 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = koinViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsState().value
-    val topContentSpacing = rememberTopContentSpacingDp()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        when (uiState) {
-            is SettingsState.Loading -> LoadingContent(topContentSpacing)
-            is SettingsState.Error -> ErrorContent(uiState.errorMessage, topContentSpacing)
-            is SettingsState.Loaded -> UserSettingsContent(uiState.user, topContentSpacing)
+    LaunchedEffect(Unit) {
+        // TODO: viewModel.fetchUserSettings()
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            when (uiState) {
+                is SettingsState.Loading -> SettingsLoadingContent()
+                is SettingsState.Error -> SettingsErrorContent(uiState.errorMessage)
+                is SettingsState.Loaded -> StackedSettingsCards(uiState.user)
+            }
         }
     }
 }
 
 @Composable
-fun LoadingContent(topContentSpacing: Dp) {
+fun StackedSettingsCards(
+    user: User,
+    modifier: Modifier = Modifier,
+    overlap: Dp = 20.dp
+) {
+    val palette = listOf(
+        MaterialTheme.colorScheme.surfaceContainerHigh,
+        MaterialTheme.colorScheme.surfaceContainer,
+        MaterialTheme.colorScheme.surfaceContainerLow
+    )
+    val scrollState = rememberScrollState()
+
+    var editableUser by remember { mutableStateOf(user) }
+    var isEditingProfile by remember { mutableStateOf(false) }
+    var isEditingPreferences by remember { mutableStateOf(false) }
+    var isEditingThresholds by remember { mutableStateOf(false) }
+
+    // Define the 3 cards
+    val settingsCards = listOf(
+        "Profile",
+        "Preferences",
+        "Alert Thresholds"
+    )
+
+    Layout(
+        modifier = modifier
+            .verticalScroll(scrollState)
+            .fillMaxWidth(),
+        content = {
+            // Add spacer for top content spacing
+            Spacer(Modifier.height(rememberTopContentSpacingDp()))
+            // Add a spacer after the header for overlap
+            Spacer(Modifier.height(24.dp))
+
+            // All settings cards (stacked)
+            settingsCards.forEachIndexed { index, cardType ->
+                val color = palette[index % palette.size]
+                val elevation = 6.dp + (index * 2).dp
+                val cardContent: @Composable () -> Unit = {
+                    when (cardType) {
+                        "Profile" -> ProfileCardContent(
+                            user = editableUser,
+                            onUserChange = { editableUser = it },
+                            isEditing = isEditingProfile,
+                            onToggleEdit = { isEditingProfile = it }
+                        )
+                        "Preferences" -> PreferencesCardContent(
+                            user = editableUser,
+                            onUserChange = { editableUser = it },
+                            isEditing = isEditingPreferences,
+                            onToggleEdit = { isEditingPreferences = it }
+                        )
+                        "Alert Thresholds" -> ThresholdsCardContent(
+                            user = editableUser,
+                            onUserChange = { editableUser = it },
+                            isEditing = isEditingThresholds,
+                            onToggleEdit = { isEditingThresholds = it }
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier.zIndex(index.toFloat())
+                ) {
+                    BottomRoundedCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            elevation = elevation,
+                            containerColor = color,
+                        content = {
+                            Column(modifier = Modifier.padding(bottom = 16.dp)) {
+                                cardContent()
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    ) { measurables, constraints ->
+        val overlapPx = overlap.roundToPx()
+        var y = 0
+
+        // Header spacer
+        val headerPlaceable = measurables[0].measure(constraints)
+        val overlapSpacer = measurables[1].measure(constraints)
+        y += headerPlaceable.height
+        y += overlapSpacer.height
+
+        val cardPlacements = mutableListOf<Pair<Int, androidx.compose.ui.layout.Placeable>>()
+        // Cards
+        for (i in 2 until measurables.size) {
+            val placeable = measurables[i].measure(constraints)
+            cardPlacements.add(y to placeable)
+            // Each card overlaps the previous
+            y += placeable.height - overlapPx
+        }
+        val layoutHeight = if (cardPlacements.isEmpty()) y else y + overlapPx
+
+        layout(constraints.maxWidth, layoutHeight) {
+            // Place header spacer (not visible, just offsets)
+            headerPlaceable.place(0, 0)
+            overlapSpacer.place(0, headerPlaceable.height)
+            // Place cards
+            cardPlacements.forEach { (yy, pl) -> pl.place(0, yy) }
+        }
+    }
+}
+
+@Composable
+fun ProfileCardContent(
+    user: User,
+    onUserChange: (User) -> Unit,
+    isEditing: Boolean,
+    onToggleEdit: (Boolean) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "Profile",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            EditableTextField(
+                label = "Name",
+                value = user.name ?: "",
+                onValueChange = { onUserChange(user.copy(name = it.ifEmpty { null })) },
+                isEditing = isEditing,
+                icon = Icons.Default.Person
+            )
+
+            EditableTextField(
+                label = "Email",
+                value = user.email ?: "",
+                onValueChange = { onUserChange(user.copy(email = it.ifEmpty { null })) },
+                isEditing = isEditing,
+                icon = Icons.Default.Email,
+                keyboardType = KeyboardType.Email
+            )
+
+            EditableTextField(
+                label = "Image URL",
+                value = user.imgUrl ?: "",
+                onValueChange = { onUserChange(user.copy(imgUrl = it.ifEmpty { null })) },
+                isEditing = isEditing,
+                icon = Icons.Default.Image
+            )
+
+            ReadOnlyField(
+                label = "User ID",
+                value = user.id,
+                icon = Icons.Default.Key
+            )
+
+            ReadOnlyField(
+                label = "Created At",
+                value = formatDate(user.createdAt ?: 0L),
+                icon = Icons.Default.CalendarMonth
+            )
+
+            // Save/Cancel buttons when editing
+            if (isEditing) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { onToggleEdit(false) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Cancel")
+                    }
+
+                    Button(
+                        onClick = {
+                            // TODO: Call viewModel.updateUser(user)
+                            onToggleEdit(false)
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Save")
+                    }
+                }
+            }
+        }
+
+        // Circular edit button in top right corner
+        if (!isEditing) {
+            FloatingActionButton(
+                onClick = { onToggleEdit(true) },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(40.dp),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit Profile",
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PreferencesCardContent(
+    user: User,
+    onUserChange: (User) -> Unit,
+    isEditing: Boolean,
+    onToggleEdit: (Boolean) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "Preferences",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            UnitPreferenceSelector(
+                currentUnit = user.unitPreference ?: "meters",
+                onUnitChange = { onUserChange(user.copy(unitPreference = it)) },
+                isEditing = isEditing
+            )
+
+            NotificationToggle(
+                enabled = user.enabledNotifications ?: false,
+                onToggle = { onUserChange(user.copy(enabledNotifications = it)) },
+                isEditing = isEditing
+            )
+
+            // Save/Cancel buttons when editing
+            if (isEditing) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { onToggleEdit(false) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Cancel")
+                    }
+
+                    Button(
+                        onClick = {
+                            // TODO: Call viewModel.updatePreferences(user)
+                            onToggleEdit(false)
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Save")
+                    }
+                }
+            }
+        }
+
+        // Circular edit button in top right corner
+        if (!isEditing) {
+            FloatingActionButton(
+                onClick = { onToggleEdit(true) },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(40.dp),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit Preferences",
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ThresholdsCardContent(
+    user: User,
+    onUserChange: (User) -> Unit,
+    isEditing: Boolean,
+    onToggleEdit: (Boolean) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "Alert Thresholds",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            ThresholdField(
+                label = "Relative Height Threshold",
+                value = user.relativeHeightFromStartThr ?: 0.0,
+                onValueChange = { onUserChange(user.copy(relativeHeightFromStartThr = it)) },
+                isEditing = isEditing,
+                unit = user.unitPreference ?: "meters"
+            )
+
+            ThresholdField(
+                label = "Total Height Threshold",
+                value = user.totalHeightFromStartThr ?: 0.0,
+                onValueChange = { onUserChange(user.copy(totalHeightFromStartThr = it)) },
+                isEditing = isEditing,
+                unit = user.unitPreference ?: "meters"
+            )
+
+            ThresholdField(
+                label = "Average Speed Threshold",
+                value = user.currentAvgHeightSpeedThr ?: 0.0,
+                onValueChange = { onUserChange(user.copy(currentAvgHeightSpeedThr = it)) },
+                isEditing = isEditing,
+                unit = "${user.unitPreference ?: "meters"}/min"
+            )
+
+            // Save/Cancel buttons when editing
+            if (isEditing) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { onToggleEdit(false) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Cancel")
+                    }
+
+                    Button(
+                        onClick = {
+                            // TODO: Call viewModel.updateThresholds(user)
+                            onToggleEdit(false)
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Save")
+                    }
+                }
+            }
+        }
+
+        // Circular edit button in top right corner
+        if (!isEditing) {
+            FloatingActionButton(
+                onClick = { onToggleEdit(true) },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(40.dp),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit Thresholds",
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SettingsLoadingContent() {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(
-                top = topContentSpacing,
+                top = rememberTopContentSpacingDp(),
                 start = 24.dp,
                 end = 24.dp,
                 bottom = 24.dp
@@ -64,12 +490,12 @@ fun LoadingContent(topContentSpacing: Dp) {
 }
 
 @Composable
-fun ErrorContent(errorMessage: String, topContentSpacing: Dp) {
+fun SettingsErrorContent(errorMessage: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(
-                top = topContentSpacing,
+                top = rememberTopContentSpacingDp(),
                 start = 24.dp,
                 end = 24.dp,
                 bottom = 24.dp
@@ -97,194 +523,6 @@ fun ErrorContent(errorMessage: String, topContentSpacing: Dp) {
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    }
-}
-
-@Composable
-fun UserSettingsContent(user: User, topContentSpacing: Dp) {
-    var editableUser by remember { mutableStateOf(user) }
-    var isEditing by remember { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(
-                top = topContentSpacing,
-                start = 16.dp,
-                end = 16.dp,
-                bottom = 16.dp
-            ),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // Profile Section
-        SettingsSection(
-            title = "Profile",
-            icon = Icons.Default.Person
-        ) {
-            EditableTextField(
-                label = "Name",
-                value = editableUser.name ?: "",
-                onValueChange = { editableUser = editableUser.copy(name = it.ifEmpty { null }) },
-                isEditing = isEditing,
-                icon = Icons.Default.Person
-            )
-
-            EditableTextField(
-                label = "Email",
-                value = editableUser.email ?: "",
-                onValueChange = { editableUser = editableUser.copy(email = it.ifEmpty { null }) },
-                isEditing = isEditing,
-                icon = Icons.Default.Email,
-                keyboardType = KeyboardType.Email
-            )
-
-            EditableTextField(
-                label = "Image URL",
-                value = editableUser.imgUrl ?: "",
-                onValueChange = { editableUser = editableUser.copy(imgUrl = it.ifEmpty { null }) },
-                isEditing = isEditing,
-                icon = Icons.Default.Image
-            )
-        }
-
-        // Preferences Section
-        SettingsSection(
-            title = "Preferences",
-            icon = Icons.Default.Settings
-        ) {
-            UnitPreferenceSelector(
-                currentUnit = editableUser.unitPreference ?: "meters",
-                onUnitChange = { editableUser = editableUser.copy(unitPreference = it) },
-                isEditing = isEditing
-            )
-
-            NotificationToggle(
-                enabled = editableUser.enabledNotifications ?: false,
-                onToggle = { editableUser = editableUser.copy(enabledNotifications = it) },
-                isEditing = isEditing
-            )
-        }
-
-        // Thresholds Section
-        SettingsSection(
-            title = "Alert Thresholds",
-            icon = Icons.Default.Warning
-        ) {
-            ThresholdField(
-                label = "Relative Height Threshold",
-                value = editableUser.relativeHeightFromStartThr ?: 0.0,
-                onValueChange = { editableUser = editableUser.copy(relativeHeightFromStartThr = it) },
-                isEditing = isEditing,
-                unit = editableUser.unitPreference ?: "meters"
-            )
-
-            ThresholdField(
-                label = "Total Height Threshold",
-                value = editableUser.totalHeightFromStartThr ?: 0.0,
-                onValueChange = { editableUser = editableUser.copy(totalHeightFromStartThr = it) },
-                isEditing = isEditing,
-                unit = editableUser.unitPreference ?: "meters"
-            )
-
-            ThresholdField(
-                label = "Average Speed Threshold",
-                value = editableUser.currentAvgHeightSpeedThr ?: 0.0,
-                onValueChange = { editableUser = editableUser.copy(currentAvgHeightSpeedThr = it) },
-                isEditing = isEditing,
-                unit = "${editableUser.unitPreference ?: "meters"}/min"
-            )
-        }
-
-        // Account Info Section
-        SettingsSection(
-            title = "Account Information",
-            icon = Icons.Default.Info
-        ) {
-            ReadOnlyField(
-                label = "User ID",
-                value = user.id,
-                icon = Icons.Default.Key
-            )
-
-            ReadOnlyField(
-                label = "Created At",
-                value = formatDate(user.createdAt ?: 0L),
-                icon = Icons.Default.CalendarMonth
-            )
-        }
-
-        // Action Buttons
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            if (isEditing) {
-                OutlinedButton(
-                    onClick = {
-                        editableUser = user
-                        isEditing = false
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Cancel")
-                }
-
-                Button(
-                    onClick = {
-                        // TODO: Call viewModel.updateUser(editableUser)
-                        isEditing = false
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Save")
-                }
-            } else {
-                Button(
-                    onClick = { isEditing = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Default.Edit, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Edit Profile")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun SettingsSection(
-    title: String,
-    icon: ImageVector,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            content()
-        }
     }
 }
 
