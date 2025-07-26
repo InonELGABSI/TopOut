@@ -1,5 +1,6 @@
 package com.topout.kmp.features
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -17,11 +18,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.zIndex
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import com.topout.kmp.ui.theme.ThemePalette
+import com.topout.kmp.ui.theme.TopOutTheme
 import com.topout.kmp.features.settings.SettingsState
 import com.topout.kmp.features.settings.SettingsViewModel
 import com.topout.kmp.models.User
 import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import com.topout.kmp.shared_components.BottomRoundedCard
+import com.topout.kmp.LocalThemeState
+import com.topout.kmp.LocalThemeUpdater
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -66,11 +77,12 @@ fun StackedSettingsCards(
     var isEditingPreferences by remember { mutableStateOf(false) }
     var isEditingThresholds by remember { mutableStateOf(false) }
 
-    // Define the 3 cards
+    // Define the 4 cards (added Theme)
     val settingsCards = listOf(
-        "Profile",
+        "Theme",
+        "Alert Thresholds",
         "Preferences",
-        "Alert Thresholds"
+        "Profile"
     )
 
     Layout(
@@ -106,6 +118,10 @@ fun StackedSettingsCards(
                             onUserChange = { editableUser = it },
                             isEditing = isEditingThresholds,
                             onToggleEdit = { isEditingThresholds = it }
+                        )
+                        "Theme" -> ThemeCardContent(
+                            user = editableUser,
+                            onUserChange = { editableUser = it }
                         )
                     }
                 }
@@ -463,6 +479,218 @@ fun ThresholdsCardContent(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun ThemeCardContent(
+    user: User,
+    onUserChange: (User) -> Unit
+) {
+    // Get theme state and updater from MainActivity
+    val currentThemeState = LocalThemeState.current
+    val updateTheme = LocalThemeUpdater.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Header
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Palette,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "Theme",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        // Dark mode toggle
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.DarkMode,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Text(
+                text = "Dark Mode",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f)
+            )
+
+            Switch(
+                checked = currentThemeState.isDarkMode,
+                onCheckedChange = { isDark ->
+                    updateTheme(currentThemeState.copy(isDarkMode = isDark))
+                }
+            )
+        }
+
+        // Theme selection
+        Text(
+            text = "Color Palette",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        // Theme options with color previews
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ThemePalette.entries.forEach { themePalette ->
+                ThemeOptionItem(
+                    themePalette = themePalette,
+                    isSelected = currentThemeState.palette == themePalette,
+                    isDarkMode = currentThemeState.isDarkMode,
+                    onSelect = { selectedPalette ->
+                        updateTheme(currentThemeState.copy(palette = selectedPalette))
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ThemeOptionItem(
+    themePalette: ThemePalette,
+    isSelected: Boolean,
+    isDarkMode: Boolean,
+    onSelect: (ThemePalette) -> Unit
+) {
+    val colorScheme = TopOutTheme.getColorScheme(themePalette, isDarkMode)
+    val themeName = when (themePalette) {
+        ThemePalette.CLASSIC_RED -> "Classic Red"
+        ThemePalette.OCEAN_BLUE -> "Ocean Blue"
+        ThemePalette.FOREST_GREEN -> "Forest Green"
+        ThemePalette.STORM_GRAY -> "Storm Gray"
+        ThemePalette.SUNSET_ORANGE -> "Sunset Orange"
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onSelect(themePalette) },
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isSelected) 4.dp else 1.dp
+        ),
+        border = if (isSelected) {
+            BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        } else null,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Color palette preview
+            ColorPalettePreview(
+                colorScheme = colorScheme,
+                modifier = Modifier.size(60.dp)
+            )
+
+            // Theme info
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = themeName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = "Light & Dark compatible",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Selection indicator
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = "Selected",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ColorPalettePreview(
+    colorScheme: androidx.compose.material3.ColorScheme,
+    modifier: Modifier = Modifier
+) {
+    // Create a small color palette preview with key colors
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(colorScheme.background)
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                RoundedCornerShape(8.dp)
+            )
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        // Primary color
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clip(CircleShape)
+                .background(colorScheme.primary)
+        )
+
+        // Secondary color
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clip(CircleShape)
+                .background(colorScheme.secondary)
+        )
+
+        // Surface color
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clip(CircleShape)
+                .background(colorScheme.surfaceVariant)
+        )
+
+        // Tertiary color (if available) or primary container
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clip(CircleShape)
+                .background(colorScheme.primaryContainer)
+        )
     }
 }
 
