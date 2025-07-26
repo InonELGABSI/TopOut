@@ -95,9 +95,6 @@ fun StackedSettingsCards(
         content = {
             // Add spacer for top content spacing
             Spacer(Modifier.height(rememberTopContentSpacingDp()))
-            // Add a spacer after the header for overlap
-            Spacer(Modifier.height(24.dp))
-
             // All settings cards (stacked)
             settingsCards.forEachIndexed { index, cardType ->
                 val color = palette[index % palette.size]

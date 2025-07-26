@@ -319,7 +319,7 @@ fun StackedSessionCards(
                 // 1. Add the spacer for the header
                 Spacer(Modifier.height(headerHeight))
                 // 2. Add a spacer after the header for overlap (fine-tune as needed)
-                Spacer(Modifier.height( 24.dp))
+//                Spacer(Modifier.height( 24.dp))
                 // 3. All session cards (stacked)
                 sessions.asReversed().forEachIndexed { revIndex, session ->
                     val color = palette[revIndex % palette.size]
@@ -336,26 +336,13 @@ fun StackedSessionCards(
                         modifier = Modifier
                             .zIndex(revIndex.toFloat())
                     ) {
-                        when {
-                            sessions.size == 1 -> FullRoundedCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                elevation = elevation,
-                                containerColor = color,
-                                content = cardContent
-                            )
-                            revIndex == sessions.lastIndex -> TopRoundedCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                elevation = elevation,
-                                containerColor = color,
-                                content = cardContent
-                            )
-                            else -> BottomRoundedCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                elevation = elevation,
-                                containerColor = color,
-                                content = cardContent
-                            )
-                        }
+                        // Use BottomRoundedCard for all session cards
+                        BottomRoundedCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            elevation = elevation,
+                            containerColor = color,
+                            content = cardContent
+                        )
                     }
                 }
             }
@@ -364,13 +351,11 @@ fun StackedSessionCards(
             var y = 0
             // 1. Header spacer
             val headerPlaceable = measurables[0].measure(constraints)
-            val overlapSpacer = measurables[1].measure(constraints)
             y += headerPlaceable.height
-            y += overlapSpacer.height
 
             val cardPlacements = mutableListOf<Pair<Int, Placeable>>()
-            // 2. Cards
-            for (i in 2 until measurables.size) {
+            // 2. Cards (start from index 1 since we only have header spacer)
+            for (i in 1 until measurables.size) {
                 val placeable = measurables[i].measure(constraints)
                 cardPlacements.add(y to placeable)
                 // Each card overlaps the previous
@@ -381,7 +366,6 @@ fun StackedSessionCards(
             layout(constraints.maxWidth, layoutHeight) {
                 // Place header spacer (not visible, just offsets)
                 headerPlaceable.place(0, 0)
-                overlapSpacer.place(0, headerPlaceable.height)
                 // Place cards
                 cardPlacements.forEach { (yy, pl) -> pl.place(0, yy) }
             }
