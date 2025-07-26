@@ -17,7 +17,6 @@ import com.topout.kmp.data.user.LocalUserRepository
 import com.topout.kmp.data.user.UserRepository
 import com.topout.kmp.domain.DeleteSession
 import com.topout.kmp.domain.EnsureAnonymousUser
-import com.topout.kmp.domain.GetLiveMetrics
 import com.topout.kmp.domain.GetSessionById
 import com.topout.kmp.domain.GetSessions
 import com.topout.kmp.domain.GetSessionDetails
@@ -29,6 +28,7 @@ import com.topout.kmp.domain.SyncOfflineChanges
 import com.topout.kmp.domain.session.FinishSession
 import com.topout.kmp.domain.CancelLocalSession
 import com.topout.kmp.domain.GetLocalTrackPointsFlow
+import com.topout.kmp.domain.UpdateSessionTitle
 import com.topout.kmp.domain.UpdateUser
 import com.topout.kmp.features.live_session.LiveSessionUseCases
 import com.topout.kmp.features.session_details.SessionDetailsUseCases
@@ -65,28 +65,28 @@ val domainModule = module {
     factoryOf(::SignInAnonymously)
     factoryOf(::EnsureAnonymousUser)
     factoryOf(::SyncOfflineChanges)
+
     // Sessions
     factoryOf(::GetSessions)
     factoryOf(::GetSessionById)
     factoryOf(::GetSessionDetails)
     factoryOf(::SaveSession)
     factoryOf(::DeleteSession)
+    factoryOf(::UpdateSessionTitle)
 
     factoryOf(::FinishSession)
     factoryOf(::CancelLocalSession)
-    factoryOf(::GetLiveMetrics)
     factoryOf(::GetLocalTrackPointsFlow)
     factory { (scope: CoroutineScope) ->
         LiveSessionManager(get(), get(), get(), scope)
     }
 
     factoryOf(::LiveSessionUseCases)
-
     factoryOf(::SessionsUseCases)
     factoryOf(::SessionDetailsUseCases)
 
 
-    // Settings
+    // User Settings
     factoryOf(::GetSettings)
     factoryOf(::UpdateUser)
     factoryOf(::SettingsUseCases)

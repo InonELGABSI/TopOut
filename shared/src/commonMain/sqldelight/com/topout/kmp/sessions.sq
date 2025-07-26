@@ -13,7 +13,8 @@ alertTriggered INTEGER DEFAULT 0,
 createdAt INTEGER DEFAULT (strftime('%s', 'now')),
 updatedAt INTEGER DEFAULT (strftime('%s', 'now')),
 sessionDeletedOffline INTEGER DEFAULT 0,
-sessionCreatedOffline INTEGER DEFAULT 0
+sessionCreatedOffline INTEGER DEFAULT 0,
+sessionUpdatedOffline INTEGER DEFAULT 0
 );
 
 saveSession:
@@ -22,8 +23,8 @@ INSERT OR REPLACE INTO SessionEntity(
   totalAscent, totalDescent, maxAltitude,
   minAltitude, avgRate, alertTriggered,
   createdAt,updatedAt,sessionDeletedOffline,
-  sessionCreatedOffline
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);
+  sessionCreatedOffline, sessionUpdatedOffline
+) VALUES (?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);
 
 getSessionById:
 SELECT * FROM SessionEntity WHERE id = ?;
@@ -55,8 +56,16 @@ UPDATE SessionEntity
 SET sessionCreatedOffline = 1
 WHERE id = ?;
 
+updateSessionTitle:
+UPDATE SessionEntity
+SET
+  title = ?,
+  sessionUpdatedOffline = ?,
+  updatedAt = strftime('%s', 'now')
+WHERE id = ?;
+
 getSessionsForSync:
-SELECT * FROM SessionEntity WHERE sessionCreatedOffline = 1 OR sessionDeletedOffline = 1;
+SELECT * FROM SessionEntity WHERE sessionCreatedOffline = 1 OR sessionDeletedOffline = 1 OR sessionUpdatedOffline = 1;
 
 resolveCreatedOfflineSync:
 UPDATE SessionEntity
@@ -66,3 +75,9 @@ WHERE id = ?;
 resolveDeletedOfflineSync:
 DELETE FROM SessionEntity
 WHERE id = ? AND sessionDeletedOffline = 1;
+
+resolveUpdatedOfflineSync:
+UPDATE SessionEntity
+SET sessionUpdatedOffline = 0
+WHERE id = ?;
+

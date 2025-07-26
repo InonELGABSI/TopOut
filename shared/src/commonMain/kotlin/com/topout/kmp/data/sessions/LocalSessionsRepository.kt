@@ -108,6 +108,10 @@ class LocalSessionsRepository (
                     // Permanently delete the session from local DB
                     sessionDao.resolveDeletedOfflineSync(sessionId)
                 }
+                SyncType.UPDATED_OFFLINE -> {
+                    // Mark session as no longer updated offline (sessionUpdatedOffline = 0)
+                    sessionDao.resolveUpdatedOfflineSync(sessionId)
+                }
             }
             Result.Success(Unit)
         } catch (e: Exception) {

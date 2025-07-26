@@ -19,7 +19,9 @@ fun SessionEntity.toSession(): Session = Session(
     createdAt          = createdAt,
     updatedAt          = updatedAt,
     sessionDeletedOffline = sessionDeletedOffline == 1L,
-    sessionCreatedOffline = sessionCreatedOffline == 1L
+    sessionCreatedOffline = sessionCreatedOffline == 1L,
+    sessionUpdatedOffline = sessionUpdatedOffline == 1L,
+
 )
 
 /* domain ➜ DB row */
@@ -38,5 +40,6 @@ fun Session.toEntity(): SessionEntity = SessionEntity(
     createdAt          = createdAt,
     updatedAt          = updatedAt,
     sessionDeletedOffline = if (sessionDeletedOffline) 1L else 0L,
-    sessionCreatedOffline = if (sessionCreatedOffline) 1L else 0L
+    sessionCreatedOffline = if (sessionCreatedOffline) 1L else 0L,
+    sessionUpdatedOffline = if (sessionUpdatedOffline) 1L else 0L
 )

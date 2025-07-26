@@ -35,7 +35,9 @@ class SessionDao(
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
             sessionDeletedOffline = entity.sessionDeletedOffline,
-            sessionCreatedOffline = entity.sessionCreatedOffline
+            sessionCreatedOffline = entity.sessionCreatedOffline,
+            sessionUpdatedOffline = entity.sessionUpdatedOffline
+
         )
     }
 
@@ -61,6 +63,14 @@ class SessionDao(
 
     fun resolveDeletedOfflineSync(sessionId: String) {
         queries.resolveDeletedOfflineSync(sessionId)
+    }
+
+    fun updateSessionTitle(sessionId: String, title: String, sessionUpdatedOffline: Boolean) {
+        queries.updateSessionTitle(title, if (sessionUpdatedOffline) 1L else 0L, sessionId)
+    }
+
+    fun resolveUpdatedOfflineSync(sessionId: String) {
+        queries.resolveUpdatedOfflineSync(sessionId)
     }
 
     fun updateSessionSummary(

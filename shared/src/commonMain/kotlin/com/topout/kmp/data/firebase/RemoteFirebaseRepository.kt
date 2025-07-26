@@ -98,10 +98,11 @@ class RemoteFirebaseRepository : FirebaseRepository {
         }
     }
 
-    override suspend fun updateSession(session: Session) {
-        session.id.let {
-            sessionsCollection.document(it)
-                .set(session)
+    override suspend fun updateSession(session: Session): Result<Unit, SessionsError> {
+        return withFirebaseTimeout(
+            errorFactory = ::SessionsError
+        ) {
+            sessionsCollection.document(session.id).set(session.toFirestoreMap())
         }
     }
 

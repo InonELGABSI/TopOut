@@ -44,6 +44,9 @@ fun SessionDetailsScreen(
     // State for delete confirmation dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    // State for edit title dialog
+    var showEditTitleDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(sessionId) {
         viewModel.loadSession(sessionId)
     }
@@ -53,7 +56,8 @@ fun SessionDetailsScreen(
             is SessionDetailsState.Loading -> SessionLoadingContent()
             is SessionDetailsState.Loaded -> NewSessionDetailsContent(
                 sessionDetails = uiState.sessionDetails,
-                onDeleteClick = { showDeleteDialog = true }
+                onDeleteClick = { showDeleteDialog = true },
+                onEditTitleClick = { showEditTitleDialog = true }
             )
             is SessionDetailsState.Error -> SessionErrorContent(
                 errorMessage = uiState.errorMessage,
@@ -77,12 +81,25 @@ fun SessionDetailsScreen(
         },
         onDismiss = { showDeleteDialog = false }
     )
+
+    // Edit title dialog
+    if (showEditTitleDialog && uiState is SessionDetailsState.Loaded) {
+        EditTitleDialog(
+            currentTitle = uiState.sessionDetails.session.title ?: "Climbing Session",
+            onTitleChanged = { newTitle ->
+                viewModel.updateSessionTitle(sessionId, newTitle)
+                showEditTitleDialog = false
+            },
+            onDismiss = { showEditTitleDialog = false }
+        )
+    }
 }
 
 @Composable
 fun NewSessionDetailsContent(
     sessionDetails: SessionDetails,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onEditTitleClick: () -> Unit
 ) {
     // Make the entire content scrollable
     LazyColumn(
@@ -125,7 +142,7 @@ fun NewSessionDetailsContent(
         item {
             SessionTitleSection(
                 sessionDetails = sessionDetails,
-                onEditClick = { /* TODO: Handle edit click */ }
+                onEditClick = onEditTitleClick
             )
         }
 
@@ -666,3 +683,71 @@ private fun prepareChartData(trackPoints: List<TrackPoint>): List<Pair<Float, Fl
 
     return aggregatedPoints
 }
+
+@Composable
+fun EditTitleDialog(
+    currentTitle: String,
+    onTitleChanged: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var titleText by remember { mutableStateOf(currentTitle) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        title = {
+            Text(
+                text = "Edit Session Title",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    text = "Enter a new title for this climbing session:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                OutlinedTextField(
+                    value = titleText,
+                    onValueChange = { titleText = it },
+                    label = { Text("Session Title") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (titleText.isNotBlank()) {
+                        onTitleChanged(titleText.trim())
+                    }
+                },
+                enabled = titleText.isNotBlank()
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+

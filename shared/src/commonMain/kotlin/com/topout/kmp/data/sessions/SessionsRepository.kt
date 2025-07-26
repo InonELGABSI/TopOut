@@ -19,5 +19,6 @@ interface SessionsRepository {
 
 enum class SyncType {
     CREATED_OFFLINE,
-    DELETED_OFFLINE
+    DELETED_OFFLINE,
+    UPDATED_OFFLINE
 }

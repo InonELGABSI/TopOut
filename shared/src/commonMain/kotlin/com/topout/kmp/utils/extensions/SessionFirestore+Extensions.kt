@@ -38,7 +38,8 @@ fun DocumentSnapshot.toSession(): Session {
         createdAt = millis("created_at"),
         updatedAt = millis("updated_at"), // Note: different field name convention
         sessionDeletedOffline = false,
-        sessionCreatedOffline = false
+        sessionCreatedOffline = false,
+        sessionUpdatedOffline = false
     )
 }
 

@@ -15,7 +15,7 @@ interface FirebaseRepository {
 
     suspend fun saveSession(session: Session) : Result<Session, SessionsError>
 
-    suspend fun updateSession(session: Session)
+    suspend fun updateSession(session: Session): Result<Unit, SessionsError>
 
     suspend fun deleteSession(sessionId: String) : Result<Unit, SessionsError>
 

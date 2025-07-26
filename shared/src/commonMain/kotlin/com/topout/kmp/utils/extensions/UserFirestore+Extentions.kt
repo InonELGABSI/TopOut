@@ -33,7 +33,7 @@ fun DocumentSnapshot.toUser(): User {
         relativeHeightFromStartThr = get<Double?>("relative_height_from_start_thr") ?: 0.0,
         totalHeightFromStartThr = get<Double?>("total_height_from_start_thr") ?: 0.0,
         currentAvgHeightSpeedThr = get<Double?>("current_avg_height_speed_thr") ?: 0.0,
-        userUpdatedOffline = get<Boolean?>("user_updated_offline") ?: false,
+        userUpdatedOffline = false,
         createdAt = millis("created_at"),
         updatedAt = millis("updated_at")
     )
@@ -54,7 +54,6 @@ fun User.toFirestoreMap(): Map<String, Any?> =
         "relative_height_from_start_thr" to (relativeHeightFromStartThr ?: 0.0),
         "total_height_from_start_thr" to (totalHeightFromStartThr ?: 0.0),
         "current_avg_height_speed_thr" to (currentAvgHeightSpeedThr ?: 0.0),
-        "user_updated_offline" to userUpdatedOffline,
         "created_at" to createdAt,
         "updated_at" to updatedAt
     )

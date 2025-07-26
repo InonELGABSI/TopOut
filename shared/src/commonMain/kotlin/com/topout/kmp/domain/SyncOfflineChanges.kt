@@ -18,6 +18,7 @@ class SyncOfflineChanges(
     suspend operator fun invoke(): Result<SyncResult, SyncError> {
         return try {
             var sessionsCreatedCount = 0
+            var sessionsUpdatedCount = 0
             var sessionsDeletedCount = 0
             var sessionsFailedCount = 0
             var usersUpdatedCount = 0
@@ -100,7 +101,25 @@ class SyncOfflineChanges(
                                 }
                             }
 
-                            // 4️⃣ Handle sessions deleted offline
+                            // 4️⃣ Handle sessions updated offline
+                            session.sessionUpdatedOffline -> {
+                                try {
+                                    // Update session on remote
+                                    val updateResult = remoteRepository.updateSession(session)
+
+                                    if (updateResult is Result.Success) {
+                                        // Mark session as no longer updated offline
+                                        sessionsRepository.resolveLocalSync(session.id, SyncType.UPDATED_OFFLINE)
+                                        sessionsUpdatedCount++
+                                    } else {
+                                        sessionsFailedCount++
+                                    }
+                                } catch (e: Exception) {
+                                    sessionsFailedCount++
+                                }
+                            }
+
+                            // 5️⃣ Handle sessions deleted offline
                             session.sessionDeletedOffline -> {
                                 try {
                                     // Delete session from remote
@@ -123,6 +142,7 @@ class SyncOfflineChanges(
                     Result.Success(
                         SyncResult(
                             sessionsCreated = sessionsCreatedCount,
+                            sessionsUpdated = sessionsUpdatedCount,
                             sessionsDeleted = sessionsDeletedCount,
                             sessionsFailed = sessionsFailedCount,
                             usersUpdated = usersUpdatedCount,
@@ -143,6 +163,7 @@ class SyncOfflineChanges(
 
 data class SyncResult(
     val sessionsCreated: Int,
+    val sessionsUpdated: Int,
     val sessionsDeleted: Int,
     val sessionsFailed: Int,
     val usersUpdated: Int,
@@ -150,7 +171,7 @@ data class SyncResult(
     val totalProcessed: Int
 ) {
     val isSuccessful: Boolean = sessionsFailed == 0 && usersFailed == 0
-    val hasChanges: Boolean = sessionsCreated > 0 || sessionsDeleted > 0 || usersUpdated > 0
+    val hasChanges: Boolean = sessionsCreated > 0 || sessionsUpdated > 0 || sessionsDeleted > 0 || usersUpdated > 0
     val hasUserChanges: Boolean = usersUpdated > 0
 }
 

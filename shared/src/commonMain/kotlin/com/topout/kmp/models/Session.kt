@@ -49,4 +49,7 @@ data class Session(
 
     @SerialName("session_created_offline")
     val sessionCreatedOffline: Boolean = false,
+
+    @SerialName("session_updated_offline")
+    val sessionUpdatedOffline: Boolean = false,
 )
