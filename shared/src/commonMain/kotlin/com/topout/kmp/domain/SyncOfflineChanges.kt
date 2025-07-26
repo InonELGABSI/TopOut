@@ -5,30 +5,64 @@ import com.topout.kmp.data.sessions.SessionsRepository
 import com.topout.kmp.data.sessions.SessionsError
 import com.topout.kmp.data.sessions.SyncType
 import com.topout.kmp.data.track_points.TrackPointsRepository
+import com.topout.kmp.data.user.UserRepository
 import com.topout.kmp.data.Result
 import com.topout.kmp.data.Error
 
 class SyncOfflineChanges(
     private val sessionsRepository: SessionsRepository,
     private val remoteRepository: FirebaseRepository,
-    private val trackPointsRepository: TrackPointsRepository
+    private val trackPointsRepository: TrackPointsRepository,
+    private val userRepository: UserRepository
 ) {
     suspend operator fun invoke(): Result<SyncResult, SyncError> {
         return try {
-            // 1️⃣ Get all sessions that need syncing
+            var sessionsCreatedCount = 0
+            var sessionsDeletedCount = 0
+            var sessionsFailedCount = 0
+            var usersUpdatedCount = 0
+            var usersFailedCount = 0
+
+            // 1️⃣ Sync the single user if updated offline
+            val userResult = userRepository.getUser()
+            when (userResult) {
+                is Result.Success -> {
+                    val user = userResult.data
+                    if (user != null) {
+                        if (user.userUpdatedOffline) {
+                            try {
+                                // Update user on remote
+                                val updateUserResult = remoteRepository.updateUser(user)
+
+                                if (updateUserResult is Result.Success) {
+                                    // Mark user as synced locally
+                                    userRepository.markUserAsSynced()
+                                    usersUpdatedCount++
+                                } else {
+                                    usersFailedCount++
+                                }
+                            } catch (e: Exception) {
+                                usersFailedCount++
+                            }
+                        }
+                    }
+                }
+                is Result.Failure -> {
+                    usersFailedCount++
+                }
+            }
+
+            // 2️⃣ Get all sessions that need syncing
             val sessionsForSyncResult = sessionsRepository.getSessionsForSync()
 
             when (sessionsForSyncResult) {
                 is Result.Success -> {
                     val sessionsToSync = sessionsForSyncResult.data?.items ?: emptyList()
-                    var createdCount = 0
-                    var deletedCount = 0
-                    var failedCount = 0
 
                     for (session in sessionsToSync) {
                         when {
-                            // 2️⃣ Handle sessions created offline
-                            session.sessionCreatedOffline == true -> {
+                            // 3️⃣ Handle sessions created offline
+                            session.sessionCreatedOffline -> {
                                 try {
                                     // Upload session to remote
                                     val createResult = remoteRepository.saveSession(session)
@@ -57,17 +91,17 @@ class SyncOfflineChanges(
 
                                         // Mark session as no longer created offline
                                         sessionsRepository.resolveLocalSync(session.id, SyncType.CREATED_OFFLINE)
-                                        createdCount++
+                                        sessionsCreatedCount++
                                     } else {
-                                        failedCount++
+                                        sessionsFailedCount++
                                     }
                                 } catch (e: Exception) {
-                                    failedCount++
+                                    sessionsFailedCount++
                                 }
                             }
 
-                            // 3️⃣ Handle sessions deleted offline
-                            session.sessionDeletedOffline == true -> {
+                            // 4️⃣ Handle sessions deleted offline
+                            session.sessionDeletedOffline -> {
                                 try {
                                     // Delete session from remote
                                     val deleteResult = remoteRepository.deleteSession(session.id)
@@ -75,12 +109,12 @@ class SyncOfflineChanges(
                                     if (deleteResult is Result.Success) {
                                         // Remove session from local database permanently
                                         sessionsRepository.resolveLocalSync(session.id, SyncType.DELETED_OFFLINE)
-                                        deletedCount++
+                                        sessionsDeletedCount++
                                     } else {
-                                        failedCount++
+                                        sessionsFailedCount++
                                     }
                                 } catch (e: Exception) {
-                                    failedCount++
+                                    sessionsFailedCount++
                                 }
                             }
                         }
@@ -88,10 +122,12 @@ class SyncOfflineChanges(
 
                     Result.Success(
                         SyncResult(
-                            sessionsCreated = createdCount,
-                            sessionsDeleted = deletedCount,
-                            sessionsFailed = failedCount,
-                            totalProcessed = sessionsToSync.size
+                            sessionsCreated = sessionsCreatedCount,
+                            sessionsDeleted = sessionsDeletedCount,
+                            sessionsFailed = sessionsFailedCount,
+                            usersUpdated = usersUpdatedCount,
+                            usersFailed = usersFailedCount,
+                            totalProcessed = sessionsToSync.size + if (userResult is Result.Success && userResult.data?.userUpdatedOffline == true) 1 else 0
                         )
                     )
                 }
@@ -109,10 +145,13 @@ data class SyncResult(
     val sessionsCreated: Int,
     val sessionsDeleted: Int,
     val sessionsFailed: Int,
+    val usersUpdated: Int,
+    val usersFailed: Int,
     val totalProcessed: Int
 ) {
-    val isSuccessful: Boolean = sessionsFailed == 0
-    val hasChanges: Boolean = sessionsCreated > 0 || sessionsDeleted > 0
+    val isSuccessful: Boolean = sessionsFailed == 0 && usersFailed == 0
+    val hasChanges: Boolean = sessionsCreated > 0 || sessionsDeleted > 0 || usersUpdated > 0
+    val hasUserChanges: Boolean = usersUpdated > 0
 }
 
 data class SyncError(

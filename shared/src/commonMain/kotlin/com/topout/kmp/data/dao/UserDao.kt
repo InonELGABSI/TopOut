@@ -45,4 +45,8 @@ class UserDao(
     fun getLastUserUpdateTime(): Long? {
         return queries.getLastUserUpdateTime().executeAsOneOrNull()?.localUserUpdateTime
     }
+
+    fun markUserAsSynced() {
+        queries.markUserAsSynced()
+    }
 }

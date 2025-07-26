@@ -44,19 +44,9 @@ UPDATE UserEntity SET localUserUpdateTime = ?;
 getLastUserUpdateTime:
 SELECT localUserUpdateTime FROM UserEntity LIMIT 1;
 
-markUserUpdatedOffline:
+markUserAsSynced:
 UPDATE UserEntity
-SET userUpdatedOffline = 1
-WHERE id = ?;
-
-resolveUserUpdatedOffline:
-UPDATE UserEntity
-SET userUpdatedOffline = 0
-WHERE id = ?;
-
-getIsUserUpdatedOffline:
-SELECT userUpdatedOffline FROM UserEntity WHERE id = ?;
-
+SET userUpdatedOffline = 0;
 
 
 

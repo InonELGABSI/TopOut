@@ -66,4 +66,13 @@ class LocalUserRepository(
             Result.Failure(UserError(e.message ?: "Failed to get last user update time"))
         }
     }
+
+    override suspend fun markUserAsSynced(): Result<Unit, UserError> {
+        return try {
+            userDao.markUserAsSynced()
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Failure(UserError(e.message ?: "Failed to mark user as synced"))
+        }
+    }
 }

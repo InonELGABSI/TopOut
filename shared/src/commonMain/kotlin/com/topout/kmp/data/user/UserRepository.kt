@@ -10,5 +10,6 @@ interface UserRepository {
     suspend fun getLastSessionsUpdateTime(): Result<Long?, UserError>
     suspend fun updateLastUserUpdateTime(timestamp: Long): Result<Unit, UserError>
     suspend fun getLastUserUpdateTime(): Result<Long?, UserError>
+    suspend fun markUserAsSynced(): Result<Unit, UserError>
 }
 
