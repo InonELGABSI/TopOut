@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -16,10 +17,13 @@ import androidx.compose.ui.unit.dp
 import com.topout.kmp.map.LiveMap
 import com.topout.kmp.features.live_session.LiveSessionState
 import com.topout.kmp.features.live_session.LiveSessionViewModel
+import com.topout.kmp.models.AlertType
 import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.shared_components.ConfirmationDialog
+import com.topout.kmp.shared_components.DangerToast
 import com.topout.kmp.shared_components.MountainAnimation
 import com.topout.kmp.shared_components.TopRoundedCard
+import com.topout.kmp.shared_components.WaveAnimation
 import com.topout.kmp.utils.extensions.latLngOrNull
 import org.koin.androidx.compose.koinViewModel
 
@@ -33,6 +37,25 @@ fun LiveSessionScreen(
 ) {
     val uiState = viewModel.uiState.collectAsState().value
 
+    // Toast state management
+    var showDangerToast by remember { mutableStateOf(false) }
+    var currentAlertType by remember { mutableStateOf(AlertType.NONE) }
+    var lastToastTimestamp by remember { mutableStateOf(0L) }
+
+    // Monitor danger alerts from track points
+    LaunchedEffect(uiState) {
+        if (uiState is LiveSessionState.Loaded && uiState.trackPoint.danger) {
+            val currentTime = System.currentTimeMillis()
+
+            // Only show toast if no toast is currently active (10 second window)
+            if (!showDangerToast && (currentTime - lastToastTimestamp) > 10000) {
+                currentAlertType = uiState.trackPoint.alertType
+                showDangerToast = true
+                lastToastTimestamp = currentTime
+            }
+        }
+    }
+
     // Handle navigation when session is stopped
     LaunchedEffect(uiState) {
         if (uiState is LiveSessionState.SessionStopped) {
@@ -41,13 +64,15 @@ fun LiveSessionScreen(
         }
     }
 
-    // Remove the screen-level top padding
     Box(modifier = Modifier.fillMaxSize()) {
+        // Main content
         when (uiState) {
             is LiveSessionState.Loading -> StartSessionContent(
                 hasLocationPermission = hasLocationPermission,
                 onStartClick = { viewModel.onStartClicked() },
-                onRequestLocationPermission = onRequestLocationPermission
+                onRequestLocationPermission = onRequestLocationPermission,
+                mslHeightState = viewModel.mslHeightState.collectAsState().value,
+                onRefreshMSLHeight = { viewModel.refreshMSLHeight() }
             )
             is LiveSessionState.Loaded -> ActiveSessionContent(
                 trackPoint = uiState.trackPoint,
@@ -64,6 +89,16 @@ fun LiveSessionScreen(
                 onRetryClick = { viewModel.onStartClicked() }
             )
         }
+
+        // Danger Toast - positioned at the bottom with proper spacing
+        DangerToast(
+            alertType = currentAlertType,
+            isVisible = showDangerToast,
+            onDismiss = { showDangerToast = false },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 120.dp) // Above the chip buttons
+        )
     }
 }
 
@@ -71,7 +106,9 @@ fun LiveSessionScreen(
 fun StartSessionContent(
     hasLocationPermission: Boolean,
     onStartClick: () -> Unit,
-    onRequestLocationPermission: () -> Unit
+    onRequestLocationPermission: () -> Unit,
+    mslHeightState: com.topout.kmp.features.live_session.MSLHeightState,
+    onRefreshMSLHeight: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -108,7 +145,133 @@ fun StartSessionContent(
             modifier = Modifier.padding(horizontal = 16.dp)
         )
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Current Mean Sea Level section
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            )
+        ) {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top=16.dp,bottom=8.dp,start=16.dp,end=16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Height,
+                            contentDescription = "MSL Height",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "Current Mean Sea Level",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        IconButton(
+                            onClick = onRefreshMSLHeight,
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = "Refresh",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    when (mslHeightState) {
+                        is com.topout.kmp.features.live_session.MSLHeightState.Loading -> {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Getting location...",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        is com.topout.kmp.features.live_session.MSLHeightState.Success -> {
+                            val data = mslHeightState.data
+                            Text(
+                                text = "${data.mslHeight.toInt()}m",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "GPS: ${data.ellipsoidHeight.toInt()}m | Geoid: ${data.geoidHeight.toInt()}m",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = data.accuracy,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        is com.topout.kmp.features.live_session.MSLHeightState.Error -> {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = "Error",
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = mslHeightState.message,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    // Add some space for the wave animation
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // Wave animation positioned at the bottom with overflow clipping
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp)
+                        .align(Alignment.BottomCenter)
+                        .clip(RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp))
+                ) {
+                    WaveAnimation(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .offset(y = 20.dp), // Offset to create overflow effect
+                        speed = 1f
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {

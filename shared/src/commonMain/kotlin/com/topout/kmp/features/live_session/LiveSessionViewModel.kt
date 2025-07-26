@@ -22,6 +22,10 @@ class LiveSessionViewModel(
     private val _uiState = MutableStateFlow<LiveSessionState>(LiveSessionState.Loading)
     val uiState: StateFlow<LiveSessionState> = _uiState
 
+    // MSL Height state
+    private val _mslHeightState = MutableStateFlow<MSLHeightState>(MSLHeightState.Loading)
+    val mslHeightState: StateFlow<MSLHeightState> = _mslHeightState
+
     private var trackPointJob: Job? = null
     private var historyTrackPointsJob: Job? = null
 
@@ -32,6 +36,11 @@ class LiveSessionViewModel(
     // Store current state to combine live point with history
     private var currentTrackPoint: TrackPoint? = null
     private var currentHistoryPoints: List<TrackPoint> = emptyList()
+
+    init {
+        // Load current MSL height on initialization
+        loadCurrentMSLHeight()
+    }
 
     fun onStartClicked() {
         // 2. Always stop/clean old session before starting new
@@ -148,5 +157,35 @@ class LiveSessionViewModel(
         // Reset combined state
         currentTrackPoint = null
         currentHistoryPoints = emptyList()
+    }
+
+    private fun loadCurrentMSLHeight() {
+        scope.launch {
+            _mslHeightState.value = MSLHeightState.Loading
+            try {
+                when (val result = useCases.getCurrentMSLHeight()) {
+                    is com.topout.kmp.data.Result.Success -> {
+                        result.data?.let { data ->
+                            _mslHeightState.value = MSLHeightState.Success(data)
+                        } ?: run {
+                            _mslHeightState.value = MSLHeightState.Error("No MSL data available")
+                        }
+                    }
+                    is com.topout.kmp.data.Result.Failure -> {
+                        _mslHeightState.value = MSLHeightState.Error(
+                            result.error?.message ?: "Failed to get MSL height"
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _mslHeightState.value = MSLHeightState.Error(
+                    e.message ?: "Unknown error getting MSL height"
+                )
+            }
+        }
+    }
+
+    fun refreshMSLHeight() {
+        loadCurrentMSLHeight()
     }
 }

@@ -30,6 +30,7 @@ import com.topout.kmp.domain.CancelLocalSession
 import com.topout.kmp.domain.GetLocalTrackPointsFlow
 import com.topout.kmp.domain.UpdateSessionTitle
 import com.topout.kmp.domain.UpdateUser
+import com.topout.kmp.domain.GetCurrentMSLHeight
 import com.topout.kmp.features.live_session.LiveSessionUseCases
 import com.topout.kmp.features.session_details.SessionDetailsUseCases
 import com.topout.kmp.features.sessions.SessionsUseCases
@@ -78,13 +79,14 @@ val domainModule = module {
     factoryOf(::CancelLocalSession)
     factoryOf(::GetLocalTrackPointsFlow)
     factory { (scope: CoroutineScope) ->
-        LiveSessionManager(get(), get(), get(), scope)
+        LiveSessionManager(get(), get(), get(), scope, get<LocalUserRepository>())
     }
 
     factoryOf(::LiveSessionUseCases)
     factoryOf(::SessionsUseCases)
     factoryOf(::SessionDetailsUseCases)
 
+    factoryOf(::GetCurrentMSLHeight)
 
     // User Settings
     factoryOf(::GetSettings)
@@ -110,6 +112,7 @@ val commonModule = module {
 
     single { createHttpClient(get(), get()) }
 
+    // Location-based use cases
 }
 
 fun createJson() = Json {

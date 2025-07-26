@@ -9,13 +9,15 @@ import com.topout.kmp.models.TrackPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import co.touchlab.kermit.Logger
+import com.topout.kmp.data.user.UserRepository
 
 
 class LiveSessionManager(
     private val sessionsRepo : SessionsRepository,
     private val dao          : TrackPointsDao,
     private val sensors      : SensorDataSource,
-    private val scope        : CoroutineScope
+    private val scope        : CoroutineScope,
+    private val localUserRepository: UserRepository
 ) {
     private val log = Logger.withTag("LiveSessionManager")
     private var tracker: SessionTracker? = null
@@ -27,11 +29,32 @@ class LiveSessionManager(
         log.i { "start()" }
         sensors.start(scope)
         aggregator?.stop()
+
+        // Get current user preferences for threshold-based alerts
+        val user = try {
+            when (val result = localUserRepository.getUser()) {
+                is Result.Success -> result.data
+                is Result.Failure -> {
+                    log.w { "Failed to get user preferences: ${result.error?.message}, using defaults" }
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            log.w { "Error retrieving user preferences: ${e.message}, using defaults" }
+            null
+        }
+
         val result = sessionsRepo.createSession()
         return when (result) {
             is Result.Success -> {
                 val sessionId = result.data?.id ?: error("Session created but id == null")
                 log.i { "Session created with id: $sessionId" }
+
+                // Log user thresholds for debugging
+                user?.let {
+                    log.i { "Using user thresholds - Height: ${it.relativeHeightFromStartThr}, Total: ${it.totalHeightFromStartThr}, Speed: ${it.currentAvgHeightSpeedThr}" }
+                } ?: log.i { "Using default thresholds (no user preferences found)" }
+
                 // Fresh aggregator *for each session*
                 val aggregator = SensorAggregator(
                     accelFlow = sensors.accelFlow,
@@ -41,7 +64,7 @@ class LiveSessionManager(
                 )
                 aggregator.setSessionId(sessionId)
                 aggregator.start(scope)
-                tracker = SessionTracker(sessionId, aggregator, dao, scope).apply { start() }
+                tracker = SessionTracker(sessionId, aggregator, dao, scope, user).apply { start() }
                 tracker!!.trackPointFlow
             }
             is Result.Failure -> {
