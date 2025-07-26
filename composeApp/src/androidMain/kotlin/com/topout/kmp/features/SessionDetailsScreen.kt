@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.zIndex
 import com.topout.kmp.features.session_details.SessionDetailsState
 import com.topout.kmp.features.session_details.SessionDetailsViewModel
 import com.topout.kmp.models.SessionDetails
@@ -120,6 +121,14 @@ fun NewSessionDetailsContent(
             }
         }
 
+        // Session title section
+        item {
+            SessionTitleSection(
+                sessionDetails = sessionDetails,
+                onEditClick = { /* TODO: Handle edit click */ }
+            )
+        }
+
         // Session info section
         item {
             SessionInfoSection(
@@ -214,6 +223,74 @@ fun NewSessionDetailsContent(
 }
 
 @Composable
+fun SessionTitleSection(
+    sessionDetails: SessionDetails,
+    onEditClick: () -> Unit
+) {
+    val session = sessionDetails.session
+    val sessionTitle = session.title ?: "Climbing Session"
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .offset(y= (-15).dp)
+            .zIndex(-1f)
+            .padding(horizontal = 20.dp, vertical = 0.dp),
+
+    shape = RoundedCornerShape(
+            topStart = 0.dp,
+            topEnd = 0.dp,
+            bottomStart = 24.dp,
+            bottomEnd = 24.dp
+        ), // Circular borders
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        tonalElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 10.dp), // Increased from 10.dp to 20.dp
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                Text(
+                    text = "Title: ",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Text(
+                    text = sessionTitle,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            IconButton(
+                onClick = onEditClick,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit session title",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun SessionInfoSection(
     sessionDetails: SessionDetails,
     onDeleteClick: () -> Unit
@@ -225,7 +302,7 @@ fun SessionInfoSection(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp),
+            .padding(10.dp),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
