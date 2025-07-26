@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.topout.kmp.features.sessions.SessionsState
 import com.topout.kmp.features.sessions.SessionsViewModel
+import com.topout.kmp.features.sessions.SortOption
 import com.topout.kmp.models.Session
 import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import com.topout.kmp.shared_components.TopRoundedCard
@@ -98,7 +99,8 @@ fun HistoryScreen(
                     } else {
                         StackedSessionCards(
                             sessions = uiState.sessions ?: emptyList(),
-                            onSessionClick = onSessionClick
+                            onSessionClick = onSessionClick,
+                            viewModel = viewModel
                         )
                     }
                 }
@@ -124,6 +126,7 @@ fun HistoryScreen(
 
 @Composable
 fun HistoryControlsSection(
+    viewModel: SessionsViewModel,
     modifier: Modifier = Modifier
 ) {
     var searchText by remember { mutableStateOf("") }
@@ -138,6 +141,19 @@ fun HistoryControlsSection(
         "Ascent (Highest)",
         "Ascent (Lowest)"
     )
+
+    // Function to convert string to SortOption enum
+    fun stringToSortOption(sortString: String): SortOption {
+        return when (sortString) {
+            "Date (Newest)" -> SortOption.DATE_NEWEST
+            "Date (Oldest)" -> SortOption.DATE_OLDEST
+            "Duration (Longest)" -> SortOption.DURATION_LONGEST
+            "Duration (Shortest)" -> SortOption.DURATION_SHORTEST
+            "Ascent (Highest)" -> SortOption.ASCENT_HIGHEST
+            "Ascent (Lowest)" -> SortOption.ASCENT_LOWEST
+            else -> SortOption.DATE_NEWEST
+        }
+    }
 
     Column(
         modifier = modifier,
@@ -155,7 +171,7 @@ fun HistoryControlsSection(
                     onClick = { showSortMenu = true },
                     modifier = Modifier
                         .wrapContentWidth()
-                        .height(48.dp), // Match the search input height
+                        .height(48.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -189,7 +205,8 @@ fun HistoryControlsSection(
                             onClick = {
                                 selectedSortOption = option
                                 showSortMenu = false
-                                // TODO: Apply sorting logic
+                                // Apply sorting through ViewModel
+                                viewModel.sortSessions(stringToSortOption(option))
                             }
                         )
                     }
@@ -202,7 +219,7 @@ fun HistoryControlsSection(
                 onValueChange = { searchText = it },
                 modifier = Modifier
                     .weight(1f)
-                    .height(48.dp), // Control overall height for smaller padding
+                    .height(48.dp),
                 placeholder = {
                     Text(
                         text = "Search",
@@ -213,7 +230,7 @@ fun HistoryControlsSection(
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = "Search",
-                        modifier = Modifier.size(18.dp) // Smaller icon
+                        modifier = Modifier.size(18.dp)
                     )
                 },
                 trailingIcon = {
@@ -224,16 +241,16 @@ fun HistoryControlsSection(
                             Icon(
                                 imageVector = Icons.Default.Clear,
                                 contentDescription = "Clear search",
-                                modifier = Modifier.size(16.dp) // Smaller clear icon
+                                modifier = Modifier.size(16.dp)
                             )
                         }
                     }
                 },
                 textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    lineHeight = 18.sp // Reduce line height for tighter text
+                    lineHeight = 18.sp
                 ),
                 singleLine = true,
-                shape = RoundedCornerShape(24.dp), // Smaller radius for more compact look
+                shape = RoundedCornerShape(24.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
@@ -243,11 +260,11 @@ fun HistoryControlsSection(
     }
 }
 
-
 @Composable
 fun StackedSessionCards(
     sessions: List<Session>,
     onSessionClick: (Session) -> Unit,
+    viewModel: SessionsViewModel,
     overlap: Dp = 40.dp,
     modifier: Modifier = Modifier
 ) {
@@ -376,6 +393,7 @@ fun StackedSessionCards(
                     contentAlignment = Alignment.BottomStart
                 ) {
                     HistoryControlsSection(
+                        viewModel = viewModel,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(
