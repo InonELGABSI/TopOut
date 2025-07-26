@@ -33,6 +33,7 @@ import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import com.topout.kmp.shared_components.BottomRoundedCard
 import com.topout.kmp.LocalThemeState
 import com.topout.kmp.LocalThemeUpdater
+import com.topout.kmp.shared_components.LottieToggleButton
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -532,11 +533,12 @@ fun ThemeCardContent(
                 modifier = Modifier.weight(1f)
             )
 
-            Switch(
-                checked = currentThemeState.isDarkMode,
-                onCheckedChange = { isDark ->
+            LottieToggleButton(
+                isToggled = currentThemeState.isDarkMode,
+                onToggle = { isDark ->
                     updateTheme(currentThemeState.copy(isDarkMode = isDark))
-                }
+                },
+                size = 96.dp
             )
         }
 
