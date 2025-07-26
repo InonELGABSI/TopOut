@@ -80,10 +80,11 @@ fun StackedSettingsCards(
 
     // Define the 4 cards (added Theme)
     val settingsCards = listOf(
-        "Theme",
-        "Alert Thresholds",
+        "Profile",
         "Preferences",
-        "Profile"
+        "Alert Thresholds",
+        "Theme"
+
     )
 
     Layout(
@@ -496,10 +497,10 @@ fun ThemeCardContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Header
+        // Header with toggle button
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -511,25 +512,7 @@ fun ThemeCardContent(
             Text(
                 text = "Theme",
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        // Dark mode toggle
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.DarkMode,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Text(
-                text = "Dark Mode",
-                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
             )
 
@@ -538,9 +521,11 @@ fun ThemeCardContent(
                 onToggle = { isDark ->
                     updateTheme(currentThemeState.copy(isDarkMode = isDark))
                 },
-                size = 96.dp
+                height = 52.dp
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Theme selection
         Text(

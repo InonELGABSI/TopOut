@@ -4,13 +4,14 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -21,7 +22,7 @@ fun LottieToggleButton(
     isToggled: Boolean,
     onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    size: Dp = 48.dp
+    height: Dp = 48.dp   // Height (not size) for rectangle
 ) {
     val composition by rememberLottieComposition(
         LottieCompositionSpec.Asset("Dark Mode Button.json")
@@ -32,60 +33,42 @@ fun LottieToggleButton(
     val endFrame = 40f
     val totalFrames = 320f
 
-    val startProgress = startFrame / totalFrames      // 0.0
-    val endProgress = endFrame / totalFrames          // 0.125
+    val startProgress = startFrame / totalFrames
+    val endProgress = endFrame / totalFrames
 
-    // Animate between the two
     val targetProgress = if (isToggled) startProgress else endProgress
 
     val animatedProgress by animateFloatAsState(
         targetValue = targetProgress,
-        animationSpec = tween(
-            durationMillis = 600,
-            easing = FastOutSlowInEasing
-        ),
+        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
         label = "lottie_toggle_animation"
     )
 
+    // Get animation's aspect ratio, fallback to 1f if not loaded
+    val aspectRatio = remember(composition) {
+        val w = composition?.bounds?.width()?.toFloat() ?: 1f
+        val h = composition?.bounds?.height()?.toFloat() ?: 1f
+        if (h > 0f) w / h else 1f
+    }
+
     Box(
         modifier = modifier
-            .size(size)
-            .clip(CircleShape)
-            .clickable { onToggle(!isToggled) },
+            .height(height)
+            .aspectRatio(aspectRatio)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { onToggle(!isToggled) },
         contentAlignment = Alignment.Center
     ) {
-        LottieAnimation(
-            composition = composition,
-            progress = { animatedProgress },
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun LottieToggleButtonPreview() {
-    var isToggled by remember { mutableStateOf(false) }
-
-    MaterialTheme {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text("Dark Mode Toggle")
-
-            LottieToggleButton(
-                isToggled = isToggled,
-                onToggle = { isToggled = it },
-                size = 64.dp
-            )
-
-            Text(
-                text = if (isToggled) "Dark Mode: ON" else "Dark Mode: OFF",
-                style = MaterialTheme.typography.bodyMedium
+        if (composition != null) {
+            LottieAnimation(
+                composition = composition,
+                progress = { animatedProgress },
+                modifier = Modifier.fillMaxSize()
             )
         }
     }
 }
+
+
