@@ -38,6 +38,7 @@ import org.koin.androidx.compose.koinViewModel
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.times
 import androidx.compose.ui.zIndex
@@ -251,103 +252,113 @@ fun StackedSessionCards(
     modifier: Modifier = Modifier
 ) {
     val palette = listOf(
-        MaterialTheme.colorScheme.primaryContainer,
-        MaterialTheme.colorScheme.secondaryContainer,
-        MaterialTheme.colorScheme.tertiaryContainer,
         MaterialTheme.colorScheme.surfaceContainerHigh,
         MaterialTheme.colorScheme.surfaceContainer
     )
     val scrollState = rememberScrollState()
-    val topContentSpacing = rememberTopContentSpacingDp()
+    val density = LocalDensity.current
+    val headerHeight = 200.dp
 
-    // State for header visibility
+    // State for header visibility (keep your animation logic as before)
     var headerOffset by remember { mutableFloatStateOf(0f) }
     var lastScrollValue by remember { mutableIntStateOf(0) }
-    val headerHeight = 200.dp
-    val density = LocalDensity.current
     val headerHeightPx = with(density) { headerHeight.toPx() }
-
-    // Animate header offset
     val animatedHeaderOffset by animateFloatAsState(
         targetValue = headerOffset,
         animationSpec = tween(300, easing = EaseInOutCubic),
         label = "headerOffset"
     )
 
-    // Track scroll direction
     LaunchedEffect(scrollState.value) {
         val currentScroll = scrollState.value
         val scrollDelta = currentScroll - lastScrollValue
-
         when {
-            scrollDelta > 0 -> {
-                // Scrolling down - hide header
-                headerOffset = -headerHeightPx
-            }
-            scrollDelta < 0 -> {
-                // Scrolling up - show header
-                headerOffset = 0f
-            }
+            scrollDelta > 0 -> headerOffset = -headerHeightPx
+            scrollDelta < 0 -> headerOffset = 0f
         }
-
         lastScrollValue = currentScroll
     }
 
     Box(modifier = modifier) {
-        Column(
+        // The stacking layout, scrollable
+        Layout(
             modifier = Modifier
                 .verticalScroll(scrollState)
-                .padding(bottom = overlap * (sessions.size - 1) + 80.dp)
-        ) {
-
-            // Add space for the fixed header
-            Spacer(Modifier.height(headerHeight))
-
-            Spacer(Modifier.height(overlap + 24.dp))
-
-            // SESSION CARDS (with negative offset)
-            sessions.asReversed().forEachIndexed { revIndex, session ->
-                val color = palette[revIndex % palette.size]
-                val elevation = 6.dp + (revIndex * 2).dp
-                val cardContent: @Composable () -> Unit = {
-                    SessionCardContent(
-                        session = session,
-                        onSessionClick = onSessionClick,
-                        topContentSpacing = 0.dp,
-                        isFirstItem = revIndex == sessions.lastIndex
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .offset(y = -(revIndex * overlap))
-                        .padding(horizontal = 16.dp)
-                        .zIndex(revIndex.toFloat())
-                ) {
-                    when {
-                        sessions.size == 1 -> FullRoundedCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            elevation = elevation,
-                            containerColor = color,
-                            content = cardContent
+                .fillMaxWidth(),
+            content = {
+                // 1. Add the spacer for the header
+                Spacer(Modifier.height(headerHeight))
+                // 2. Add a spacer after the header for overlap (fine-tune as needed)
+                Spacer(Modifier.height(overlap + 24.dp))
+                // 3. All session cards (stacked)
+                sessions.asReversed().forEachIndexed { revIndex, session ->
+                    val color = palette[revIndex % palette.size]
+                    val elevation = 6.dp + (revIndex * 2).dp
+                    val cardContent: @Composable () -> Unit = {
+                        SessionCardContent(
+                            session = session,
+                            onSessionClick = onSessionClick,
+                            topContentSpacing = 0.dp,
+                            isFirstItem = revIndex == sessions.lastIndex
                         )
-                        revIndex == sessions.lastIndex -> TopRoundedCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            elevation = elevation,
-                            containerColor = color,
-                            content = cardContent
-                        )
-                        else -> BottomRoundedCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            elevation = elevation,
-                            containerColor = color,
-                            content = cardContent
-                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .zIndex(revIndex.toFloat())
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        when {
+                            sessions.size == 1 -> FullRoundedCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                elevation = elevation,
+                                containerColor = color,
+                                content = cardContent
+                            )
+                            revIndex == sessions.lastIndex -> TopRoundedCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                elevation = elevation,
+                                containerColor = color,
+                                content = cardContent
+                            )
+                            else -> BottomRoundedCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                elevation = elevation,
+                                containerColor = color,
+                                content = cardContent
+                            )
+                        }
                     }
                 }
             }
+        ) { measurables, constraints ->
+            val overlapPx = overlap.roundToPx()
+            var y = 0
+            // 1. Header spacer
+            val headerPlaceable = measurables[0].measure(constraints)
+            val overlapSpacer = measurables[1].measure(constraints)
+            y += headerPlaceable.height
+            y += overlapSpacer.height
+
+            val cardPlacements = mutableListOf<Pair<Int, Placeable>>()
+            // 2. Cards
+            for (i in 2 until measurables.size) {
+                val placeable = measurables[i].measure(constraints)
+                cardPlacements.add(y to placeable)
+                // Each card overlaps the previous
+                y += placeable.height - overlapPx
+            }
+            val layoutHeight = if (cardPlacements.isEmpty()) y else y + overlapPx
+
+            layout(constraints.maxWidth, layoutHeight) {
+                // Place header spacer (not visible, just offsets)
+                headerPlaceable.place(0, 0)
+                overlapSpacer.place(0, headerPlaceable.height)
+                // Place cards
+                cardPlacements.forEach { (yy, pl) -> pl.place(0, yy) }
+            }
         }
 
-        // Fixed/Sticky Header that reacts to scroll
+        // Sticky/fixed header (as before)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -379,6 +390,7 @@ fun StackedSessionCards(
         }
     }
 }
+
 
 @Composable
 fun SessionCardContent(
