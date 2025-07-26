@@ -289,7 +289,7 @@ fun StackedSessionCards(
                 // 1. Add the spacer for the header
                 Spacer(Modifier.height(headerHeight))
                 // 2. Add a spacer after the header for overlap (fine-tune as needed)
-                Spacer(Modifier.height(overlap + 24.dp))
+                Spacer(Modifier.height( 24.dp))
                 // 3. All session cards (stacked)
                 sessions.asReversed().forEachIndexed { revIndex, session ->
                     val color = palette[revIndex % palette.size]
@@ -305,7 +305,6 @@ fun StackedSessionCards(
                     Box(
                         modifier = Modifier
                             .zIndex(revIndex.toFloat())
-                            .padding(horizontal = 16.dp)
                     ) {
                         when {
                             sessions.size == 1 -> FullRoundedCard(
