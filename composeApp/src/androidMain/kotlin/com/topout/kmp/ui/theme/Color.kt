@@ -4,262 +4,283 @@ import androidx.compose.ui.graphics.Color
 
 // Brand Colors - Base palette
 object BrandColors {
-    val ClimbingRed = Color(0xFFE53E3E)
-    val MountainBlue = Color(0xFF3182CE)
-    val ForestGreen = Color(0xFF38A169)
-    val RockGray = Color(0xFF718096)
-    val SkyBlue = Color(0xFF63B3ED)
-    val EarthBrown = Color(0xFF8B4513)
-    val SnowWhite = Color(0xFFFAFAFA)
-    val DeepNight = Color(0xFF1A202C)
+    val ClimbingRed = Color(0xFFDE2B2B)
+    val MountainBlue = Color(0xFF1565C0)
+    val ForestGreen = Color(0xFF26836E)
+    val RockGray = Color(0xFF5C6370)
+    val SkyBlue = Color(0xFF44A5E0)
+    val EarthBrown = Color(0xFF7C5E3C)
+    val SnowWhite = Color(0xFFFDFCFB)
+    val DeepNight = Color(0xFF111827)
 }
+
 
 // Theme 1: Classic Red (Red/Gray theme)
 object ClassicRedLightColors {
-    val primary = BrandColors.ClimbingRed
+    val primary = BrandColors.ClimbingRed          // #DE2B2B
     val onPrimary = Color.White
-    val primaryContainer = Color(0xFFFFEBEE)
-    val onPrimaryContainer = Color(0xFF8B0000)
+    val primaryContainer = Color(0xFFFFE6E6)       // Soft red background
+    val onPrimaryContainer = BrandColors.ClimbingRed
 
-    val secondary = BrandColors.RockGray
+    val secondary = BrandColors.RockGray           // #5C6370
     val onSecondary = Color.White
-    val secondaryContainer = Color(0xFFF5F5F5)
-    val onSecondaryContainer = Color(0xFF2D3748)
+    val secondaryContainer = Color(0xFFE7E9ED)
+    val onSecondaryContainer = BrandColors.RockGray
 
-    val background = Color(0xFFFFFBFE)
-    val onBackground = Color(0xFF1C1B1F)
-    val surface = Color(0xFFFFFBFE)
-    val onSurface = Color(0xFF1C1B1F)
-    val surfaceVariant = Color(0xFFE7E0EC)
-    val onSurfaceVariant = Color(0xFF49454F)
+    val background = BrandColors.SnowWhite         // #FDFCFB
+    val onBackground = Color(0xFF232323)
 
-    val error = Color(0xFFBA1A1A)
+    val surface = Color(0xFFFDFCFB)             // soft off-white
+    val onSurface = Color(0xFF232323)
+    val surfaceVariant = Color(0xFFF3F1F2)
+    val onSurfaceVariant = Color(0xFF3D3D3D)
+
+    val error = Color(0xFFD32F2F)
     val onError = Color.White
-    val errorContainer = Color(0xFFFFDAD6)
-    val onErrorContainer = Color(0xFF410002)
+    val errorContainer = Color(0xFFFFE6E6)
+    val onErrorContainer = Color(0xFFD32F2F)
 }
+
 
 // Dark mode colors for Classic Red
 object ClassicRedDarkColors {
-    val primary = Color(0xFFFF6B6B)
-    val onPrimary = Color(0xFF4A0000)
-    val primaryContainer = Color(0xFF8B0000)
-    val onPrimaryContainer = Color(0xFFFFDAD6)
+    val primary = Color(0xFFFF7676)
+    val onPrimary = BrandColors.DeepNight
+    val primaryContainer = Color(0xFFAB1F24)
+    val onPrimaryContainer = Color.White
 
-    val secondary = Color(0xFFA0AEC0)
-    val onSecondary = Color(0xFF1A202C)
-    val secondaryContainer = Color(0xFF2D3748)
-    val onSecondaryContainer = Color(0xFFE2E8F0)
+    val secondary = Color(0xFFB0B8C1)
+    val onSecondary = Color(0xFF232323)
+    val secondaryContainer = Color(0xFF333940)
+    val onSecondaryContainer = Color.White
 
-    val background = Color(0xFF0F0F0F)
-    val onBackground = Color(0xFFE6E1E5)
-    val surface = Color(0xFF0F0F0F)
-    val onSurface = Color(0xFFE6E1E5)
-    val surfaceVariant = Color(0xFF49454F)
-    val onSurfaceVariant = Color(0xFFCAC4D0)
+    val background = Color(0xFF181A1B)
+    val onBackground = Color(0xFFECECEC)
+
+    val surface = Color(0xFF232323)
+    val onSurface = Color(0xFFF1F1F1)
+    val surfaceVariant = Color(0xFF2E2C2F)
+    val onSurfaceVariant = Color(0xFFE6E6E6)
 
     val error = Color(0xFFFFB4AB)
-    val onError = Color(0xFF690005)
-    val errorContainer = Color(0xFF93000A)
-    val onErrorContainer = Color(0xFFFFDAD6)
+    val onError = Color(0xFF4A0404)
+    val errorContainer = Color(0xFF8B0000)
+    val onErrorContainer = Color.White
 }
+
 
 // Theme 2: Ocean Blue (Blue/Navy theme)
 object OceanBlueLightColors {
-    val primary = BrandColors.MountainBlue
+    val primary = BrandColors.MountainBlue          // #1565C0
     val onPrimary = Color.White
-    val primaryContainer = Color(0xFFE3F2FD)
-    val onPrimaryContainer = Color(0xFF0D47A1)
+    val primaryContainer = Color(0xFFD2E4FB)        // Soft blue
+    val onPrimaryContainer = BrandColors.MountainBlue
 
-    val secondary = BrandColors.SkyBlue
+    val secondary = BrandColors.SkyBlue             // #44A5E0
     val onSecondary = Color.White
-    val secondaryContainer = Color(0xFFE1F5FE)
-    val onSecondaryContainer = Color(0xFF01579B)
+    val secondaryContainer = Color(0xFFEEF7FB)
+    val onSecondaryContainer = BrandColors.SkyBlue
 
-    val background = Color(0xFFFFFBFE)
-    val onBackground = Color(0xFF1C1B1F)
-    val surface = Color(0xFFFFFBFE)
-    val onSurface = Color(0xFF1C1B1F)
-    val surfaceVariant = Color(0xFFE3F2FD)
-    val onSurfaceVariant = Color(0xFF1565C0)
+    val background = Color(0xFFF9FBFC)
+    val onBackground = Color(0xFF14213D)
 
-    val error = Color(0xFFBA1A1A)
+    val surface = Color(0xFFF9FBFC)             // very light neutral
+    val onSurface = Color(0xFF1B1F23)
+    val surfaceVariant = Color(0xFFE1E6F5)
+    val onSurfaceVariant = Color(0xFF243D5C)
+
+    val error = Color(0xFFD32F2F)
     val onError = Color.White
-    val errorContainer = Color(0xFFFFDAD6)
-    val onErrorContainer = Color(0xFF410002)
+    val errorContainer = Color(0xFFF9E6E6)
+    val onErrorContainer = Color(0xFFD32F2F)
 }
+
 
 // Dark mode colors for Ocean Blue
 object OceanBlueDarkColors {
-    val primary = Color(0xFF81C7FF)
-    val onPrimary = Color(0xFF003258)
-    val primaryContainer = Color(0xFF0D47A1)
-    val onPrimaryContainer = Color(0xFFBBE9FF)
+    val primary = Color(0xFF71B8FF)
+    val onPrimary = Color(0xFF10213C)
+    val primaryContainer = Color(0xFF22577A)
+    val onPrimaryContainer = Color.White
 
-    val secondary = Color(0xFF90CAF9)
-    val onSecondary = Color(0xFF003A5D)
-    val secondaryContainer = Color(0xFF01579B)
-    val onSecondaryContainer = Color(0xFFE3F2FD)
+    val secondary = Color(0xFF2C6686)
+    val onSecondary = Color.White
+    val secondaryContainer = Color(0xFF1D2D44)
+    val onSecondaryContainer = Color(0xFF71B8FF)
 
-    val background = Color(0xFF0A1929)
-    val onBackground = Color(0xFFE3F2FD)
-    val surface = Color(0xFF0A1929)
-    val onSurface = Color(0xFFE3F2FD)
-    val surfaceVariant = Color(0xFF1E3A8A)
-    val onSurfaceVariant = Color(0xFFBBDEFB)
+    val background = Color(0xFF111C2E)
+    val onBackground = Color(0xFFD6ECF7)
+
+    val surface = Color(0xFF1A2236)             // rich navy
+    val onSurface = Color(0xFFD6ECF7)
+    val surfaceVariant = Color(0xFF2B4268)
+    val onSurfaceVariant = Color(0xFFAED9FC)
 
     val error = Color(0xFFFFB4AB)
-    val onError = Color(0xFF690005)
-    val errorContainer = Color(0xFF93000A)
-    val onErrorContainer = Color(0xFFFFDAD6)
+    val onError = Color(0xFF4A0404)
+    val errorContainer = Color(0xFF6A041D)
+    val onErrorContainer = Color.White
 }
+
 
 // Theme 3: Forest Green (Green/Brown theme)
 object ForestGreenLightColors {
-    val primary = BrandColors.ForestGreen
+    val primary = BrandColors.ForestGreen             // #26836E
     val onPrimary = Color.White
-    val primaryContainer = Color(0xFFE8F5E8)
-    val onPrimaryContainer = Color(0xFF1B5E20)
+    val primaryContainer = Color(0xFFE1F7ED)
+    val onPrimaryContainer = BrandColors.ForestGreen
 
-    val secondary = BrandColors.EarthBrown
+    val secondary = BrandColors.EarthBrown            // #7C5E3C
     val onSecondary = Color.White
     val secondaryContainer = Color(0xFFF3E5AB)
-    val onSecondaryContainer = Color(0xFF3E2723)
+    val onSecondaryContainer = BrandColors.EarthBrown
 
-    val background = Color(0xFFFFFBFE)
-    val onBackground = Color(0xFF1C1B1F)
-    val surface = Color(0xFFFFFBFE)
-    val onSurface = Color(0xFF1C1B1F)
-    val surfaceVariant = Color(0xFFE8F5E8)
-    val onSurfaceVariant = Color(0xFF2E7D32)
+    val background = Color(0xFFF8FDF9)
+    val onBackground = Color(0xFF212925)
 
-    val error = Color(0xFFBA1A1A)
+    val surface = Color(0xFFF8FDF9)             // almost pure white with green tint
+    val onSurface = Color(0xFF212925)           // deep charcoal-green
+    val surfaceVariant = Color(0xFFD4EEDB)
+    val onSurfaceVariant = Color(0xFF3E694D)
+
+    val error = Color(0xFFD32F2F)
     val onError = Color.White
-    val errorContainer = Color(0xFFFFDAD6)
-    val onErrorContainer = Color(0xFF410002)
+    val errorContainer = Color(0xFFFDE5E5)
+    val onErrorContainer = Color(0xFFD32F2F)
 }
+
 
 // Dark mode colors for Forest Green
 object ForestGreenDarkColors {
-    val primary = Color(0xFF81C784)
-    val onPrimary = Color(0xFF0F3F14)
-    val primaryContainer = Color(0xFF1B5E20)
-    val onPrimaryContainer = Color(0xFFC8E6C9)
+    val primary = Color(0xFF77D8B9)
+    val onPrimary = Color(0xFF0F3327)
+    val primaryContainer = Color(0xFF175A43)
+    val onPrimaryContainer = Color.White
 
-    val secondary = Color(0xFFD7B68C)
-    val onSecondary = Color(0xFF3E2723)
-    val secondaryContainer = Color(0xFF5D4037)
-    val onSecondaryContainer = Color(0xFFF3E5AB)
+    val secondary = Color(0xFFCBB38B)
+    val onSecondary = Color(0xFF3A2816)
+    val secondaryContainer = Color(0xFF635238)
+    val onSecondaryContainer = Color.White
 
-    val background = Color(0xFF0F1B0F)
-    val onBackground = Color(0xFFE8F5E8)
-    val surface = Color(0xFF0F1B0F)
-    val onSurface = Color(0xFFE8F5E8)
-    val surfaceVariant = Color(0xFF2E5530)
-    val onSurfaceVariant = Color(0xFFC8E6C9)
+    val background = Color(0xFF122016)
+    val onBackground = Color(0xFFD1EADA)
+
+    val surface = Color(0xFF1A2C22)
+    val onSurface = Color(0xFFD1EADA)
+    val surfaceVariant = Color(0xFF314C3E)
+    val onSurfaceVariant = Color(0xFFA3CDBB)
 
     val error = Color(0xFFFFB4AB)
-    val onError = Color(0xFF690005)
-    val errorContainer = Color(0xFF93000A)
-    val onErrorContainer = Color(0xFFFFDAD6)
+    val onError = Color(0xFF4A0404)
+    val errorContainer = Color(0xFF8B0000)
+    val onErrorContainer = Color.White
 }
+
 
 // Theme 4: Storm Gray (Gray/Blue theme)
 object StormGrayLightColors {
-    val primary = Color(0xFF1976D2)
+    val primary = Color(0xFF546E7A)
     val onPrimary = Color.White
-    val primaryContainer = Color(0xFFE3F2FD)
-    val onPrimaryContainer = Color(0xFF0D47A1)
+    val primaryContainer = Color(0xFFECEFF1)
+    val onPrimaryContainer = Color(0xFF455A64)
 
-    val secondary = Color(0xFF546E7A)
+    val secondary = BrandColors.MountainBlue            // #1565C0
     val onSecondary = Color.White
-    val secondaryContainer = Color(0xFFECEFF1)
-    val onSecondaryContainer = Color(0xFF263238)
+    val secondaryContainer = Color(0xFFD0DFF7)
+    val onSecondaryContainer = BrandColors.MountainBlue
 
-    val background = Color(0xFFFFFBFE)
-    val onBackground = Color(0xFF1C1B1F)
-    val surface = Color(0xFFFFFBFE)
-    val onSurface = Color(0xFF1C1B1F)
-    val surfaceVariant = Color(0xFFE1E2E9)
-    val onSurfaceVariant = Color(0xFF44474F)
+    val background = Color(0xFFF6F7F9)
+    val onBackground = Color(0xFF22272E)
 
-    val error = Color(0xFFBA1A1A)
+    val surface = Color(0xFFF6F7F9)             // neutral light gray
+    val onSurface = Color(0xFF22272E)
+    val surfaceVariant = Color(0xFFDFE4EA)
+    val onSurfaceVariant = Color(0xFF475062)
+
+    val error = Color(0xFFD32F2F)
     val onError = Color.White
-    val errorContainer = Color(0xFFFFDAD6)
-    val onErrorContainer = Color(0xFF410002)
+    val errorContainer = Color(0xFFFDE5E5)
+    val onErrorContainer = Color(0xFFD32F2F)
 }
+
 
 // Dark mode colors for Storm Gray
 object StormGrayDarkColors {
-    val primary = BrandColors.SkyBlue
-    val onPrimary = Color(0xFF001E2E)
-    val primaryContainer = Color(0xFF004863)
-    val onPrimaryContainer = Color(0xFFBDE9FF)
+    val primary = Color(0xFF90A4AE)
+    val onPrimary = Color(0xFF22272E)
+    val primaryContainer = Color(0xFF37474F)
+    val onPrimaryContainer = Color.White
 
-    val secondary = BrandColors.RockGray
-    val onSecondary = Color(0xFF2A3139)
-    val secondaryContainer = Color(0xFF40474F)
-    val onSecondaryContainer = Color(0xFFC6CDD6)
+    val secondary = Color(0xFF3B6BAA)
+    val onSecondary = Color.White
+    val secondaryContainer = Color(0xFF263D53)
+    val onSecondaryContainer = Color.White
 
-    val background = Color(0xFF0F1419)
-    val onBackground = Color(0xFFE1E2E9)
-    val surface = Color(0xFF0F1419)
-    val onSurface = Color(0xFFE1E2E9)
-    val surfaceVariant = Color(0xFF40474F)
-    val onSurfaceVariant = Color(0xFFC0C7D0)
+    val background = Color(0xFF161B22)
+    val onBackground = Color(0xFFE3E6E9)
+
+    val surface = Color(0xFF22272E)
+    val onSurface = Color(0xFFE3E6E9)
+    val surfaceVariant = Color(0xFF29303B)
+    val onSurfaceVariant = Color(0xFFB8BFD4)
 
     val error = Color(0xFFFFB4AB)
-    val onError = Color(0xFF690005)
+    val onError = Color(0xFF4A0404)
     val errorContainer = Color(0xFF93000A)
-    val onErrorContainer = Color(0xFFFFDAD6)
+    val onErrorContainer = Color.White
 }
+
 
 // Theme 5: Sunset Orange (Orange/Purple theme)
 object SunsetOrangeLightColors {
-    val primary = Color(0xFFFF6B35)
+    val primary = Color(0xFFFF8456)
     val onPrimary = Color.White
-    val primaryContainer = Color(0xFFFFE0DB)
-    val onPrimaryContainer = Color(0xFF8B2500)
+    val primaryContainer = Color(0xFFFFF3E0)
+    val onPrimaryContainer = Color(0xFFD84315)
 
-    val secondary = Color(0xFF7C4DFF)
+    val secondary = Color(0xFF8865A9)
     val onSecondary = Color.White
-    val secondaryContainer = Color(0xFFEDE7FF)
-    val onSecondaryContainer = Color(0xFF311B92)
+    val secondaryContainer = Color(0xFFF2E7FA)
+    val onSecondaryContainer = Color(0xFF4527A0)
 
-    val background = Color(0xFFFFFBFE)
-    val onBackground = Color(0xFF1C1B1F)
-    val surface = Color(0xFFFFFBFE)
-    val onSurface = Color(0xFF1C1B1F)
-    val surfaceVariant = Color(0xFFFFE0DB)
-    val onSurfaceVariant = Color(0xFFBF360C)
+    val background = Color(0xFFFFF8F3)
+    val onBackground = Color(0xFF32251E)
 
-    val error = Color(0xFFBA1A1A)
+    val surface = Color(0xFFFFF8F3)
+    val onSurface = Color(0xFF32251E)
+    val surfaceVariant = Color(0xFFFFD4B8)
+    val onSurfaceVariant = Color(0xFF7E4B21)
+
+    val error = Color(0xFFD32F2F)
     val onError = Color.White
-    val errorContainer = Color(0xFFFFDAD6)
-    val onErrorContainer = Color(0xFF410002)
+    val errorContainer = Color(0xFFFFE6E6)
+    val onErrorContainer = Color(0xFFD32F2F)
 }
+
 
 // Dark mode colors for Sunset Orange
 object SunsetOrangeDarkColors {
-    val primary = Color(0xFFFF8A65)
-    val onPrimary = Color(0xFF5D1600)
-    val primaryContainer = Color(0xFF8B2500)
-    val onPrimaryContainer = Color(0xFFFFE0DB)
+    val primary = Color(0xFFFFA26E)
+    val onPrimary = Color(0xFF32251E)
+    val primaryContainer = Color(0xFFCA5C21)
+    val onPrimaryContainer = Color.White
 
-    val secondary = Color(0xFFB39DDB)
-    val onSecondary = Color(0xFF311B92)
-    val secondaryContainer = Color(0xFF512DA8)
-    val onSecondaryContainer = Color(0xFFEDE7FF)
+    val secondary = Color(0xFFD1B6FF)
+    val onSecondary = Color(0xFF3C254A)
+    val secondaryContainer = Color(0xFF6A4A97)
+    val onSecondaryContainer = Color.White
 
-    val background = Color(0xFF1A0F14)
-    val onBackground = Color(0xFFFFE0DB)
-    val surface = Color(0xFF1A0F14)
-    val onSurface = Color(0xFFFFE0DB)
-    val surfaceVariant = Color(0xFF7B3F00)
-    val onSurfaceVariant = Color(0xFFFFD4C4)
+    val background = Color(0xFF231518)
+    val onBackground = Color(0xFFFFE4D5)
+
+    val surface = Color(0xFF2C1A16)
+    val onSurface = Color(0xFFFFE4D5)
+    val surfaceVariant = Color(0xFF75472B)
+    val onSurfaceVariant = Color(0xFFFFB982)
 
     val error = Color(0xFFFFB4AB)
-    val onError = Color(0xFF690005)
+    val onError = Color(0xFF4A0404)
     val errorContainer = Color(0xFF93000A)
-    val onErrorContainer = Color(0xFFFFDAD6)
+    val onErrorContainer = Color.White
 }
+
