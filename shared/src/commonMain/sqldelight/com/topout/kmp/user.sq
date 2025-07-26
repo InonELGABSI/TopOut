@@ -13,6 +13,8 @@ currentAvgHeightSpeedThr REAL DEFAULT 0.0,
 localSessionsUpdateTime INTEGER DEFAULT (strftime('%s', 'now')),
 localUserUpdateTime INTEGER DEFAULT (strftime('%s', 'now')),
 
+userUpdatedOffline INTEGER DEFAULT 0,
+
 updatedAt INTEGER DEFAULT (strftime('%s', 'now')),
 createdAt INTEGER DEFAULT (strftime('%s', 'now'))
 );
@@ -26,8 +28,9 @@ INSERT OR REPLACE INTO UserEntity (
     unitPreference, enabledNotifications,
     relativeHeightFromStartThr, totalHeightFromStartThr, currentAvgHeightSpeedThr,
     localSessionsUpdateTime, localUserUpdateTime,
+    userUpdatedOffline,
     updatedAt, createdAt
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+) VALUES (?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 updateLastSessionsUpdateTime:
 UPDATE UserEntity SET localSessionsUpdateTime = ?;
@@ -40,3 +43,20 @@ UPDATE UserEntity SET localUserUpdateTime = ?;
 
 getLastUserUpdateTime:
 SELECT localUserUpdateTime FROM UserEntity LIMIT 1;
+
+markUserUpdatedOffline:
+UPDATE UserEntity
+SET userUpdatedOffline = 1
+WHERE id = ?;
+
+resolveUserUpdatedOffline:
+UPDATE UserEntity
+SET userUpdatedOffline = 0
+WHERE id = ?;
+
+getIsUserUpdatedOffline:
+SELECT userUpdatedOffline FROM UserEntity WHERE id = ?;
+
+
+
+

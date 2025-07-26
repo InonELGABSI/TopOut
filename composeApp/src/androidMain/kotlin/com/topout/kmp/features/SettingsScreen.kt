@@ -54,7 +54,7 @@ fun SettingsScreen(
             when (uiState) {
                 is SettingsState.Loading -> SettingsLoadingContent()
                 is SettingsState.Error -> SettingsErrorContent(uiState.errorMessage)
-                is SettingsState.Loaded -> StackedSettingsCards(uiState.user)
+                is SettingsState.Loaded -> StackedSettingsCards(uiState.user, viewModel = viewModel)
             }
         }
     }
@@ -64,7 +64,8 @@ fun SettingsScreen(
 fun StackedSettingsCards(
     user: User,
     modifier: Modifier = Modifier,
-    overlap: Dp = 20.dp
+    overlap: Dp = 20.dp,
+    viewModel: SettingsViewModel = koinViewModel()
 ) {
     val palette = listOf(
         MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -107,24 +108,24 @@ fun StackedSettingsCards(
                             user = editableUser,
                             onUserChange = { editableUser = it },
                             isEditing = isEditingProfile,
-                            onToggleEdit = { isEditingProfile = it }
+                            onToggleEdit = { isEditingProfile = it },
+                            viewModel = viewModel
                         )
                         "Preferences" -> PreferencesCardContent(
                             user = editableUser,
                             onUserChange = { editableUser = it },
                             isEditing = isEditingPreferences,
-                            onToggleEdit = { isEditingPreferences = it }
+                            onToggleEdit = { isEditingPreferences = it },
+                            viewModel = viewModel
                         )
                         "Alert Thresholds" -> ThresholdsCardContent(
                             user = editableUser,
                             onUserChange = { editableUser = it },
                             isEditing = isEditingThresholds,
-                            onToggleEdit = { isEditingThresholds = it }
+                            onToggleEdit = { isEditingThresholds = it },
+                            viewModel = viewModel
                         )
-                        "Theme" -> ThemeCardContent(
-                            user = editableUser,
-                            onUserChange = { editableUser = it }
-                        )
+                        "Theme" -> ThemeCardContent()
                     }
                 }
 
@@ -179,7 +180,8 @@ fun ProfileCardContent(
     user: User,
     onUserChange: (User) -> Unit,
     isEditing: Boolean,
-    onToggleEdit: (Boolean) -> Unit
+    onToggleEdit: (Boolean) -> Unit,
+    viewModel: SettingsViewModel
 ) {
     Box(
         modifier = Modifier
@@ -259,7 +261,7 @@ fun ProfileCardContent(
 
                     Button(
                         onClick = {
-                            // TODO: Call viewModel.updateUser(user)
+                            viewModel.updateUser(user)
                             onToggleEdit(false)
                         },
                         modifier = Modifier.weight(1f)
@@ -295,7 +297,8 @@ fun PreferencesCardContent(
     user: User,
     onUserChange: (User) -> Unit,
     isEditing: Boolean,
-    onToggleEdit: (Boolean) -> Unit
+    onToggleEdit: (Boolean) -> Unit,
+    viewModel: SettingsViewModel
 ) {
     Box(
         modifier = Modifier
@@ -350,7 +353,7 @@ fun PreferencesCardContent(
 
                     Button(
                         onClick = {
-                            // TODO: Call viewModel.updatePreferences(user)
+                            viewModel.updateUser(user)
                             onToggleEdit(false)
                         },
                         modifier = Modifier.weight(1f)
@@ -386,7 +389,8 @@ fun ThresholdsCardContent(
     user: User,
     onUserChange: (User) -> Unit,
     isEditing: Boolean,
-    onToggleEdit: (Boolean) -> Unit
+    onToggleEdit: (Boolean) -> Unit,
+    viewModel: SettingsViewModel
 ) {
     Box(
         modifier = Modifier
@@ -453,7 +457,7 @@ fun ThresholdsCardContent(
 
                     Button(
                         onClick = {
-                            // TODO: Call viewModel.updateThresholds(user)
+                            viewModel.updateUser(user)
                             onToggleEdit(false)
                         },
                         modifier = Modifier.weight(1f)
@@ -485,10 +489,7 @@ fun ThresholdsCardContent(
 }
 
 @Composable
-fun ThemeCardContent(
-    user: User,
-    onUserChange: (User) -> Unit
-) {
+fun ThemeCardContent() {
     // Get theme state and updater from MainActivity
     val currentThemeState = LocalThemeState.current
     val updateTheme = LocalThemeUpdater.current
@@ -627,7 +628,7 @@ fun ThemeOptionItem(
 
 @Composable
 fun ColorPalettePreview(
-    colorScheme: androidx.compose.material3.ColorScheme,
+    colorScheme: ColorScheme,
     modifier: Modifier = Modifier
 ) {
     // Create a small color palette preview with key colors

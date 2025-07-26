@@ -49,6 +49,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.topout.kmp.ui.theme.TopOutAppTheme
 import com.topout.kmp.ui.theme.ThemePalette
+import com.topout.kmp.utils.ThemePreferences
 
 // Theme state management
 data class ThemeState(
@@ -76,13 +77,20 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             KoinContext {
+                // Theme preferences
+                val themePreferences = remember { ThemePreferences(this@MainActivity) }
+
                 // Theme state management
                 val systemDarkMode = isSystemInDarkTheme()
                 var themeState by remember {
                     mutableStateOf(
                         ThemeState(
-                            palette = ThemePalette.CLASSIC_RED,
-                            isDarkMode = systemDarkMode
+                            palette = themePreferences.getThemePalette(),
+                            isDarkMode = if (themePreferences.hasDarkModePreference()) {
+                                themePreferences.getDarkMode(systemDarkMode)
+                            } else {
+                                systemDarkMode
+                            }
                         )
                     )
                 }
@@ -90,7 +98,9 @@ class MainActivity : ComponentActivity() {
                 // Theme update function
                 val updateTheme: (ThemeState) -> Unit = { newThemeState ->
                     themeState = newThemeState
-                    // TODO: Save theme preference to SharedPreferences or DataStore
+                    // Save theme preferences
+                    themePreferences.saveThemePalette(newThemeState.palette)
+                    themePreferences.saveDarkMode(newThemeState.isDarkMode)
                 }
 
                 // Provide theme state to the entire app

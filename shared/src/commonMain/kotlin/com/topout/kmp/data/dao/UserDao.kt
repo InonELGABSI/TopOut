@@ -24,6 +24,7 @@ class UserDao(
             currentAvgHeightSpeedThr = entity.currentAvgHeightSpeedThr,
             localSessionsUpdateTime = entity.localSessionsUpdateTime,
             localUserUpdateTime = entity.localUserUpdateTime,
+            userUpdatedOffline = entity.userUpdatedOffline,
             updatedAt = entity.updatedAt,
             createdAt = entity.createdAt
         )

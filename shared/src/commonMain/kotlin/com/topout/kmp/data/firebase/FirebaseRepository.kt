@@ -23,6 +23,8 @@ interface FirebaseRepository {
 
     suspend fun getUser() : Result<User, UserError>
 
+    suspend fun updateUser(user: User) : Result<User, UserError>
+
     suspend fun ensureUserDocument(): Result<Unit, UserError>
 
     suspend fun pushTrackPoints(sessionId: String, points: List<TrackPoint>) : Result<Unit, SessionsError>

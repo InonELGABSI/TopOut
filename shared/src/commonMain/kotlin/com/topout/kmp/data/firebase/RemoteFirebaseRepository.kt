@@ -138,6 +138,20 @@ class RemoteFirebaseRepository : FirebaseRepository {
         }
     }
 
+    override suspend fun updateUser(user: User): Result<User, UserError> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.Failure(UserError("User not authenticated"))
+
+        return withFirebaseTimeout(
+            errorFactory = ::UserError
+        ) {
+            usersCollection
+                .document(uid)
+                .set(user.toFirestoreMap(), merge = true)
+            user
+        }
+    }
+
     override suspend fun ensureUserDocument(): Result<Unit, UserError> {
         val uid = auth.currentUser?.uid
             ?: return Result.Failure(UserError("User not authenticated"))

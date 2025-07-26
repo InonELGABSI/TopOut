@@ -29,6 +29,7 @@ import com.topout.kmp.domain.SyncOfflineChanges
 import com.topout.kmp.domain.session.FinishSession
 import com.topout.kmp.domain.CancelLocalSession
 import com.topout.kmp.domain.GetLocalTrackPointsFlow
+import com.topout.kmp.domain.UpdateUser
 import com.topout.kmp.features.live_session.LiveSessionUseCases
 import com.topout.kmp.features.session_details.SessionDetailsUseCases
 import com.topout.kmp.features.sessions.SessionsUseCases
@@ -87,6 +88,7 @@ val domainModule = module {
 
     // Settings
     factoryOf(::GetSettings)
+    factoryOf(::UpdateUser)
     factoryOf(::SettingsUseCases)
 }
 

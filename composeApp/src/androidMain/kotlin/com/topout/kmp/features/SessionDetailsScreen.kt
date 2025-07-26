@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -414,7 +417,7 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
                 value = "%.1f m".format(minAltitude)
             )
             StatisticItemWithIcon(
-                icon = Icons.Default.TrendingUp,
+                icon = Icons.AutoMirrored.Filled.TrendingUp,
                 label = "Total Gain",
                 value = "%.1f m".format(totalGain),
                 textColor = androidx.compose.ui.graphics.Color(0xFF4CAF50)
@@ -427,7 +430,7 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             StatisticItemWithIcon(
-                icon = Icons.Default.TrendingDown,
+                icon = Icons.AutoMirrored.Filled.TrendingDown,
                 label = "Total Loss",
                 value = "%.1f m".format(totalLoss),
                 textColor = androidx.compose.ui.graphics.Color(0xFFFF5722)
@@ -490,7 +493,7 @@ fun TrackPointsCardContent(trackPoints: List<TrackPoint>) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(
-                imageVector = Icons.Default.List,
+                imageVector = Icons.AutoMirrored.Filled.List,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
