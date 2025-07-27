@@ -1,5 +1,7 @@
 package com.topout.kmp.features
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -9,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -271,7 +274,7 @@ fun StartSessionContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(60.dp))
 
         Button(
             onClick = {
@@ -345,83 +348,91 @@ fun ActiveSessionContent(
                         .padding(bottom = 32.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    // Cancel chip button
-                    FilterChip(
-                        onClick = { showCancelDialog = true },
-                        label = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Cancel,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "Cancel",
-                                    style = MaterialTheme.typography.labelLarge.copy(
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                )
-                            }
-                        },
-                        selected = false,
+                    // Cancel chip button with gradient (light left, dark right)
+                    Box(
                         modifier = Modifier
                             .height(48.dp)
-                            .width(160.dp),
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                            labelColor = MaterialTheme.colorScheme.onSecondary
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = 0.dp,
-                            topEnd = 24.dp,
-                            bottomStart = 0.dp,
-                            bottomEnd = 24.dp
-                        )
-                    )
+                            .width(160.dp)
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xFFE57373), // Light red
+                                        Color(0xFFD32F2F)  // Dark red
+                                    )
+                                ),
+                                shape = RoundedCornerShape(
+                                    topStart = 0.dp,
+                                    topEnd = 24.dp,
+                                    bottomStart = 0.dp,
+                                    bottomEnd = 24.dp
+                                )
+                            )
+                            .clickable { showCancelDialog = true }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Cancel,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Cancel",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = Color.White
+                            )
+                        }
+                    }
 
-                    // Stop & Save chip button
-                    FilterChip(
-                        onClick = { showStopDialog = true },
-                        label = {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Stop,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "Stop & Save",
-                                    style = MaterialTheme.typography.labelLarge.copy(
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                )
-                            }
-                        },
-                        selected = false,
+                    // Stop & Save chip button with gradient (dark left, light right)
+                    Box(
                         modifier = Modifier
                             .height(48.dp)
-                            .width(160.dp),
-                        colors = FilterChipDefaults.filterChipColors(
-                            containerColor = MaterialTheme.colorScheme.error,
-                            labelColor = MaterialTheme.colorScheme.onError
-                        ),
-                        shape = RoundedCornerShape(
-                            topStart = 24.dp,
-                            topEnd = 0.dp,
-                            bottomStart = 24.dp,
-                            bottomEnd = 0.dp
-                        )
-                    )
+                            .width(160.dp)
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        Color(0xFF388E3C), // Dark green
+                                        Color(0xFF66BB6A)  // Light green
+                                    )
+                                ),
+                                shape = RoundedCornerShape(
+                                    topStart = 24.dp,
+                                    topEnd = 0.dp,
+                                    bottomStart = 24.dp,
+                                    bottomEnd = 0.dp
+                                )
+                            )
+                            .clickable { showStopDialog = true }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Stop,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Stop & Save",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = Color.White
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -863,4 +874,6 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
         }
     }
 }
+
+
 
