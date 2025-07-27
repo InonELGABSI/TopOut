@@ -15,6 +15,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import co.touchlab.kermit.Logger
 
 /**
  * Simple location provider that gets fresh location data every time.
@@ -22,6 +23,7 @@ import kotlin.coroutines.resumeWithException
 actual class LocationProvider(private val context: Context) {
 
     private val fused = LocationServices.getFusedLocationProviderClient(context)
+    private val log = Logger.withTag("LocationProvider")
 
     @SuppressLint("MissingPermission")
     actual suspend fun getLocation(): LocationData {
@@ -37,8 +39,8 @@ actual class LocationProvider(private val context: Context) {
             }
         }
 
-        val now = System.currentTimeMillis()
-        println("🔍 LocationProvider.getLocation() called at $now")
+        //val now = System.currentTimeMillis()
+        //log.i { "getLocation() called at $now" }
 
         /* 2️⃣ Get fresh location every time */
         return withTimeout(5_000) {
@@ -49,46 +51,52 @@ actual class LocationProvider(private val context: Context) {
                     .addOnSuccessListener { location ->
                         if (location != null) {
                             val locationData = location.toModel()
-                            println("✅ Got location: lat=${locationData.lat}, lon=${locationData.lon}, altitude=${locationData.altitude}")
+                            //log.i { "Got location: lat=${locationData.lat}, lon=${locationData.lon}, altitude=${locationData.altitude}" }
                             cont.resume(locationData)
                         } else {
+                            //log.w { "getCurrentLocation returned null, falling back to lastLocation" }
                             // Fallback to lastLocation if getCurrentLocation returns null
                             fused.lastLocation
                                 .addOnSuccessListener { lastLoc ->
                                     if (lastLoc != null) {
                                         val locationData = lastLoc.toModel()
-                                        println("✅ Got lastLocation: lat=${locationData.lat}, lon=${locationData.lon}, altitude=${locationData.altitude}")
+                                        log.i { "Got lastLocation: lat=${locationData.lat}, lon=${locationData.lon}, altitude=${locationData.altitude}" }
                                         cont.resume(locationData)
                                     } else {
+                                        log.e { "lastLocation is also null" }
                                         cont.resumeWithException(
                                             IllegalStateException("No location available")
                                         )
                                     }
                                 }
                                 .addOnFailureListener { error ->
+                                    log.e(error) { "Failed to get lastLocation" }
                                     cont.resumeWithException(error)
                                 }
                         }
                     }
                     .addOnFailureListener { error ->
-                        println("❌ getCurrentLocation failed: ${error.message}")
+                        log.e(error) { "getCurrentLocation failed, falling back to lastLocation" }
                         // Fallback to lastLocation
                         fused.lastLocation
                             .addOnSuccessListener { lastLoc ->
                                 if (lastLoc != null) {
                                     val locationData = lastLoc.toModel()
-                                    println("✅ Got lastLocation fallback: lat=${locationData.lat}, lon=${locationData.lon}, altitude=${locationData.altitude}")
+                                    log.i { "Got lastLocation fallback: lat=${locationData.lat}, lon=${locationData.lon}, altitude=${locationData.altitude}" }
                                     cont.resume(locationData)
                                 } else {
+                                    log.e(error) { "lastLocation fallback failed" }
                                     cont.resumeWithException(error)
                                 }
                             }
                             .addOnFailureListener { fallbackError ->
+                                log.e(fallbackError) { "Failed to get lastLocation on fallback" }
                                 cont.resumeWithException(error)
                             }
                     }
 
                 cont.invokeOnCancellation {
+                    log.d { "invokeOnCancellation: cancelling CancellationTokenSource" }
                     cts.cancel()
                 }
             }

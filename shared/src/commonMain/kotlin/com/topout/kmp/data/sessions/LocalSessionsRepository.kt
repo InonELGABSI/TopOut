@@ -5,6 +5,8 @@ import com.topout.kmp.data.Result
 import com.topout.kmp.data.dao.SessionDao
 import com.topout.kmp.models.Session
 import com.topout.kmp.models.Sessions
+import com.topout.kmp.utils.extensions.asSessionTitle
+import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 
 data class SessionsError (
@@ -44,7 +46,7 @@ class LocalSessionsRepository (
 
 
     override suspend fun deleteSession(sessionId: String) : Result<Unit, SessionsError> {
-    return try {
+        return try {
             sessionDao.deleteSession(sessionId)
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -52,9 +54,22 @@ class LocalSessionsRepository (
         }
     }
 
+    override suspend fun markSessionDeletedOffline(sessionId: String): Result<Unit, SessionsError> {
+        return try {
+            sessionDao.markSessionDeletedOffline(sessionId)
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to mark session as deleted offline"))
+        }
+    }
+
     override suspend fun createSession(): Result<Session, SessionsError> {
         return try {
-            val newSession = Session()
+            val now = Clock.System.now()
+
+            val newSession = Session(
+                title = now.asSessionTitle()
+            )
             sessionDao.saveSession(newSession)
             Result.Success(newSession)
         } catch (e: Exception) {
@@ -70,6 +85,37 @@ class LocalSessionsRepository (
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Failure(SessionsError(e.message ?: "Failed to save sessions"))
+        }
+    }
+
+    override suspend fun getSessionsForSync(): Result<Sessions, SessionsError> {
+        return try {
+            val sessions = sessionDao.getSessionsForSync()
+            Result.Success(Sessions(sessions))
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to get sessions for sync"))
+        }
+    }
+
+    override suspend fun resolveLocalSync(sessionId: String, syncType: SyncType): Result<Unit, SessionsError> {
+        return try {
+            when (syncType) {
+                SyncType.CREATED_OFFLINE -> {
+                    // Mark session as no longer created offline (sessionCreatedOffline = 0)
+                    sessionDao.resolveCreatedOfflineSync(sessionId)
+                }
+                SyncType.DELETED_OFFLINE -> {
+                    // Permanently delete the session from local DB
+                    sessionDao.resolveDeletedOfflineSync(sessionId)
+                }
+                SyncType.UPDATED_OFFLINE -> {
+                    // Mark session as no longer updated offline (sessionUpdatedOffline = 0)
+                    sessionDao.resolveUpdatedOfflineSync(sessionId)
+                }
+            }
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Failure(SessionsError(e.message ?: "Failed to resolve local sync"))
         }
     }
 }

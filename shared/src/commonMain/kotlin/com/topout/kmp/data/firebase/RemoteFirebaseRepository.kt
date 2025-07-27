@@ -7,6 +7,7 @@ import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.firestore.firestore
 import com.topout.kmp.data.Result
+import com.topout.kmp.data.Error
 import com.topout.kmp.data.sessions.SessionsError
 import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.utils.extensions.asSessionTitle
@@ -14,7 +15,28 @@ import com.topout.kmp.utils.extensions.toFirestoreMap
 import com.topout.kmp.utils.extensions.toSession
 import com.topout.kmp.utils.extensions.toTrackPoint
 import kotlinx.datetime.Clock
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.TimeoutCancellationException
 
+/**
+ * Helper extension to wrap Firebase operations with timeout and consistent error handling
+ */
+private suspend inline fun <T, E : Error> withFirebaseTimeout(
+    timeoutMs: Long = 5_000,
+    crossinline errorFactory: (String) -> E,
+    crossinline operation: suspend () -> T
+): Result<T, E> {
+    return try {
+        val result = withTimeout(timeoutMs) {
+            operation()
+        }
+        Result.Success(result)
+    } catch (e: TimeoutCancellationException) {
+        Result.Failure(errorFactory("Request timed out - check your internet connection"))
+    } catch (e: Exception) {
+        Result.Failure(errorFactory(e.message ?: "Unknown error occurred"))
+    }
+}
 
 class RemoteFirebaseRepository : FirebaseRepository {
     private val firestore = Firebase.firestore
@@ -24,28 +46,28 @@ class RemoteFirebaseRepository : FirebaseRepository {
     private val usersCollection = firestore.collection("users")
 
     override suspend fun getSessions(): Result<List<Session>, SessionsError> {
-        return try {
-            val uid = auth.currentUser?.uid
-                ?: return Result.Failure(SessionsError("User not authenticated"))
+        val uid = auth.currentUser?.uid
+            ?: return Result.Failure(SessionsError("User not authenticated"))
 
-            val sessions = sessionsCollection
+        return withFirebaseTimeout(
+            errorFactory = ::SessionsError
+        ) {
+            sessionsCollection
                 .where { "user_id" equalTo uid }
                 .get()
                 .documents
                 .map { it.toSession() }
-
-            Result.Success(sessions)
-        } catch (e: Exception) {
-            Result.Failure(SessionsError(e.message ?: "Failed to get sessions"))
         }
     }
 
     override suspend fun getSessionsUpdatedAfter(timestamp: Long): Result<List<Session>, SessionsError> {
-        return try {
-            val uid = auth.currentUser?.uid
-                ?: return Result.Failure(SessionsError("User not authenticated"))
+        val uid = auth.currentUser?.uid
+            ?: return Result.Failure(SessionsError("User not authenticated"))
 
-            val sessions = sessionsCollection
+        return withFirebaseTimeout(
+            errorFactory = ::SessionsError
+        ) {
+            sessionsCollection
                 .where {
                     "user_id" equalTo uid
                     "updated_at" greaterThan timestamp
@@ -53,143 +75,142 @@ class RemoteFirebaseRepository : FirebaseRepository {
                 .get()
                 .documents
                 .map { it.toSession() }
-
-            Result.Success(sessions)
-        } catch (e: Exception) {
-            Result.Failure(SessionsError(e.message ?: "Failed to get updated sessions"))
         }
     }
 
-    override suspend fun saveSession(session: Session) {
-        val uid = auth.currentUser?.uid ?: return
-        val map = session.copy(userId = uid)
-            .toFirestoreMap(serverCreatedAt = true)  // server time for created_at
-        sessionsCollection.document(session.id).set(map)
+    override suspend fun saveSession(session: Session): Result<Session, SessionsError> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.Failure(SessionsError("User not authenticated"))
+
+        val now = Clock.System.now()
+
+        val updatedSession = session.copy(
+            userId = uid,
+        )
+
+        val map = updatedSession.toFirestoreMap()
+
+        return withFirebaseTimeout(
+            errorFactory = ::SessionsError
+        ) {
+            sessionsCollection.document(session.id).set(map)
+            updatedSession // Return the updated session
+        }
     }
 
-    override suspend fun updateSession(session: Session) {
-        session.id.let {
-            sessionsCollection.document(it)
-                .set(session)
+    override suspend fun updateSession(session: Session): Result<Unit, SessionsError> {
+        return withFirebaseTimeout(
+            errorFactory = ::SessionsError
+        ) {
+            sessionsCollection.document(session.id).set(session.toFirestoreMap())
         }
     }
 
     override suspend fun deleteSession(sessionId: String): Result<Unit, SessionsError> {
-        return try {
+        return withFirebaseTimeout(
+            errorFactory = ::SessionsError
+        ) {
             sessionsCollection.document(sessionId).delete()
-            Result.Success(Unit)
-        } catch (e: Exception) {
-            Result.Failure(SessionsError(e.message ?: "Failed to delete session"))
         }
     }
 
-    override suspend fun signInAnonymously(): Result<User, UserError> = try {
-        val firebaseUser = auth.currentUser ?: auth.signInAnonymously().user
-        firebaseUser?.let {
-            Result.Success(User(id = it.uid))
-        } ?: Result.Failure(UserError("Failed to get Firebase user"))
-    } catch (e: Exception) {
-        Result.Failure(UserError(e.message ?: "Unknown error"))
+    override suspend fun signInAnonymously(): Result<User, UserError> {
+        return withFirebaseTimeout(
+            errorFactory = ::UserError
+        ) {
+            val firebaseUser = auth.currentUser ?: auth.signInAnonymously().user
+            firebaseUser?.let {
+                User(id = it.uid)
+            } ?: throw Exception("Failed to get Firebase user")
+        }
     }
 
-
     override suspend fun getUser(): Result<User, UserError> {
-        return try {
-            val uid = auth.currentUser?.uid
-                ?: return Result.Failure(UserError("User not authenticated"))
+        val uid = auth.currentUser?.uid
+            ?: return Result.Failure(UserError("User not authenticated"))
 
-            val user = usersCollection
+        return withFirebaseTimeout(
+            errorFactory = ::UserError
+        ) {
+            usersCollection
                 .document(uid)
                 .get()
                 .data<User>()
-
-            user.let { Result.Success(it) }
-        } catch (e: Exception) {
-            Result.Failure(UserError(e.message ?: "Unknown error"))
         }
     }
 
+    override suspend fun updateUser(user: User): Result<User, UserError> {
+        val uid = auth.currentUser?.uid
+            ?: return Result.Failure(UserError("User not authenticated"))
+
+        return withFirebaseTimeout(
+            errorFactory = ::UserError
+        ) {
+            usersCollection
+                .document(uid)
+                .set(user.toFirestoreMap(), merge = true)
+            user
+        }
+    }
 
     override suspend fun ensureUserDocument(): Result<Unit, UserError> {
-        return try {
-            val uid = auth.currentUser?.uid
-                ?: return Result.Failure(UserError("User not authenticated"))
+        val uid = auth.currentUser?.uid
+            ?: return Result.Failure(UserError("User not authenticated"))
 
-            val docRef   = usersCollection.document(uid)
+        return withFirebaseTimeout(
+            errorFactory = ::UserError
+        ) {
+            val docRef = usersCollection.document(uid)
             val snapshot = docRef.get()
 
             if (!snapshot.exists) {
                 val dataToSave = User(id = uid)
                 docRef.set(dataToSave, merge = true)
             }
-
-            Result.Success(Unit)
-        } catch (e: Exception) {
-            Result.Failure(UserError(e.message ?: "Failed to ensure user document"))
         }
     }
 
-    override suspend fun createSession(session: Session): Result<Session, SessionsError> {
-        val uid = auth.currentUser?.uid
-            ?: return Result.Failure(SessionsError("User not authenticated"))
+    override suspend fun pushTrackPoints(sessionId: String, points: List<TrackPoint>): Result<Unit, SessionsError> {
+        if (points.isEmpty()) return Result.Success(Unit)
 
-        return try {
-            val now = Clock.System.now()
+        return withFirebaseTimeout(
+            errorFactory = ::SessionsError
+        ) {
+            val batch = firestore.batch()
+            val sub = sessionsCollection
+                .document(sessionId)
+                .collection("trackPoints")
 
-            val updatedSession = session.copy(
-                userId = uid,
-                title = now.asSessionTitle()
-            )
-
-            // write with the deterministic id generated in Session()
-            sessionsCollection.document(updatedSession.id).set(updatedSession)
-
-            Result.Success(updatedSession)
-        } catch (e: Exception) {
-            Result.Failure(SessionsError(e.message ?: "Failed to create session"))
+            points.forEach { p ->
+                batch.set(sub.document(p.id.toString()), p.toFirestoreMap())
+            }
+            batch.commit()
         }
     }
-
-    override suspend fun pushTrackPoints(sessionId: String, points: List<TrackPoint>) {
-        if (points.isEmpty()) return
-
-        val batch = firestore.batch()                                   // ✔ create batch
-        val sub   = sessionsCollection
-            .document(sessionId)
-            .collection("trackPoints")
-
-        points.forEach { p ->
-            batch.set(sub.document(p.id.toString()), p.toFirestoreMap()) // ✔ enqueue
-        }
-        batch.commit()                                                   // ✔ commit
-    }
-
 
     override suspend fun getSessionById(sessionId: String): Result<Session?, SessionsError> {
-        return try {
+        return withFirebaseTimeout(
+            errorFactory = ::SessionsError
+        ) {
             val doc = sessionsCollection.document(sessionId).get()
             if (doc.exists) {
-                Result.Success(doc.toSession())
+                doc.toSession()
             } else {
-                Result.Success(null)
+                null
             }
-        } catch (e: Exception) {
-            Result.Failure(SessionsError(e.message ?: "Failed to get session by ID"))
         }
     }
 
     override suspend fun getTrackPointsBySession(sessionId: String): Result<List<TrackPoint>, SessionsError> {
-        return try {
-            val points = sessionsCollection
+        return withFirebaseTimeout(
+            errorFactory = ::SessionsError
+        ) {
+            sessionsCollection
                 .document(sessionId)
                 .collection("trackPoints")
                 .get()
                 .documents
                 .map { it.toTrackPoint() }
-
-            Result.Success(points)
-        } catch (e: Exception) {
-            Result.Failure(SessionsError(e.message ?: "Failed to get track points by session"))
         }
     }
 }

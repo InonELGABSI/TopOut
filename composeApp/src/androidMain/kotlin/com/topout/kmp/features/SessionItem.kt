@@ -29,37 +29,30 @@ fun SessionItem(
     onSessionClick: (Session) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    // Remove Card wrapper - the parent already provides the card background
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { onSessionClick(session) },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        shape = RoundedCornerShape(12.dp)
+            .clickable { onSessionClick(session) }
+            .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            // Header with title and date
-            SessionHeader(
-                title = session.title ?: "Unnamed Session",
-                startTime = session.startTime?.toLong()
-            )
+        // Header with title and date
+        SessionHeader(
+            title = session.title ?: "Unnamed Session",
+            startTime = session.startTime?.toLong()
+        )
 
-            Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-            // Stats row
-            SessionStats(session = session)
+        // Stats row with improved layout
+        SessionStats(session = session)
 
-            // Duration if available
-            session.startTime?.let { start ->
-                session.endTime?.let { end ->
-                    if (end.toLong() > start.toLong()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        SessionDuration(startTime = start.toLong(), endTime = end.toLong())
-                    }
+        // Duration if available
+        session.startTime?.let { start ->
+            session.endTime?.let { end ->
+                if (end.toLong() > start.toLong()) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SessionDuration(startTime = start.toLong(), endTime = end.toLong())
                 }
             }
         }
@@ -100,8 +93,15 @@ private fun SessionHeader(
 @SuppressLint("DefaultLocale")
 @Composable
 private fun SessionStats(session: Session) {
+    // Create a more visually appealing grid layout for stats
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         // Total Ascent
@@ -193,6 +193,7 @@ private fun SessionDuration(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
         modifier = Modifier
             .fillMaxWidth()
             .background(

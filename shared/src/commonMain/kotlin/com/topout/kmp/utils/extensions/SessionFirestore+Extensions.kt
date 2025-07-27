@@ -21,14 +21,25 @@ private fun DocumentSnapshot.millis(field: String): Long {
 /* ---------- read ---------- */
 /** Firestore document ➜ Session (pure Long timestamps) */
 fun DocumentSnapshot.toSession(): Session {
-    val base = data<Session>() ?: error("Invalid Session data")
+    val id = get<String>("id") ?: error("Missing id in Session document")
 
-    return base.copy(
+    return Session(
+        id = id,
+        userId = get<String?>("user_id") ?: "",
+        title = get<String?>("title") ?: "",
         startTime = millis("start_time"),
-        endTime   = get<Long?>("end_time")           // may be null
-            ?: get<Timestamp?>("end_time")?.toEpochMillis(),
+        endTime = millis("end_time"),
+        totalAscent = get<Double?>("total_ascent") ?: 0.0,
+        totalDescent = get<Double?>("total_descent") ?: 0.0,
+        maxAltitude = get<Double?>("max_altitude") ?: 0.0,
+        minAltitude = get<Double?>("min_altitude") ?: 0.0,
+        avgRate = get<Double?>("avg_rate") ?: 0.0,
+        alertTriggered = get<Long?>("alert_triggered") ?: 0,
         createdAt = millis("created_at"),
-        updatedAt = millis("updatedAt"),
+        updatedAt = millis("updated_at"), // Note: different field name convention
+        sessionDeletedOffline = false,
+        sessionCreatedOffline = false,
+        sessionUpdatedOffline = false
     )
 }
 
@@ -38,23 +49,19 @@ fun DocumentSnapshot.toSession(): Session {
  * Pass `serverCreatedAt = true` to store `created_at`
  * using FieldValue.serverTimestamp().
  */
-fun Session.toFirestoreMap(serverCreatedAt: Boolean = false): Map<String, Any?> =
+fun Session.toFirestoreMap(): Map<String, Any?> =
     mutableMapOf<String, Any?>(
         "id"              to id,
-        "userId"          to userId,
+        "user_id"          to userId,
         "title"           to title,
-        "start_time"      to startTime?.toTimestamp(),
-        "end_time"        to endTime?.toTimestamp(),
+        "start_time"      to startTime,
+        "end_time"        to endTime,
         "total_ascent"    to totalAscent,
         "total_descent"   to totalDescent,
         "max_altitude"    to maxAltitude,
         "min_altitude"    to minAltitude,
         "avg_rate"        to avgRate,
         "alert_triggered" to alertTriggered,
-        "updatedAt"      to updatedAt?.toTimestamp(),
-        "created_at"      to if (serverCreatedAt)
-            FieldValue.serverTimestamp
-        else
-            createdAt?.toTimestamp(),
-        "graph_image_url" to graphImageUrl
+        "updated_at"       to updatedAt,
+        "created_at"      to createdAt
     )

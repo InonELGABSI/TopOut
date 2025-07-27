@@ -30,4 +30,18 @@ class SettingsViewModel (
             }
         }
     }
+
+    fun updateUser(user: User) {
+        scope.launch {
+            when (val result = useCases.updateUser(user)) {
+                is Result.Success -> {
+                    _uiState.emit(SettingsState.Loaded(result.data as User))
+                }
+                is Result.Failure -> {
+                    _uiState.emit(SettingsState.Error(errorMessage = result.error?.message ?: "Failed to update user"))
+                }
+            }
+        }
+    }
 }
+

@@ -12,7 +12,9 @@ avgRate REAL ,
 alertTriggered INTEGER DEFAULT 0,
 createdAt INTEGER DEFAULT (strftime('%s', 'now')),
 updatedAt INTEGER DEFAULT (strftime('%s', 'now')),
-graphImageUrl TEXT
+sessionDeletedOffline INTEGER DEFAULT 0,
+sessionCreatedOffline INTEGER DEFAULT 0,
+sessionUpdatedOffline INTEGER DEFAULT 0
 );
 
 saveSession:
@@ -20,14 +22,15 @@ INSERT OR REPLACE INTO SessionEntity(
   id, userId, title, startTime, endTime,
   totalAscent, totalDescent, maxAltitude,
   minAltitude, avgRate, alertTriggered,
-  createdAt,updatedAt, graphImageUrl
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+  createdAt,updatedAt,sessionDeletedOffline,
+  sessionCreatedOffline, sessionUpdatedOffline
+) VALUES (?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);
 
 getSessionById:
 SELECT * FROM SessionEntity WHERE id = ?;
 
 getAllSessions:
-SELECT * FROM SessionEntity;
+SELECT * FROM SessionEntity WHERE sessionDeletedOffline = 0;
 
 deleteSession:
 DELETE FROM SessionEntity WHERE id = ?;
@@ -43,4 +46,38 @@ SET
   avgRate      = ?
 WHERE id = ?;
 
+markSessionDeletedOffline:
+UPDATE SessionEntity
+SET sessionDeletedOffline = 1
+WHERE id = ?;
+
+markSessionCreatedOffline:
+UPDATE SessionEntity
+SET sessionCreatedOffline = 1
+WHERE id = ?;
+
+updateSessionTitle:
+UPDATE SessionEntity
+SET
+  title = ?,
+  sessionUpdatedOffline = ?,
+  updatedAt = strftime('%s', 'now')
+WHERE id = ?;
+
+getSessionsForSync:
+SELECT * FROM SessionEntity WHERE sessionCreatedOffline = 1 OR sessionDeletedOffline = 1 OR sessionUpdatedOffline = 1;
+
+resolveCreatedOfflineSync:
+UPDATE SessionEntity
+SET sessionCreatedOffline = 0
+WHERE id = ?;
+
+resolveDeletedOfflineSync:
+DELETE FROM SessionEntity
+WHERE id = ? AND sessionDeletedOffline = 1;
+
+resolveUpdatedOfflineSync:
+UPDATE SessionEntity
+SET sessionUpdatedOffline = 0
+WHERE id = ?;
 

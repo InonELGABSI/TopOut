@@ -17,7 +17,6 @@ import com.topout.kmp.data.user.LocalUserRepository
 import com.topout.kmp.data.user.UserRepository
 import com.topout.kmp.domain.DeleteSession
 import com.topout.kmp.domain.EnsureAnonymousUser
-import com.topout.kmp.domain.GetLiveMetrics
 import com.topout.kmp.domain.GetSessionById
 import com.topout.kmp.domain.GetSessions
 import com.topout.kmp.domain.GetSessionDetails
@@ -25,7 +24,13 @@ import com.topout.kmp.domain.GetSettings
 import com.topout.kmp.domain.SaveSession
 import com.topout.kmp.domain.SignInAnonymously
 import com.topout.kmp.domain.LiveSessionManager
+import com.topout.kmp.domain.SyncOfflineChanges
 import com.topout.kmp.domain.session.FinishSession
+import com.topout.kmp.domain.CancelLocalSession
+import com.topout.kmp.domain.GetLocalTrackPointsFlow
+import com.topout.kmp.domain.UpdateSessionTitle
+import com.topout.kmp.domain.UpdateUser
+import com.topout.kmp.domain.GetCurrentMSLHeight
 import com.topout.kmp.features.live_session.LiveSessionUseCases
 import com.topout.kmp.features.session_details.SessionDetailsUseCases
 import com.topout.kmp.features.sessions.SessionsUseCases
@@ -38,6 +43,7 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.json.Json
 import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
@@ -59,6 +65,7 @@ expect val platformModule:Module
 val domainModule = module {
     factoryOf(::SignInAnonymously)
     factoryOf(::EnsureAnonymousUser)
+    factoryOf(::SyncOfflineChanges)
 
     // Sessions
     factoryOf(::GetSessions)
@@ -66,19 +73,24 @@ val domainModule = module {
     factoryOf(::GetSessionDetails)
     factoryOf(::SaveSession)
     factoryOf(::DeleteSession)
+    factoryOf(::UpdateSessionTitle)
 
     factoryOf(::FinishSession)
-    factoryOf(::GetLiveMetrics)
+    factoryOf(::CancelLocalSession)
+    factoryOf(::GetLocalTrackPointsFlow)
+    factory { (scope: CoroutineScope) ->
+        LiveSessionManager(get(), get(), get(), scope, get<LocalUserRepository>())
+    }
+
     factoryOf(::LiveSessionUseCases)
-
-    singleOf(::LiveSessionManager)
-
     factoryOf(::SessionsUseCases)
     factoryOf(::SessionDetailsUseCases)
 
+    factoryOf(::GetCurrentMSLHeight)
 
-    // Settings
+    // User Settings
     factoryOf(::GetSettings)
+    factoryOf(::UpdateUser)
     factoryOf(::SettingsUseCases)
 }
 
@@ -100,6 +112,7 @@ val commonModule = module {
 
     single { createHttpClient(get(), get()) }
 
+    // Location-based use cases
 }
 
 fun createJson() = Json {
@@ -117,6 +130,4 @@ fun createHttpClient(clientEngine: HttpClientEngine, json: Json) = HttpClient(cl
         json(json)
     }
 }
-
-
 

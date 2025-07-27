@@ -46,4 +46,25 @@ class SessionDetailsViewModel (
             }
         }
     }
+
+    fun updateSessionTitle(sessionId: String, newTitle: String) {
+        scope.launch {
+            val result = useCases.updateSessionTitle(sessionId, newTitle)
+            when(result) {
+                is Result.Success -> {
+                    // Update the UI state directly instead of reloading
+                    val currentState = _uiState.value
+                    if (currentState is SessionDetailsState.Loaded) {
+                        val updatedSessionDetails = currentState.sessionDetails.copy(
+                            session = currentState.sessionDetails.session.copy(title = newTitle)
+                        )
+                        _uiState.emit(SessionDetailsState.Loaded(updatedSessionDetails))
+                    }
+                }
+                is Result.Failure -> {
+                    _uiState.emit(SessionDetailsState.Error(result.error?.message ?: "Failed to update session title"))
+                }
+            }
+        }
+    }
 }

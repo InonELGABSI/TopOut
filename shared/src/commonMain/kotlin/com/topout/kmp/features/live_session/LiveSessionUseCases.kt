@@ -1,13 +1,13 @@
 package com.topout.kmp.features.live_session
 
-import com.topout.kmp.domain.GetLiveMetrics
-import com.topout.kmp.domain.LiveSessionManager
+import com.topout.kmp.domain.GetLocalTrackPointsFlow
 import com.topout.kmp.domain.session.FinishSession
+import com.topout.kmp.domain.CancelLocalSession
+import com.topout.kmp.domain.GetCurrentMSLHeight
 
 data class LiveSessionUseCases(
-    val startSession: LiveSessionManager,
     val finishSession: FinishSession,
-    val getLiveMetrics: GetLiveMetrics
-//        val pauseSession: StartSession,
-//        val resumeSession: StartSession
-    )
+    val cancelLocalSession: CancelLocalSession,
+    val getLocalTrackPointsFlow: GetLocalTrackPointsFlow,
+    val getCurrentMSLHeight: GetCurrentMSLHeight
+)

@@ -44,15 +44,36 @@ class FinishSession(
         )
         val updated = sessionDao.getSessionById(sessionId)
 
-        // 4️⃣ PUSH to FIRESTORE via FirebaseRepository
-        firebaseRepository.createSession(updated)
-        firebaseRepository.pushTrackPoints(sessionId, points) // sub-collection
+        // 4️⃣ Try to PUSH to FIRESTORE via FirebaseRepository
+        when (val saveResult = firebaseRepository.saveSession(updated)) {
+            is Result.Success -> {
+                // Save the updated session (with userId and title) to local database
+                val updatedSessionFromRemote = saveResult.data
+                if (updatedSessionFromRemote != null) {
+                    sessionDao.saveSession(updatedSessionFromRemote)
+                }
 
-        // 5️⃣ CLEAN UP local points
-        // (optional—errors here are non-fatal)
-        localPointsRepo.deleteBySession(sessionId)
+                // Session save succeeded, now try to push track points
+                when (val pushResult = firebaseRepository.pushTrackPoints(sessionId, points)) {
+                    is Result.Success -> {
+                        // 5️⃣ Remote sync SUCCESS - clean up local points
+                        localPointsRepo.deleteBySession(sessionId)
+                    }
+                    is Result.Failure -> {
+                        // 6️⃣ Track points push FAILED - mark as offline created session
+                        sessionDao.markSessionCreatedOffline(sessionId)
+                        // Keep track points in DB for later sync - DO NOT delete them
+                    }
+                }
+            }
+            is Result.Failure -> {
+                // 6️⃣ Session save FAILED - mark as offline created session
+                sessionDao.markSessionCreatedOffline(sessionId)
+                // Keep track points in DB for later sync - DO NOT delete them
+            }
+        }
 
-        // 6️⃣ RETURN combined DTO
+        // 7️⃣ RETURN combined DTO
         return SessionDetails(updated, points)
     }
 }
