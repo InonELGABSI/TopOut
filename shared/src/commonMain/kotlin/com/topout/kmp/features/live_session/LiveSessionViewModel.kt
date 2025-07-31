@@ -17,10 +17,10 @@ import org.koin.core.component.inject
 
 class LiveSessionViewModel(
     private val useCases: LiveSessionUseCases,
-) : BaseViewModel(),KoinComponent {
+) : BaseViewModel<LiveSessionState>(),KoinComponent {
 
     private val _uiState = MutableStateFlow<LiveSessionState>(LiveSessionState.Loading)
-    val uiState: StateFlow<LiveSessionState> = _uiState
+    override val uiState: StateFlow<LiveSessionState> = _uiState
 
     // MSL Height state
     private val _mslHeightState = MutableStateFlow<MSLHeightState>(MSLHeightState.Loading)

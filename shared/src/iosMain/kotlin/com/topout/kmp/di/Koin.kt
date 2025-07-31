@@ -4,6 +4,7 @@ import com.topout.kmp.features.live_session.LiveSessionViewModel
 import com.topout.kmp.features.session_details.SessionDetailsViewModel
 import com.topout.kmp.features.sessions.SessionsViewModel
 import com.topout.kmp.features.settings.SettingsViewModel
+import com.topout.kmp.domain.SyncOfflineChanges
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ObjCClass
 import kotlinx.cinterop.getOriginalKotlinClass
@@ -18,11 +19,19 @@ fun doInitKoin() {
     initKoin()
     sharedKoin = KoinPlatform.getKoin()
 }
+// Accessible from Swift
+fun getSharedKoin(): Koin = sharedKoin
 
 fun SessionDetailsViewModel(): SessionDetailsViewModel = KoinPlatform.getKoin().get()
 fun SessionsViewModel(): SessionsViewModel = KoinPlatform.getKoin().get()
 fun SettingsViewModel(): SettingsViewModel = KoinPlatform.getKoin().get()
 fun liveSessionViewModel(): LiveSessionViewModel = KoinPlatform.getKoin().get()
+
+// Bridge function to expose SyncOfflineChanges to Swift
+suspend fun syncOfflineChanges() {
+    val syncOfflineChanges: SyncOfflineChanges = KoinPlatform.getKoin().get()
+    syncOfflineChanges.invoke()
+}
 
 @OptIn(BetaInteropApi::class)
 fun Koin.get(objCClass: ObjCClass): Any? {
@@ -39,3 +48,4 @@ fun Koin.get(
     val kClazz = getOriginalKotlinClass(objCClass) ?: return null
     return get(kClazz, qualifier) { parametersOf(parameter) }
 }
+

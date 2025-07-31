@@ -8,9 +8,9 @@ import kotlinx.coroutines.launch
 
 class SessionDetailsViewModel (
     private val useCases: SessionDetailsUseCases
-) : BaseViewModel() {
-    private val _uiState: MutableStateFlow<SessionDetailsState> = MutableStateFlow<SessionDetailsState>(SessionDetailsState.Loading)
-    val uiState:StateFlow<SessionDetailsState> get()= _uiState
+) : BaseViewModel<SessionDetailsState>() {
+    private val _uiState: MutableStateFlow<SessionDetailsState> = MutableStateFlow(SessionDetailsState.Loading)
+    override val uiState:StateFlow<SessionDetailsState> get()= _uiState
 
     fun loadSession(sessionId: String) {
         scope.launch {

@@ -37,7 +37,7 @@ fun User.toEntity(): UserEntity {
         localSessionsUpdateTime = null, // Will be handled by database defaults or DAO
         localUserUpdateTime = null, // Will be handled by database defaults or DAO
 
-        userUpdatedOffline = if (userUpdatedOffline) 1L else 0L,
+        userUpdatedOffline = if (userUpdatedOffline == true) 1L else 0L,
         updatedAt = updatedAt,
         createdAt = createdAt
     )

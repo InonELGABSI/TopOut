@@ -9,10 +9,10 @@ import com.topout.kmp.models.User
 
 class SettingsViewModel (
     val useCases: SettingsUseCases
-) : BaseViewModel() {
+) : BaseViewModel<SettingsState>() {
 
-    private var _uiState: MutableStateFlow<SettingsState> = MutableStateFlow<SettingsState>(SettingsState.Loading)
-    val uiState: StateFlow<SettingsState> get() = _uiState
+    private var _uiState: MutableStateFlow<SettingsState> = MutableStateFlow(SettingsState.Loading)
+    override val uiState: StateFlow<SettingsState> get() = _uiState
 
     init {
         loadUser()

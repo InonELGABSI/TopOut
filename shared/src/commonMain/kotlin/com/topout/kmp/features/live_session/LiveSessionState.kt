@@ -1,8 +1,9 @@
 package com.topout.kmp.features.live_session
 import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.domain.MSLHeightData
+import com.topout.kmp.features.UiState
 
-sealed class LiveSessionState {
+sealed class LiveSessionState :UiState {
     object Loading : LiveSessionState()
     data class Loaded(
         val trackPoint: TrackPoint,
