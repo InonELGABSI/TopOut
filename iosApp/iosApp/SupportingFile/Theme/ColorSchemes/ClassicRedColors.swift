@@ -15,12 +15,16 @@ struct ClassicRedLightColors: TopOutColorScheme {
     let onSurface = Color(red: 0.137, green: 0.137, blue: 0.137)
     let surfaceVariant = Color(red: 0.953, green: 0.945, blue: 0.949)        // #F3F1F2
     let onSurfaceVariant = Color(red: 0.239, green: 0.239, blue: 0.239)      // #3D3D3D
+
+    // --- ADD THESE ---
+    let surfaceContainer = Color(red: 1.0, green: 0.941, blue: 0.941)        // #FFF0F0 (very light red tint)
+    let tertiaryContainer = Color(red: 1.0, green: 0.871, blue: 0.847)       // #FFE0D8 (warm neutral for tertiary)
+    // ------------------
+
     let error = Color(red: 0.827, green: 0.184, blue: 0.184)                 // #D32F2F
     let onError = Color.white
     let errorContainer = Color(red: 1.0, green: 0.902, blue: 0.902)          // #FFE6E6
     let onErrorContainer = Color(red: 0.827, green: 0.184, blue: 0.184)
-    
-    // Extras required by the protocol
     let outline = BrandColors.neutralOutline
     let shadow = Color.black.opacity(0.2)
 }
@@ -40,12 +44,16 @@ struct ClassicRedDarkColors: TopOutColorScheme {
     let onSurface = Color(red: 0.898, green: 0.898, blue: 0.898)
     let surfaceVariant = Color(red: 0.275, green: 0.298, blue: 0.341)        // #464C57
     let onSurfaceVariant = Color(red: 0.729, green: 0.745, blue: 0.773)      // #BABEc5
+
+    // --- ADD THESE ---
+    let surfaceContainer = Color(red: 0.251, green: 0.129, blue: 0.129)      // #402121 (deep muted red)
+    let tertiaryContainer = Color(red: 0.333, green: 0.212, blue: 0.192)     // #553631 (soft brownish, for tertiary)
+    // ------------------
+
     let error = Color(red: 1.0, green: 0.733, blue: 0.733)                   // #FFBBBB
     let onError = Color(red: 0.408, green: 0.0, blue: 0.0)                   // #680000
     let errorContainer = Color(red: 0.627, green: 0.078, blue: 0.078)        // #A01414
     let onErrorContainer = Color(red: 1.0, green: 0.902, blue: 0.902)        // #FFE6E6
-    
-    // Extras required by the protocol
     let outline = BrandColors.neutralOutline
     let shadow = Color.black.opacity(0.4)
 }

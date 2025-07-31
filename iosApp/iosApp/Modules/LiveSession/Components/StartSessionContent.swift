@@ -1,4 +1,3 @@
-
 //==============================================================
 //  StartSessionContent.swift
 //  (unchanged – uses your original implementation)
@@ -17,12 +16,6 @@ struct StartSessionContent: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 32) {
-                Spacer(minLength: 40)
-                Image(systemName: "mountain.2.fill")
-                    .font(.system(size: 100))
-                    .foregroundColor(colors.primary)
-                    .frame(width: 200, height: 200)
-                
                 Text("Ready to Track")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(colors.onSurface)
@@ -35,9 +28,7 @@ struct StartSessionContent: View {
                 
                 MSLCard(mslHeightState: mslHeightState, colors: colors)
                     .padding(.horizontal, 16)
-                
-                Spacer(minLength: 60)
-                
+                                
                 Button(action: {
                     hasLocationPermission ? onStartClick() : onRequestLocationPermission()
                 }) {

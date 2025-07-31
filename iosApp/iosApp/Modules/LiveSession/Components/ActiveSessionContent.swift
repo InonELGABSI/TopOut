@@ -87,9 +87,9 @@ private struct LocationRow: View {
                 .foregroundColor(colors.primary)
             Spacer()
             DataTriplet(
-                first:   formatted(trackPoint.latitude?.doubleValue, suffix: "°"),
-                second:  formatted(trackPoint.longitude?.doubleValue, suffix: "°"),
-                third:   formatted(trackPoint.altitude?.doubleValue, suffix: " m"),
+                first:   formatted(trackPoint.latitude?.double, suffix: "°"),
+                second:  formatted(trackPoint.longitude?.double, suffix: "°"),
+                third:   formatted(trackPoint.altitude?.double, suffix: " m"),
                 firstLab: "Lat",
                 secondLab:"Lon",
                 thirdLab: "Alt",

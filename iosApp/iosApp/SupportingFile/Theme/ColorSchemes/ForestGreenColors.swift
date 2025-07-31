@@ -15,12 +15,16 @@ struct ForestGreenLightColors: TopOutColorScheme {
     let onSurface = Color(red: 0.137, green: 0.137, blue: 0.137)
     let surfaceVariant = Color(red: 0.941, green: 0.957, blue: 0.949)        // #F0F4F2
     let onSurfaceVariant = Color(red: 0.239, green: 0.239, blue: 0.239)
+    
+    // --- ADD THESE ---
+    let surfaceContainer = Color(red: 0.922, green: 0.973, blue: 0.961)      // #EBF8F5 (very light greenish)
+    let tertiaryContainer = Color(red: 0.835, green: 0.925, blue: 0.800)     // #D5ECD0 (mint/greenish)
+    // ------------------
+
     let error = Color(red: 0.827, green: 0.184, blue: 0.184)
     let onError = Color.white
     let errorContainer = Color(red: 1.0, green: 0.902, blue: 0.902)
     let onErrorContainer = Color(red: 0.827, green: 0.184, blue: 0.184)
-    
-    // Extras required by the protocol
     let outline = BrandColors.neutralOutline
     let shadow = Color.black.opacity(0.2)
 }
@@ -40,12 +44,16 @@ struct ForestGreenDarkColors: TopOutColorScheme {
     let onSurface = Color(red: 0.898, green: 0.898, blue: 0.898)
     let surfaceVariant = Color(red: 0.196, green: 0.333, blue: 0.275)        // #325546
     let onSurfaceVariant = Color(red: 0.706, green: 0.831, blue: 0.773)      // #B4D4C5
+    
+    // --- ADD THESE ---
+    let surfaceContainer = Color(red: 0.129, green: 0.231, blue: 0.180)      // #214D2E (deep green)
+    let tertiaryContainer = Color(red: 0.251, green: 0.388, blue: 0.286)     // #406348 (muted green)
+    // ------------------
+
     let error = Color(red: 1.0, green: 0.733, blue: 0.733)
     let onError = Color(red: 0.408, green: 0.0, blue: 0.0)
     let errorContainer = Color(red: 0.627, green: 0.078, blue: 0.078)
     let onErrorContainer = Color(red: 1.0, green: 0.902, blue: 0.902)
-    
-    // Extras required by the protocol
     let outline = BrandColors.neutralOutline
     let shadow = Color.black.opacity(0.4)
 }

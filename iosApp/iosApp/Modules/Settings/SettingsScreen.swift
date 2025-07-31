@@ -72,6 +72,10 @@ struct SettingsView: View {
                 }
             case .error(let state):
                 SettingsErrorContent(errorMessage: state.errorMessage, colors: colors)
+                
+            @unknown default:
+                EmptyView()
+            
             }
         }
         .navigationTitle("Settings")
@@ -758,9 +762,9 @@ struct EditableUser {
         self.imgUrl = user.imgUrl ?? ""
         self.unitPreference = user.unitPreference ?? "meters"
         self.enabledNotifications = user.enabledNotifications?.boolValue ?? false
-        self.relativeHeightFromStartThr = user.relativeHeightFromStartThr?.doubleValue ?? 0.0
-        self.totalHeightFromStartThr = user.totalHeightFromStartThr?.doubleValue ?? 0.0
-        self.currentAvgHeightSpeedThr = user.currentAvgHeightSpeedThr?.doubleValue ?? 0.0
+        self.relativeHeightFromStartThr = user.relativeHeightFromStartThr?.double ?? 0.0
+        self.totalHeightFromStartThr = user.totalHeightFromStartThr?.double ?? 0.0
+        self.currentAvgHeightSpeedThr = user.currentAvgHeightSpeedThr?.double ?? 0.0
         self.userUpdatedOffline = user.userUpdatedOffline?.boolValue ?? false
         self.createdAt = user.createdAt?.int64Value ?? 0
         self.updatedAt = user.updatedAt?.int64Value ?? 0

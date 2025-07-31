@@ -15,12 +15,16 @@ struct StormGrayLightColors: TopOutColorScheme {
     let onSurface = Color(red: 0.137, green: 0.137, blue: 0.137)
     let surfaceVariant = Color(red: 0.945, green: 0.949, blue: 0.957)        // #F1F2F4
     let onSurfaceVariant = Color(red: 0.239, green: 0.239, blue: 0.239)
+    
+    // --- ADD THESE ---
+    let surfaceContainer = Color(red: 0.961, green: 0.965, blue: 0.976)      // #F5F6F9 (example: lightest gray)
+    let tertiaryContainer = Color(red: 0.839, green: 0.847, blue: 0.871)     // #D6D8DE (example: soft blue-gray)
+    // ------------------
+
     let error = Color(red: 0.827, green: 0.184, blue: 0.184)
     let onError = Color.white
     let errorContainer = Color(red: 1.0, green: 0.902, blue: 0.902)
     let onErrorContainer = Color(red: 0.827, green: 0.184, blue: 0.184)
-    
-    // Extras required by the protocol
     let outline = BrandColors.neutralOutline
     let shadow = Color.black.opacity(0.2)
 }
@@ -40,12 +44,16 @@ struct StormGrayDarkColors: TopOutColorScheme {
     let onSurface = Color(red: 0.898, green: 0.898, blue: 0.898)
     let surfaceVariant = Color(red: 0.259, green: 0.290, blue: 0.337)        // #424A56
     let onSurfaceVariant = Color(red: 0.729, green: 0.757, blue: 0.796)      // #BAC1CB
+    
+    // --- ADD THESE ---
+    let surfaceContainer = Color(red: 0.102, green: 0.114, blue: 0.149)      // #1A1D26 (example: dark blue-gray)
+    let tertiaryContainer = Color(red: 0.212, green: 0.231, blue: 0.267)     // #363B44 (example: soft blue-gray)
+    // ------------------
+
     let error = Color(red: 1.0, green: 0.733, blue: 0.733)
     let onError = Color(red: 0.408, green: 0.0, blue: 0.0)
     let errorContainer = Color(red: 0.627, green: 0.078, blue: 0.078)
     let onErrorContainer = Color(red: 1.0, green: 0.902, blue: 0.902)
-    
-    // Extras required by the protocol
     let outline = BrandColors.neutralOutline
     let shadow = Color.black.opacity(0.4)
 }

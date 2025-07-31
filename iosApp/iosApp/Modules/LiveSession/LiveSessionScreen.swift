@@ -55,13 +55,23 @@ struct LiveSessionView: View {
     private var sessionContent: some View {
         switch onEnum(of: viewModel.uiState) {
         case .loading:
-            StartSessionContent(
-                hasLocationPermission: hasLocationPermission,
-                onStartClick:          { viewModel.viewModel.onStartClicked() },
-                onRequestLocationPermission: { requestLocationPermission() },
-                mslHeightState:        viewModel.viewModel.mslHeightState.value,
-                colors:                colors
-            )
+            VStack(spacing: 32) {
+                MountainAnimationView(
+                    animationAsset: "Travel_Mountain", // your asset name
+                    speed: 1.2,
+                    animationSize: 220,
+                    iterations: 0 // 0 means infinite loop
+                )
+                StartSessionContent(
+                    hasLocationPermission: hasLocationPermission,
+                    onStartClick:          { viewModel.viewModel.onStartClicked() },
+                    onRequestLocationPermission: { requestLocationPermission() },
+                    mslHeightState:        viewModel.viewModel.mslHeightState.value,
+                    colors:                colors
+                )
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
 
         case .loaded(let state):
             ActiveSessionContent(
@@ -72,18 +82,23 @@ struct LiveSessionView: View {
                 onCancelClicked: { showingDiscardConfirmation = true },
                 colors:        colors
             )
-
+        case .stopping:
+            // Show a loading/spinner or message
+            ProgressView("Stopping session…")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        case .sessionStopped(let state):
+            // Show a summary, or just an empty screen
+            Text("Session stopped (ID: \(state.sessionId))")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .error(let state):
             ErrorContent(
                 errorMessage: state.errorMessage,
                 onRetryClick: { viewModel.viewModel.onStartClicked() },
                 colors:       colors
             )
-
-        default:               // ⬅︎ satisfies “switch must be exhaustive”
-            EmptyView()        //    (renders nothing for any future / unknown state)
         }
     }
+
 
 
     

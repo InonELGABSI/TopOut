@@ -122,7 +122,12 @@ struct SessionDetailsView: View {
                     },
                     colors: colors
                 )
+                
+            @unknown default:
+                EmptyView()
+            
             }
+
         }
         .navigationTitle("Session Details")
         .alert(isPresented: $showDeleteConfirmation) {
@@ -279,14 +284,14 @@ struct SessionStatisticsCard: View {
                 StatisticItemWithIcon(
                     icon: "arrow.up",
                     label: "Max Altitude",
-                    value: String(format: "%.1f m", sessionDetails.points.map { $0.altitude?.doubleValueOrZero ?? 0.0 }.max() ?? 0.0),
+                    value: String(format: "%.1f m", sessionDetails.points.map { $0.altitude?.double ?? 0.0 }.max() ?? 0.0),
                     colors: colors
                 )
                 Spacer()
                 StatisticItemWithIcon(
                     icon: "arrow.down",
                     label: "Min Altitude",
-                    value: String(format: "%.1f m", sessionDetails.points.map { $0.altitude?.doubleValueOrZero ?? 0.0 }.min() ?? 0.0),
+                    value: String(format: "%.1f m", sessionDetails.points.map {$0.altitude?.double ?? 0.0}.min() ?? 0.0),
                     colors: colors
                 )
                 Spacer()

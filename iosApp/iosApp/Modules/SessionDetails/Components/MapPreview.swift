@@ -2,175 +2,197 @@ import SwiftUI
 import MapKit
 import Shared
 
+/// A lightweight, read‑only map preview that shows a recorded track with
+/// optional start / end markers. This view **never** mutates state coming from
+/// the model layer – it only reflects what it is given via `trackPoints`.
 struct MapPreview: View {
+    // MARK: ‑ Public API
     let trackPoints: [TrackPoint]
-    @State private var region: MKCoordinateRegion
-    @EnvironmentObject var themeManager: ThemeManager
+
+    // MARK: ‑ Private State
+    @State private var cameraPosition: MapCameraPosition
     
+    // MARK: ‑ Environment
+    @Environment(\.colorScheme) private var systemColorScheme
+    @AppStorage("selectedTheme") private var selectedTheme = ThemePalette.classicRed.rawValue
+
+    // MARK: ‑ Styling
+    private var colors: TopOutColorScheme {
+        (ThemePalette(rawValue: selectedTheme) ?? .classicRed)
+            .scheme(for: systemColorScheme)
+    }
+
+    private static let overlayLineWidth: CGFloat      = 3
+    private static let segmentThresholdMeters: Double = 500
+
+    // MARK: ‑ Init
     init(trackPoints: [TrackPoint]) {
-        let initialCoordinate = trackPoints.first.map { 
-            CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) 
-        } ?? CLLocationCoordinate2D(latitude: 0, longitude: 0)
-        
-        // Calculate the region that encompasses all track points
-        var minLat = Double.greatestFiniteMagnitude
-        var maxLat = -Double.greatestFiniteMagnitude
-        var minLon = Double.greatestFiniteMagnitude
-        var maxLon = -Double.greatestFiniteMagnitude
-        
-        for point in trackPoints {
-            minLat = min(minLat, point.latitude)
-            maxLat = max(maxLat, point.latitude)
-            minLon = min(minLon, point.longitude)
-            maxLon = max(maxLon, point.longitude)
+        self.trackPoints = trackPoints
+
+        // Extract coordinates once so we can use them for the initial region
+        let coords = trackPoints.compactMap { point -> CLLocationCoordinate2D? in
+            guard
+                let lat = point.latitude?.double,
+                let lon = point.longitude?.double
+            else { return nil }
+            return CLLocationCoordinate2D(latitude: lat, longitude: lon)
         }
-        
-        // Add some padding to the region
-        let latDelta = (maxLat - minLat) * 1.2
-        let lonDelta = (maxLon - minLon) * 1.2
-        
-        let centerLat = (maxLat + minLat) / 2
-        let centerLon = (maxLon + minLon) / 2
-        
-        self._region = State(initialValue: MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: centerLat, longitude: centerLon),
-            span: MKCoordinateSpan(latitudeDelta: max(latDelta, 0.01), longitudeDelta: max(lonDelta, 0.01))
-        ))
+
+        let region: MKCoordinateRegion = {
+            // Multiple points → zoom to fit. Fallbacks to sensible defaults.
+            if coords.count > 1 { return .fitting(coords) }
+            return MKCoordinateRegion(
+                center: coords.first ?? .init(latitude: 0, longitude: 0),
+                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+            )
+        }()
+
+        _cameraPosition = State(initialValue: .region(region))
     }
-    
+
+    // MARK: ‑ View
     var body: some View {
-        Map(coordinateRegion: $region, showsUserLocation: false, annotationItems: mapAnnotations) { item in
-            MapAnnotation(coordinate: item.coordinate) {
-                if item.isStart {
-                    Circle()
-                        .fill(Color.green)
-                        .frame(width: 12, height: 12)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.white, lineWidth: 2)
-                        )
-                } else if item.isEnd {
-                    Circle()
-                        .fill(Color.red)
-                        .frame(width: 12, height: 12)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.white, lineWidth: 2)
-                        )
-                }
-            }
-        }
-        .overlay(
-            ZStack {
-                ForEach(routeOverlays.indices, id: \.self) { index in
-                    RouteOverlay(coordinates: routeOverlays[index])
-                        .stroke(themeManager.colorScheme.primary, lineWidth: 3)
-                }
-            }
-        )
-    }
-    
-    // Create start and end annotations
-    private var mapAnnotations: [MapAnnotationItem] {
-        var items: [MapAnnotationItem] = []
-        
-        if let first = trackPoints.first {
-            items.append(MapAnnotationItem(
-                coordinate: CLLocationCoordinate2D(latitude: first.latitude, longitude: first.longitude),
-                isStart: true,
-                isEnd: false
-            ))
-        }
-        
-        if let last = trackPoints.last, trackPoints.count > 1 {
-            items.append(MapAnnotationItem(
-                coordinate: CLLocationCoordinate2D(latitude: last.latitude, longitude: last.longitude),
-                isStart: false,
-                isEnd: true
-            ))
-        }
-        
-        return items
-    }
-    
-    // Create a route overlay
-    private var routeOverlays: [[CLLocationCoordinate2D]] {
-        let coordinates = trackPoints.map { point in
-            CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude)
-        }
-        
-        // Split into multiple segments if we have gaps in tracking
-        var segments: [[CLLocationCoordinate2D]] = []
-        var currentSegment: [CLLocationCoordinate2D] = []
-        
-        for (index, coordinate) in coordinates.enumerated() {
-            if index > 0 {
-                let previousCoordinate = coordinates[index - 1]
-                let distance = calculateDistance(from: previousCoordinate, to: coordinate)
-                
-                // If distance between consecutive points is too large, start a new segment
-                if distance > 500 { // 500 meters threshold
-                    if !currentSegment.isEmpty {
-                        segments.append(currentSegment)
-                        currentSegment = []
+        ZStack {
+            // MARK: Map
+            Map(position: $cameraPosition) {
+                Group {                    // <‑‑ fixes generic‑inference error
+                    if let start = routeOverlays.first?.first {
+                        Marker("Start", coordinate: start)
+                            .tint(.green)
+                    }
+                    if let start = routeOverlays.first?.first,
+                       let end   = routeOverlays.last?.last,
+                       !coordinatesEqual(start, end) {
+                        Marker("End", coordinate: end)
+                            .tint(.red)
                     }
                 }
             }
-            
-            currentSegment.append(coordinate)
+            .mapStyle(.standard(elevation: .automatic))
+            .mapControls {
+                MapCompass()
+                MapUserLocationButton()
+            }
+            .edgesIgnoringSafeArea(.all)
+
+            // MARK: Static track overlay (Canvas‑based)
+            if !routeOverlays.isEmpty {
+                GeometryReader { geo in
+                    ZStack {
+                        ForEach(routeOverlays.indices, id: \.self) { idx in
+                            RouteOverlay(coordinates: routeOverlays[idx])
+                                .stroke(colors.primary, lineWidth: Self.overlayLineWidth)
+                                .frame(width: geo.size.width, height: geo.size.height)
+                        }
+                    }
+                }
+                .allowsHitTesting(false)   // touches go through to the map
+            }
         }
-        
-        if !currentSegment.isEmpty {
-            segments.append(currentSegment)
+    }
+
+    // MARK: ‑ Segmented polyline (split when GPS gaps are >500 m)
+    private var routeOverlays: [[CLLocationCoordinate2D]] {
+        let coords = trackPoints.compactMap { point -> CLLocationCoordinate2D? in
+            guard
+                let lat = point.latitude?.double,
+                let lon = point.longitude?.double
+            else { return nil }
+            return CLLocationCoordinate2D(latitude: lat, longitude: lon)
         }
-        
+        guard !coords.isEmpty else { return [] }
+
+        var segments: [[CLLocationCoordinate2D]] = []
+        var current: [CLLocationCoordinate2D] = []
+
+        for (idx, coord) in coords.enumerated() {
+            if idx > 0 {
+                let prev = coords[idx - 1]
+                if prev.distance(to: coord) > Self.segmentThresholdMeters {
+                    if !current.isEmpty { segments.append(current); current.removeAll(keepingCapacity: true) }
+                }
+            }
+            current.append(coord)
+        }
+        if !current.isEmpty { segments.append(current) }
         return segments
     }
-    
-    private func calculateDistance(from coord1: CLLocationCoordinate2D, to coord2: CLLocationCoordinate2D) -> Double {
-        let location1 = CLLocation(latitude: coord1.latitude, longitude: coord1.longitude)
-        let location2 = CLLocation(latitude: coord2.latitude, longitude: coord2.longitude)
-        return location1.distance(from: location2)
+}
+
+// MARK: ‑ MKCoordinateRegion helpers
+private extension MKCoordinateRegion {
+    /// Returns a region that fits all coordinates with 20 % padding.
+    static func fitting(_ coords: [CLLocationCoordinate2D]) -> MKCoordinateRegion {
+        guard !coords.isEmpty else {
+            return MKCoordinateRegion(
+                center: .init(latitude: 0, longitude: 0),
+                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+            )
+        }
+        let lats  = coords.map(\.latitude)
+        let lons  = coords.map(\.longitude)
+        guard let minLat = lats.min(), let maxLat = lats.max(),
+              let minLon = lons.min(), let maxLon = lons.max() else {
+            return MKCoordinateRegion(
+                center: coords[0],
+                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+            )
+        }
+        let center = CLLocationCoordinate2D(
+            latitude: (minLat + maxLat) / 2,
+            longitude: (minLon + maxLon) / 2
+        )
+        let span = MKCoordinateSpan(
+            latitudeDelta: max((maxLat - minLat) * 1.2, 0.01),
+            longitudeDelta: max((maxLon - minLon) * 1.2, 0.01)
+        )
+        return MKCoordinateRegion(center: center, span: span)
     }
 }
 
-struct MapAnnotationItem: Identifiable {
-    let id = UUID()
-    let coordinate: CLLocationCoordinate2D
-    let isStart: Bool
-    let isEnd: Bool
-}
-
+// MARK: ‑ Route overlay shape drawn in screen‑space
 struct RouteOverlay: Shape {
     let coordinates: [CLLocationCoordinate2D]
-    
+
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        
         guard coordinates.count > 1 else { return path }
-        
-        let maxLat = coordinates.map { $0.latitude }.max() ?? 0
-        let minLat = coordinates.map { $0.latitude }.min() ?? 0
-        let maxLon = coordinates.map { $0.longitude }.max() ?? 0
-        let minLon = coordinates.map { $0.longitude }.min() ?? 0
-        
+
+        let lats = coordinates.map(\.latitude)
+        let lons = coordinates.map(\.longitude)
+        guard let minLat = lats.min(), let maxLat = lats.max(),
+              let minLon = lons.min(), let maxLon = lons.max() else { return path }
+
         let latRange = maxLat - minLat
         let lonRange = maxLon - minLon
-        
-        // Initial point
-        let firstCoord = coordinates[0]
-        let firstX = (firstCoord.longitude - minLon) / lonRange * rect.width
-        let firstY = (1 - (firstCoord.latitude - minLat) / latRange) * rect.height
-        path.move(to: CGPoint(x: firstX, y: firstY))
-        
-        // Subsequent points
-        for i in 1..<coordinates.count {
-            let coord = coordinates[i]
-            let x = (coord.longitude - minLon) / lonRange * rect.width
-            let y = (1 - (coord.latitude - minLat) / latRange) * rect.height
-            path.addLine(to: CGPoint(x: x, y: y))
+
+        func x(for lon: Double) -> CGFloat {
+            lonRange == 0 ? rect.midX : CGFloat((lon - minLon) / lonRange) * rect.width
         }
-        
+        func y(for lat: Double) -> CGFloat {
+            latRange == 0 ? rect.midY : (1 - CGFloat((lat - minLat) / latRange)) * rect.height
+        }
+
+        let first = coordinates[0]
+        path.move(to: CGPoint(x: x(for: first.longitude), y: y(for: first.latitude)))
+        for coord in coordinates.dropFirst() {
+            path.addLine(to: CGPoint(x: x(for: coord.longitude), y: y(for: coord.latitude)))
+        }
         return path
     }
+}
+
+// MARK: ‑ Misc helpers
+private extension CLLocationCoordinate2D {
+    /// Haversine distance in metres.
+    func distance(to other: CLLocationCoordinate2D) -> Double {
+        CLLocation(latitude: latitude, longitude: longitude)
+            .distance(from: CLLocation(latitude: other.latitude, longitude: other.longitude))
+    }
+}
+
+/// Simple equality check without conforming `CLLocationCoordinate2D` to `Equatable`.
+private func coordinatesEqual(_ lhs: CLLocationCoordinate2D?, _ rhs: CLLocationCoordinate2D?) -> Bool {
+    guard let a = lhs, let b = rhs else { return false }
+    return a.latitude == b.latitude && a.longitude == b.longitude
 }

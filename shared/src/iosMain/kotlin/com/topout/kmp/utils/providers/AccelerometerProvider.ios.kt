@@ -11,6 +11,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CancellationException
+import platform.Foundation.NSProcessInfo
 
 @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 actual class AccelerometerProvider {
@@ -18,6 +19,8 @@ actual class AccelerometerProvider {
     private val motionManager = CMMotionManager()
     private val log = Logger.withTag("AccelerometerProvider")
 
+    private fun isSimulator(): Boolean =
+        NSProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != null
     /**
      * One-shot read; returns X, Y, Z in m/s² plus epoch-millis timestamp.
      *
@@ -27,10 +30,20 @@ actual class AccelerometerProvider {
      *
      * @throws IllegalStateException when the device has no accelerometer.
      */
-    actual suspend fun getAcceleration(): AccelerationData =
-        suspendCancellableCoroutine { cont ->
-            //log.d { "getAcceleration()" }
+    actual suspend fun getAcceleration(): AccelerationData {
+        // SIMULATOR: Return dummy/fake data (gravity only)
+        if (isSimulator()) {
+            log.w { "Simulating accelerometer data in Simulator" }
+            return AccelerationData(
+                x = 0.0f,
+                y = 0.0f,
+                z = 9.8f, // As if device is flat, showing gravity only
+                ts = (NSDate().timeIntervalSince1970 * 1000).toLong()
+            )
+        }
 
+        // REAL DEVICE: Use hardware as before
+        return suspendCancellableCoroutine { cont ->
             if (!motionManager.isAccelerometerAvailable()) {
                 cont.resumeWithException(
                     IllegalStateException("Accelerometer not available on this device")
@@ -39,10 +52,10 @@ actual class AccelerometerProvider {
             }
 
             // Match Android's SENSOR_DELAY_GAME (≈ 50 Hz, ~20 ms)
-            motionManager.accelerometerUpdateInterval = 0.02  // 50 Hz to match Android
+            motionManager.accelerometerUpdateInterval = 0.02  // 50 Hz
 
             motionManager.startAccelerometerUpdatesToQueue(
-                NSOperationQueue()  // Use background queue instead of main queue for consistency
+                NSOperationQueue()
             ) { data, error ->
 
                 when {
@@ -55,20 +68,15 @@ actual class AccelerometerProvider {
 
                     data != null -> {
                         motionManager.stopAccelerometerUpdates()
-                        //log.d { "onAccelerometerUpdate" }
-
-                        // Safely unwrap CMAcceleration struct (x, y, z)
-                        // Keep as Float to match Android SensorEvent.values type
                         val (x, y, z) = data.acceleration.useContents {
                             Triple(x.toFloat(), y.toFloat(), z.toFloat())
                         }
-
                         cont.resume(
                             AccelerationData(
-                                x  = x,
-                                y  = y,
-                                z  = z,
-                                ts = (NSDate().timeIntervalSince1970 * 1000).toLong() // matches System.currentTimeMillis
+                                x = x,
+                                y = y,
+                                z = z,
+                                ts = (NSDate().timeIntervalSince1970 * 1000).toLong()
                             )
                         )
                     }
@@ -90,4 +98,5 @@ actual class AccelerometerProvider {
                 )
             }
         }
+    }
 }

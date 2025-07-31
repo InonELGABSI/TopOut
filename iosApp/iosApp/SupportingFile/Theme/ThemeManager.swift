@@ -19,8 +19,8 @@ final class ThemeManager: ObservableObject {
     // MARK: Storage
     private let prefs = ThemePreferences()
     private init() {
-        palette    = prefs.getThemePalette()
-        isDarkMode = prefs.getDarkMode(fallback: false)
+        palette    = ThemePreferences.getThemePalette()
+        isDarkMode = ThemePreferences.getDarkMode(fallback: false)
     }
     
     // MARK: Value injected into the view hierarchy
@@ -36,7 +36,7 @@ final class ThemeManager: ObservableObject {
         self.palette    = newPalette          // ✅ property assignment
         self.isDarkMode = darkMode            // ✅ property assignment
         
-        prefs.saveThemePalette(newPalette)
-        prefs.saveDarkMode(darkMode)
+        ThemePreferences.saveThemePalette(newPalette)
+        ThemePreferences.saveDarkMode(darkMode)
     }
 }

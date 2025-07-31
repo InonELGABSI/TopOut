@@ -8,14 +8,26 @@
 
 /* Begin PBXBuildFile section */
 		A34733E22E39705900F48612 /* README_iOS_IMPLEMENTATION.md in Resources */ = {isa = PBXBuildFile; fileRef = A34733E12E39705900F48612 /* README_iOS_IMPLEMENTATION.md */; };
-		A3F4AC9A2E3A475800DE5B94 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = A3F4AC992E3A475800DE5B94 /* Lottie */; };
-		A3F4AC9C2E3A475800DE5B94 /* Lottie-Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = A3F4AC9B2E3A475800DE5B94 /* Lottie-Dynamic */; };
+		A3CCFCC32E3BAD3F00207333 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = A3CCFCC22E3BAD3F00207333 /* Lottie */; };
 		A3F8C7FF2E11B6CE006C17E3 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A3F8C7FE2E11B6CE006C17E3 /* FirebaseAnalytics */; };
 		A3F8C8012E11B6CE006C17E3 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A3F8C8002E11B6CE006C17E3 /* FirebaseAuth */; };
 		A3F8C8032E11B6CE006C17E3 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = A3F8C8022E11B6CE006C17E3 /* FirebaseCore */; };
 		A3F8C8052E11B6CE006C17E3 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = A3F8C8042E11B6CE006C17E3 /* FirebaseCrashlytics */; };
 		A3F8C8072E11B6CE006C17E3 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = A3F8C8062E11B6CE006C17E3 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A3827FB52E3B9F9200D6B274 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A34733E12E39705900F48612 /* README_iOS_IMPLEMENTATION.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README_iOS_IMPLEMENTATION.md; sourceTree = "<group>"; };
@@ -53,25 +65,32 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A3F4AC9C2E3A475800DE5B94 /* Lottie-Dynamic in Frameworks */,
 				A3F8C7FF2E11B6CE006C17E3 /* FirebaseAnalytics in Frameworks */,
 				A3F8C8052E11B6CE006C17E3 /* FirebaseCrashlytics in Frameworks */,
 				A3F8C8032E11B6CE006C17E3 /* FirebaseCore in Frameworks */,
 				A3F8C8072E11B6CE006C17E3 /* FirebaseFirestore in Frameworks */,
 				A3F8C8012E11B6CE006C17E3 /* FirebaseAuth in Frameworks */,
-				A3F4AC9A2E3A475800DE5B94 /* Lottie in Frameworks */,
+				A3CCFCC32E3BAD3F00207333 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		A3827FB62E3B9F9E00D6B274 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		B9DA97A82DC1472C00A4DA20 = {
 			isa = PBXGroup;
 			children = (
 				A34733E12E39705900F48612 /* README_iOS_IMPLEMENTATION.md */,
 				B9DA98002DC14AA900A4DA20 /* Configuration */,
 				B9DA97B32DC1472C00A4DA20 /* iosApp */,
+				A3827FB62E3B9F9E00D6B274 /* Frameworks */,
 				B9DA97B22DC1472C00A4DA20 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -95,6 +114,7 @@
 				B9DA97AD2DC1472C00A4DA20 /* Sources */,
 				B9DA97AE2DC1472C00A4DA20 /* Frameworks */,
 				B9DA97AF2DC1472C00A4DA20 /* Resources */,
+				A3827FB52E3B9F9200D6B274 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -110,8 +130,7 @@
 				A3F8C8022E11B6CE006C17E3 /* FirebaseCore */,
 				A3F8C8042E11B6CE006C17E3 /* FirebaseCrashlytics */,
 				A3F8C8062E11B6CE006C17E3 /* FirebaseFirestore */,
-				A3F4AC992E3A475800DE5B94 /* Lottie */,
-				A3F4AC9B2E3A475800DE5B94 /* Lottie-Dynamic */,
+				A3CCFCC22E3BAD3F00207333 /* Lottie */,
 			);
 			productName = iosApp;
 			productReference = B9DA97B12DC1472C00A4DA20 /* TopOut.app */;
@@ -125,7 +144,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1620;
-				LastUpgradeCheck = 1620;
+				LastUpgradeCheck = 1640;
 				TargetAttributes = {
 					B9DA97B02DC1472C00A4DA20 = {
 						CreatedOnToolsVersion = 16.2;
@@ -143,7 +162,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A3F8C7FD2E11B6CE006C17E3 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				A3F4AC982E3A475800DE5B94 /* XCRemoteSwiftPackageReference "lottie-ios" */,
+				A3CCFCC12E3BAD3F00207333 /* XCRemoteSwiftPackageReference "lottie-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B9DA97B22DC1472C00A4DA20 /* Products */;
@@ -234,6 +253,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "${TEAM_ID}";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -297,6 +317,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "${TEAM_ID}";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -328,7 +349,6 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
-				DEVELOPMENT_TEAM = "${TEAM_ID}";
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -361,7 +381,6 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
-				DEVELOPMENT_TEAM = "${TEAM_ID}";
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -408,9 +427,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		A3F4AC982E3A475800DE5B94 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+		A3CCFCC12E3BAD3F00207333 /* XCRemoteSwiftPackageReference "lottie-spm" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/airbnb/lottie-ios.git";
+			repositoryURL = "https://github.com/airbnb/lottie-spm.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 4.5.2;
@@ -427,15 +446,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A3F4AC992E3A475800DE5B94 /* Lottie */ = {
+		A3CCFCC22E3BAD3F00207333 /* Lottie */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A3F4AC982E3A475800DE5B94 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			package = A3CCFCC12E3BAD3F00207333 /* XCRemoteSwiftPackageReference "lottie-spm" */;
 			productName = Lottie;
-		};
-		A3F4AC9B2E3A475800DE5B94 /* Lottie-Dynamic */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A3F4AC982E3A475800DE5B94 /* XCRemoteSwiftPackageReference "lottie-ios" */;
-			productName = "Lottie-Dynamic";
 		};
 		A3F8C7FE2E11B6CE006C17E3 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;

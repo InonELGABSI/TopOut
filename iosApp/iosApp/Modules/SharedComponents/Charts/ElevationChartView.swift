@@ -108,26 +108,26 @@ struct ElevationChartView: View {
             
             return ElevationPoint(
                 distance: cumulativeDistance / 1000, // Convert to km
-                elevation: point.altitude?.doubleValue ?? 0.0
+                elevation: point.altitude?.double ?? 0.0
             )
         }
     }
     
     private var minElevation: Double {
-        trackPoints.compactMap { $0.altitude?.doubleValue }.min() ?? 0
+        trackPoints.compactMap { $0.altitude?.double }.min() ?? 0
     }
     
     private var maxElevation: Double {
-        trackPoints.compactMap { $0.altitude?.doubleValue }.max() ?? 0
+        trackPoints.compactMap { $0.altitude?.double }.max() ?? 0
     }
     
     private func calculateDistance(from point1: TrackPoint, to point2: TrackPoint) -> Double {
         // Simple distance calculation between two GPS coordinates
         // Using Haversine formula
-        let lat1 = (point1.latitude?.doubleValue ?? 0.0) * Double.pi / 180
-        let lon1 = (point1.longitude?.doubleValue ?? 0.0) * Double.pi / 180
-        let lat2 = (point2.latitude?.doubleValue ?? 0.0) * Double.pi / 180
-        let lon2 = (point2.longitude?.doubleValue ?? 0.0) * Double.pi / 180
+        let lat1 = (point1.latitude?.double ?? 0.0) * Double.pi / 180
+        let lon1 = (point1.longitude?.double ?? 0.0) * Double.pi / 180
+        let lat2 = (point2.latitude?.double ?? 0.0) * Double.pi / 180
+        let lon2 = (point2.longitude?.double ?? 0.0) * Double.pi / 180
         
         let dlon = lon2 - lon1
         let dlat = lat2 - lat1
@@ -168,7 +168,7 @@ struct LegacyElevationChart: View {
                 let maxElevation = elevationData.map { $0.elevation }.max() ?? 0
                 let minElevation = elevationData.map { $0.elevation }.min() ?? 0
                 let elevationRange = max(maxElevation - minElevation, 1)
-                let maxDistance = elevationData.map { $0.distance }.max() ?? 1
+                let _ = elevationData.map { $0.distance }.max() ?? 1
                 
                 let pointSpacing = width / CGFloat(elevationData.count - 1)
                 

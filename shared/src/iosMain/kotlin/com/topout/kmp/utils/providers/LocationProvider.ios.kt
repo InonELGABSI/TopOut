@@ -15,14 +15,21 @@ import kotlin.coroutines.resumeWithException
 import co.touchlab.kermit.Logger
 
 /**
- * Simple location provider that gets fresh location data every time.
- *
- * • Requires `NSLocationWhenInUseUsageDescription` (or Always) in Info.plist.
- * • Returns latitude/longitude/altitude/speed + epoch-ms timestamp.
- * • Automatically stops Core Location once a single fix is delivered.
- * • Matches Android behavior with timeout and fallback strategies.
+ * Koin-safe wrapper for location functionality that delegates to CoreLocationDelegate
  */
-actual class LocationProvider : NSObject(), CLLocationManagerDelegateProtocol {
+actual class LocationProvider {
+    private val delegate = CoreLocationDelegate()
+
+    actual suspend fun getLocation(): LocationData {
+        return delegate.getLocation()
+    }
+}
+
+/**
+ * Internal Core Location delegate that extends NSObject.
+ * This class is NOT registered with Koin to avoid KClass issues.
+ */
+private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtocol {
 
     private val manager = CLLocationManager().apply {
         desiredAccuracy = kCLLocationAccuracyBest      // ≤10 m when hardware allows (matches Android PRIORITY_HIGH_ACCURACY)
@@ -34,7 +41,7 @@ actual class LocationProvider : NSObject(), CLLocationManagerDelegateProtocol {
     private var hasRequestedFreshLocation = false
 
     @OptIn(ExperimentalForeignApi::class)
-    actual suspend fun getLocation(): LocationData {
+    suspend fun getLocation(): LocationData {
         // Check if location services are enabled
         if (!CLLocationManager.locationServicesEnabled()) {
             throw IllegalStateException("Location services disabled")
@@ -47,7 +54,7 @@ actual class LocationProvider : NSObject(), CLLocationManagerDelegateProtocol {
                 hasRequestedFreshLocation = false
 
                 // Set up delegate to receive location updates
-                manager.delegate = this@LocationProvider
+                manager.delegate = this@CoreLocationDelegate
 
                 // Check authorization status and request permissions if needed
                 when (CLLocationManager.authorizationStatus()) {
