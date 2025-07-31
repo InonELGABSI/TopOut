@@ -18,10 +18,10 @@ enum class SortOption {
 
 class SessionsViewModel (
     private val useCases: SessionsUseCases
-) : BaseViewModel() {
+) : BaseViewModel<SessionsState>() {
 
-    private val _uiState: MutableStateFlow<SessionsState> = MutableStateFlow<SessionsState>(SessionsState.Loading)
-    val uiState:StateFlow<SessionsState> get()= _uiState
+    private val _uiState: MutableStateFlow<SessionsState> = MutableStateFlow(SessionsState.Loading)
+    override val uiState:StateFlow<SessionsState> get()= _uiState
 
     private var originalSessions: List<Session> = emptyList()
     private var currentSortOption: SortOption = SortOption.DATE_NEWEST

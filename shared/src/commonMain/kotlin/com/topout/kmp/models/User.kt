@@ -16,7 +16,7 @@ data class User(
     val totalHeightFromStartThr: Double? = 0.0,
     val currentAvgHeightSpeedThr: Double? = 0.0,
 
-    val userUpdatedOffline: Boolean = false,
+    val userUpdatedOffline: Boolean? = false,
 
     val createdAt: Long? = nowEpochMillis(),
     val updatedAt: Long? = nowEpochMillis()

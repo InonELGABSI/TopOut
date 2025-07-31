@@ -30,7 +30,7 @@ class SyncOfflineChanges(
                 is Result.Success -> {
                     val user = userResult.data
                     if (user != null) {
-                        if (user.userUpdatedOffline) {
+                        if (user.userUpdatedOffline == true) {
                             try {
                                 // Update user on remote
                                 val updateUserResult = remoteRepository.updateUser(user)
