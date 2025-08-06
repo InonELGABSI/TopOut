@@ -200,30 +200,40 @@ struct SessionsContentView: View {
         }
     }
 
+    // MARK: - Card list with vertical overlap
     private func sessionsGrid(sessions: [Session]) -> some View {
-        ScrollView {
-            LazyVStack(spacing: 16) {
-                ForEach(sessions, id: \.id) { session in
+        // How far each card should overlap the previous one
+        let overlap: CGFloat = 32                  // tweak to taste
+
+        return ScrollView {
+            // Negative spacing does most of the work;
+            // we still set zIndex so later cards sit on top.
+            LazyVStack(spacing: -overlap,
+                       pinnedViews: []) {          // no section headers, but keeps API explicit
+                ForEach(Array(sessions.enumerated()), id: \.element.id) { index, session in
                     Button {
                         onSessionSelected(session)
                     } label: {
                         SessionCard(
                             session: session,
-                            onSessionClick: { _ in
-                                onSessionSelected(session)
-                            }
+                            onSessionClick: { _ in onSessionSelected(session) }
                         )
-                        .padding(.horizontal)
+                        // the *first* card keeps its natural top-edge;
+                        // everyone else moves up by the overlap amount
+                        .padding(.top, index == 0 ? 0 : overlap)
+                        // newer / lower cards appear *above* older / higher ones
+                        .zIndex(Double(index))
                     }
-                    .buttonStyle(PlainButtonStyle())
+                    .buttonStyle(.plain)
                 }
                 
-                // Extra padding at the bottom
+                // extra scroll-room below the final card
                 Color.clear.frame(height: 80)
             }
-            .padding(.top, 8)
+            .padding(.top, 8)                      // initial breathing-space
         }
     }
+
 }
 
 

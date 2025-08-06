@@ -13,9 +13,11 @@ struct SettingsView: View {
 
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
+    @AppStorage("isDarkModeEnabled") private var isDarkModeEnabled: Bool = false
 
     private var colors: TopOutColorScheme {
-        (ThemePalette(rawValue: selectedTheme) ?? .classicRed).scheme(for: colorScheme)
+        let effectiveColorScheme: ColorScheme = isDarkModeEnabled ? .dark : .light
+        return (ThemePalette(rawValue: selectedTheme) ?? .classicRed).scheme(for: effectiveColorScheme)
     }
 
     var body: some View {
@@ -398,29 +400,33 @@ struct ThresholdsCard: View {
 
 
 struct ThemeCard: View {
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    @Environment(\.colorScheme) private var colorScheme
-    @State private var isDarkMode: Bool = false
-
+    @AppStorage("selectedTheme") private var selectedTheme = ThemePalette.classicRed.rawValue
+    @AppStorage("isDarkModeEnabled") private var isDark = false
     let colors: TopOutColorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+
+            // — Header row —
             HStack {
-                HStack(spacing: 8) {
-                    Image(systemName: "paintpalette.fill")
-                        .foregroundColor(colors.primary)
-                    Text("Theme")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(colors.onSurface)
-                }
-                Spacer()
-                // Optional: Toggle for dark mode (if you want)
+                Label("Theme", systemImage: "paintpalette.fill")
+                    .foregroundColor(colors.primary)
+                    .labelStyle(.titleAndIcon)                // icon + text
+                    .font(.title2.bold())
+                    .foregroundColor(colors.onSurface)
+
+                Spacer(minLength: 0)
+
+                LottieToggleButton(isToggled: isDark,
+                                   onToggle: handleToggle,
+                                   height: 60)
+                    .frame(width: 80, height: 60)             // explicit square
+                    .fixedSize()                              // iOS 15 safeguard :contentReference[oaicite:3]{index=3}
             }
+            .frame(maxWidth: .infinity)                       // space-between magic
+
             Text("Color Palette")
-                .font(.subheadline)
-                .fontWeight(.medium)
+                .font(.subheadline.weight(.medium))
                 .foregroundColor(colors.onSurfaceVariant)
 
             VStack(spacing: 12) {
@@ -430,18 +436,27 @@ struct ThemeCard: View {
                         isSelected: selectedTheme == palette.rawValue,
                         name: palette.displayName,
                         colors: colors,
-                        onSelect: { selected in
-                            selectedTheme = selected.rawValue
-                        }
+                        onSelect: { selectedTheme = $0.rawValue }
                     )
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)      // card fills parent
         .padding(20)
         .background(colors.surface)
         .cornerRadius(16, corners: [.bottomLeft, .bottomRight])
     }
+
+    private func handleToggle(_ toggled: Bool) {
+        isDark = toggled
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.windows.first?
+            .overrideUserInterfaceStyle = toggled ? .dark : .light
+    }
 }
+
+
 
 // MARK: - Field Components
 
@@ -656,20 +671,24 @@ struct ThemeOptionItem: View {
 struct ColorPalettePreview: View {
     let palette: ThemePalette
     let colors: TopOutColorScheme
+    @AppStorage("isDarkModeEnabled") private var isDarkModeEnabled: Bool = false
 
     var body: some View {
+        let effectiveColorScheme: ColorScheme = isDarkModeEnabled ? .dark : .light
+        let paletteColors = palette.scheme(for: effectiveColorScheme)
+        
         HStack(spacing: 2) {
             RoundedRectangle(cornerRadius: 4)
-                .fill(colors.primary)
+                .fill(paletteColors.primary)
                 .frame(maxWidth: .infinity)
             RoundedRectangle(cornerRadius: 4)
-                .fill(colors.secondary)
+                .fill(paletteColors.secondary)
                 .frame(maxWidth: .infinity)
             RoundedRectangle(cornerRadius: 4)
-                .fill(colors.surfaceVariant)
+                .fill(paletteColors.surfaceVariant)
                 .frame(maxWidth: .infinity)
             RoundedRectangle(cornerRadius: 4)
-                .fill(colors.primaryContainer)
+                .fill(paletteColors.primaryContainer)
                 .frame(maxWidth: .infinity)
         }
         .frame(height: 30)
@@ -787,4 +806,3 @@ struct EditableUser {
         )
     }
 }
-

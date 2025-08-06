@@ -37,9 +37,14 @@ struct SessionCard: View {
         }
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(colors.surface)
-                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+            colors.surface                      // your fill colour
+                .clipShape(                     // ⬅️ choose which corners
+                    .rect(
+                        topLeadingRadius: 24,
+                        topTrailingRadius: 24
+                    )
+                )
+                .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
         )
         .onTapGesture {
             onSessionClick(session)

@@ -1,38 +1,102 @@
-
-//==============================================================
-//  ActiveSessionContent.swift
-//  (unchanged – your implementation)
-//==============================================================
-
 import SwiftUI
 import MapKit
 import Shared
 
 struct ActiveSessionContent: View {
-    let trackPoint: TrackPoint
-    let trackPoints: [TrackPoint]
+    // MARK: – Inputs
+    let trackPoint:        TrackPoint
+    let trackPoints:       [TrackPoint]
     @Binding var mapRegion: MKCoordinateRegion
-    let onStopClicked: () -> Void
-    let onCancelClicked: () -> Void
-    let colors: TopOutColorScheme
+    let onStopClicked:     () -> Void
+    let onCancelClicked:   () -> Void
+    let colors:            TopOutColorScheme
     
+    private let overlap: CGFloat = 18   // live panel rises 18 pt under map
+    
+    // MARK: – Body
     var body: some View {
-        ZStack {
+        VStack(spacing: 0) {
+            /* ────────── MAP ────────── */
             MapView(trackPoints: trackPoints, region: $mapRegion)
                 .ignoresSafeArea(edges: .top)
-                .frame(height: UIScreen.main.bounds.height * 0.6)
+                .frame(height: UIScreen.main.bounds.height * 0.50)
+                .clipShape(.rect(bottomLeadingRadius: 24,
+                                 bottomTrailingRadius: 24))
+                .zIndex(1)                              // stays in front
             
-            VStack {
-                Spacer(minLength: UIScreen.main.bounds.height * 0.55)
+            /* ────────── LIVE DATA PANEL ────────── */
+            VStack(spacing: 0) {
                 LiveDataCard(trackPoint: trackPoint, colors: colors)
-                BottomControls(onStopClicked: onStopClicked, onCancelClicked: onCancelClicked)
-                    .padding(.bottom, 32)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 0)                   // nice top air
+                    .padding(.bottom, 24)                // bottom air inside panel
             }
+            .frame(maxWidth: .infinity, alignment: .top)
+            .background(
+                colors.primary
+                    .clipShape(.rect(bottomLeadingRadius: 24,
+                                     bottomTrailingRadius: 24))
+            )
+            .offset(y: -overlap)                         // tuck under map
+            .zIndex(0)
+            
+            /* ────────── BUTTONS (now OUTSIDE panel) ────────── */
+            BottomControls(onStopClicked:  onStopClicked,
+                           onCancelClicked: onCancelClicked)
+                .padding(.top, 12)                       // little gap below panel
+                .offset(y: -overlap)                         // tuck under map
+
+        }
+        .background(colors.background)                   // fallback colour
+    }
+}
+
+
+
+
+
+
+private struct RoundedCornerBackground: View {
+    let color: Color
+    let topLeft: CGFloat
+    let topRight: CGFloat
+    let bottomLeft: CGFloat
+    let bottomRight: CGFloat
+    
+    var body: some View {
+        GeometryReader { geo in
+            RoundedRectangle(cornerRadius: 0) // ignore, we use path below
+                .fill(color)
+                .overlay(
+                    Path { path in
+                        let w = geo.size.width, h = geo.size.height
+                        path.move(to: CGPoint(x: 0, y: 0))
+                        path.addLine(to: CGPoint(x: w, y: 0))
+                        path.addLine(to: CGPoint(x: w, y: h - bottomRight))
+                        path.addArc(
+                            center: CGPoint(x: w - bottomRight, y: h - bottomRight),
+                            radius: bottomRight,
+                            startAngle: .degrees(0),
+                            endAngle: .degrees(90),
+                            clockwise: false
+                        )
+                        path.addLine(to: CGPoint(x: bottomLeft, y: h))
+                        path.addArc(
+                            center: CGPoint(x: bottomLeft, y: h - bottomLeft),
+                            radius: bottomLeft,
+                            startAngle: .degrees(90),
+                            endAngle: .degrees(180),
+                            clockwise: false
+                        )
+                        path.addLine(to: CGPoint(x: 0, y: 0))
+                    }
+                    .fill(color)
+                )
         }
     }
 }
 
-// MARK: – Sub-views used inside ActiveSessionContent
+// --- the rest (cards, controls) unchanged ---
 
 private struct LiveDataCard: View {
     let trackPoint: TrackPoint
@@ -45,8 +109,8 @@ private struct LiveDataCard: View {
             SpeedAltitudeRow(trackPoint: trackPoint, colors: colors)
         }
         .padding(20)
-        .background(colors.surface)
-        .cornerRadius(24, corners: [.topLeft, .topRight])
+        .background(colors.background.opacity(0.85))
+        .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 }
 
@@ -199,7 +263,7 @@ private struct BottomControls: View {
                 icon:     "xmark",
                 gradient: [Color(red: 0.90, green: 0.45, blue: 0.45),
                            Color(red: 0.80, green: 0.18, blue: 0.18)],
-                corners:  [.topLeft, .bottomLeft],      // ← fixed
+                corners:  [.topRight, .bottomRight],
                 action:   onCancelClicked
             )
             ControlButton(
@@ -207,13 +271,12 @@ private struct BottomControls: View {
                 icon:     "stop.fill",
                 gradient: [Color(red: 0.22, green: 0.55, blue: 0.24),
                            Color(red: 0.40, green: 0.73, blue: 0.42)],
-                corners:  [.topRight, .bottomRight],    // ← fixed
+                corners:  [.topLeft, .bottomLeft],
                 action:   onStopClicked
             )
         }
     }
 }
-
 
 private struct ControlButton: View {
     let label: String
@@ -221,7 +284,7 @@ private struct ControlButton: View {
     let gradient: [Color]
     let corners: UIRectCorner
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
@@ -237,3 +300,6 @@ private struct ControlButton: View {
         }
     }
 }
+
+
+

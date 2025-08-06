@@ -60,7 +60,7 @@ struct LiveSessionView: View {
                     animationAsset: "Travel_Mountain", // your asset name
                     speed: 1.2,
                     animationSize: 220,
-                    iterations: 0 // 0 means infinite loop
+                    iterations: 1 // 0 means infinite loop
                 )
                 StartSessionContent(
                     hasLocationPermission: hasLocationPermission,
