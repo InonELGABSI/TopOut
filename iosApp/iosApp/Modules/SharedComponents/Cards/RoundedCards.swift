@@ -2,37 +2,32 @@ import SwiftUI
 
 struct TopRoundedCard<Content: View>: View {
     let content: Content
+    let backgroundColor: Color
     
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
-    
-    init(@ViewBuilder content: () -> Content) {
+    init(
+        backgroundColor: Color = Color.white, // default for backwards compatibility
+        @ViewBuilder content: () -> Content
+    ) {
+        self.backgroundColor = backgroundColor
         self.content = content()
     }
     
     var body: some View {
         content
             .padding()
-            .background(colors.surface)
+            .background(backgroundColor)
             .clipShape(
                 UnevenRoundedRectangle(
-                    topLeadingRadius: 16,
-                    bottomLeadingRadius: 0,
-                    bottomTrailingRadius: 0,
-                    topTrailingRadius: 16
+                    topLeadingRadius: 0,
+                    bottomLeadingRadius: 16,
+                    bottomTrailingRadius: 16,
+                    topTrailingRadius: 0
                 )
             )
             .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
 }
+
 
 struct BottomRoundedCard<Content: View>: View {
     let content: Content

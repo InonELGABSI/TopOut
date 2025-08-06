@@ -44,7 +44,7 @@ struct SessionCard: View {
                         topTrailingRadius: 24
                     )
                 )
-                .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
+                .shadow(color: .black.opacity(0.08), radius: 3, x: 0, y: -3)
         )
         .onTapGesture {
             onSessionClick(session)

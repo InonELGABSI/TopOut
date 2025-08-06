@@ -40,6 +40,9 @@ struct HistoryView: View {
                         },
                         onDeleteSession: { sessionId in
                             // TODO: Add delete functionality to SessionsViewModel
+                        },
+                        onSearchTextChanged: { searchText in
+                            viewModel.viewModel.searchSessions(searchText: searchText)
                         }
                     )
                 } else if let errorState = viewModel.uiState as? SessionsState.Error {
@@ -49,17 +52,6 @@ struct HistoryView: View {
                             viewModel.viewModel.fetchSessions()
                         }
                     )
-                }
-            }
-            .navigationTitle("Sessions History")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        viewModel.viewModel.fetchSessions()
-                    }) {
-                        Image(systemName: "arrow.clockwise")
-                            .foregroundColor(colors.primary)
-                    }
                 }
             }
             .onAppear {
@@ -131,85 +123,150 @@ struct SessionsContentView: View {
     let onRefresh: () -> Void
     let onSortOrderSelected: (SortOption) -> Void
     let onDeleteSession: (String) -> Void
-    
+    let onSearchTextChanged: (String) -> Void
+
     @State private var sessionIdToDelete: String? = nil
     @State private var currentSortOrder: SortOption = .dateNewest
+    @State private var searchText: String = ""
+    @FocusState private var isSearchFieldFocused: Bool
 
-    // Our consistent color system pattern
+    // Color system
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
+
     private var currentTheme: ThemePalette {
         ThemePalette(rawValue: selectedTheme) ?? .classicRed
     }
-    
     private var colors: TopOutColorScheme {
         currentTheme.scheme(for: colorScheme)
     }
-    
-    var body: some View {
-        VStack(spacing: 0) {
 
-            // Simple sort picker for now
-            Picker("Sort", selection: $currentSortOrder) {
-                Text("Date (Newest)").tag(SortOption.dateNewest)
-                Text("Date (Oldest)").tag(SortOption.dateOldest)
-                Text("Duration (Longest)").tag(SortOption.durationLongest)
-                Text("Duration (Shortest)").tag(SortOption.durationShortest)
-                Text("Ascent (Highest)").tag(SortOption.ascentHighest)
-                Text("Ascent (Lowest)").tag(SortOption.ascentLowest)
-            }
-            .pickerStyle(MenuPickerStyle())
-            .onChange(of: currentSortOrder) { _, newValue in
-                onSortOrderSelected(newValue)
-            }
-            .padding(.horizontal)
-            .padding(.top, 8)
-            
-            if let sessions = state.sessions, !sessions.isEmpty {
-                sessionsGrid(sessions: sessions)
-            } else {
-                EmptyStateView(
-                    title: "No Sessions Found",
-                    message: "Start recording your first climbing session!",
-                    actionText: "Refresh",
-                    systemImage: "mountain.2",
-                    onActionTapped: onRefresh
-                )
-            }
+    // Computed property for sort display text
+    private var sortDisplayText: String {
+        switch currentSortOrder {
+        case .dateNewest: return "Date (Newest)"
+        case .dateOldest: return "Date (Oldest)"
+        case .durationLongest: return "Duration (Longest)"
+        case .durationShortest: return "Duration (Shortest)"
+        case .ascentHighest: return "Ascent (Highest)"
+        case .ascentLowest: return "Ascent (Lowest)"
         }
-        .confirmationDialog(
-            "Delete Session",
-            isPresented: Binding(
-                get: { sessionIdToDelete != nil },
-                set: { if !$0 { sessionIdToDelete = nil } }
-            ),
-            titleVisibility: .visible
-        ) {
-            Button("Delete", role: .destructive) {
-                if let id = sessionIdToDelete {
-                    onDeleteSession(id)
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                // --- Top Card: Sessions History & Sort ---
+                TopRoundedCard(backgroundColor: colors.primary) {
+                    VStack(spacing: 16) {
+                        // First row: Title
+                        HStack {
+                            Text("Sessions History")
+                                .font(.title2.bold())
+                                .foregroundColor(colors.onPrimary)
+                            Spacer()
+                        }
+
+                        // Second row: Sort button and search field
+                        HStack(spacing: 12) {
+                            // Sort picker on the left - styled as chip with Menu
+                            Menu {
+                                Button("Date (Newest)") {
+                                    currentSortOrder = .dateNewest
+                                    onSortOrderSelected(.dateNewest)
+                                }
+                                Button("Date (Oldest)") {
+                                    currentSortOrder = .dateOldest
+                                    onSortOrderSelected(.dateOldest)
+                                }
+                                Button("Duration (Longest)") {
+                                    currentSortOrder = .durationLongest
+                                    onSortOrderSelected(.durationLongest)
+                                }
+                                Button("Duration (Shortest)") {
+                                    currentSortOrder = .durationShortest
+                                    onSortOrderSelected(.durationShortest)
+                                }
+                                Button("Ascent (Highest)") {
+                                    currentSortOrder = .ascentHighest
+                                    onSortOrderSelected(.ascentHighest)
+                                }
+                                Button("Ascent (Lowest)") {
+                                    currentSortOrder = .ascentLowest
+                                    onSortOrderSelected(.ascentLowest)
+                                }
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Text(sortDisplayText)
+                                        .foregroundColor(colors.onPrimary)
+                                        .lineLimit(1)
+                                    Image(systemName: "chevron.down")
+                                        .foregroundColor(colors.onPrimary)
+                                        .font(.caption)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(colors.onPrimary.opacity(0.2))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(colors.onPrimary.opacity(0.3), lineWidth: 1)
+                                )
+                            }
+
+                            // Search field on the right - styled as chip
+                            TextField("Session name", text: $searchText)
+                                .focused($isSearchFieldFocused)
+                                .foregroundColor(colors.onPrimary)
+                                .textFieldStyle(PlainTextFieldStyle())
+                                .onChange(of: searchText) { _, newValue in
+                                    onSearchTextChanged(newValue)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(colors.onPrimary.opacity(0.2))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(colors.onPrimary.opacity(0.3), lineWidth: 1)
+                                )
+                        }
+                    }
+                    .padding(.top, geometry.safeAreaInsets.top)
                 }
-                sessionIdToDelete = nil
+
+                // --- Content ---
+                if let sessions = state.sessions, !sessions.isEmpty {
+                    sessionsGrid(sessions: sessions)
+                } else {
+                    EmptyStateView(
+                        title: "No Sessions Found",
+                        message: "Start recording your first climbing session!",
+                        actionText: "Refresh",
+                        systemImage: "mountain.2",
+                        onActionTapped: onRefresh
+                    )
+                }
             }
-            Button("Cancel", role: .cancel) {
-                sessionIdToDelete = nil
+            .background(colors.background.ignoresSafeArea())
+            .edgesIgnoringSafeArea(.top)
+            .onTapGesture {
+                // Dismiss keyboard when tapping outside
+                isSearchFieldFocused = false
             }
-        } message: {
-            Text("This action cannot be undone.")
         }
     }
 
     // MARK: - Card list with vertical overlap
     private func sessionsGrid(sessions: [Session]) -> some View {
-        // How far each card should overlap the previous one
-        let overlap: CGFloat = 32                  // tweak to taste
+        let overlap: CGFloat = 32 // how far each card should overlap the previous one
 
         return ScrollView {
-            // Negative spacing does most of the work;
-            // we still set zIndex so later cards sit on top.
-            LazyVStack(spacing: -overlap,
-                       pinnedViews: []) {          // no section headers, but keeps API explicit
+            LazyVStack(spacing: -overlap, pinnedViews: []) {
                 ForEach(Array(sessions.enumerated()), id: \.element.id) { index, session in
                     Button {
                         onSessionSelected(session)
@@ -218,23 +275,20 @@ struct SessionsContentView: View {
                             session: session,
                             onSessionClick: { _ in onSessionSelected(session) }
                         )
-                        // the *first* card keeps its natural top-edge;
-                        // everyone else moves up by the overlap amount
                         .padding(.top, index == 0 ? 0 : overlap)
-                        // newer / lower cards appear *above* older / higher ones
                         .zIndex(Double(index))
                     }
                     .buttonStyle(.plain)
                 }
-                
                 // extra scroll-room below the final card
                 Color.clear.frame(height: 80)
             }
-            .padding(.top, 8)                      // initial breathing-space
+            .padding(.top, 8) // initial breathing-space
         }
     }
-
 }
+
+
 
 
 // Extension to help with state pattern matching
