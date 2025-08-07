@@ -195,123 +195,18 @@ struct SessionsContentView: View {
         currentTheme.scheme(for: colorScheme)
     }
 
-    // Computed property for sort display text
-    private var sortDisplayText: String {
-        switch currentSortOrder {
-        case .dateNewest: return "Date (Newest)"
-        case .dateOldest: return "Date (Oldest)"
-        case .durationLongest: return "Duration (Longest)"
-        case .durationShortest: return "Duration (Shortest)"
-        case .ascentHighest: return "Ascent (Highest)"
-        case .ascentLowest: return "Ascent (Lowest)"
-        }
-    }
-
     var body: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 0) {
-                // --- Top Card: Sessions History & Sort ---
-                TopRoundedCard(backgroundColor: colors.primary) {
-                    VStack(spacing: 16) {
-                        // First row: Title
-                        HStack {
-                            Text("Sessions History")
-                                .font(.title2.bold())
-                                .foregroundColor(colors.onPrimary)
-                            Spacer()
-                        }
-
-                        // Second row: Sort button and search field
-                        HStack(spacing: 12) {
-                            // Sort picker on the left - styled as chip with Menu
-                            Menu {
-                                Button("Date (Newest)") {
-                                    currentSortOrder = .dateNewest
-                                    onSortOrderSelected(.dateNewest)
-                                }
-                                Button("Date (Oldest)") {
-                                    currentSortOrder = .dateOldest
-                                    onSortOrderSelected(.dateOldest)
-                                }
-                                Button("Duration (Longest)") {
-                                    currentSortOrder = .durationLongest
-                                    onSortOrderSelected(.durationLongest)
-                                }
-                                Button("Duration (Shortest)") {
-                                    currentSortOrder = .durationShortest
-                                    onSortOrderSelected(.durationShortest)
-                                }
-                                Button("Ascent (Highest)") {
-                                    currentSortOrder = .ascentHighest
-                                    onSortOrderSelected(.ascentHighest)
-                                }
-                                Button("Ascent (Lowest)") {
-                                    currentSortOrder = .ascentLowest
-                                    onSortOrderSelected(.ascentLowest)
-                                }
-                            } label: {
-                                HStack(spacing: 8) {
-                                    Text(sortDisplayText)
-                                        .foregroundColor(colors.onPrimary)
-                                        .lineLimit(1)
-                                    Image(systemName: "chevron.down")
-                                        .foregroundColor(colors.onPrimary)
-                                        .font(.caption)
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(colors.onPrimary.opacity(0.2))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(colors.onPrimary.opacity(0.3), lineWidth: 1)
-                                )
-                            }
-
-                            // Search field on the right - styled as chip
-                            TextField("Session name", text: $searchText)
-                                .focused($isSearchFieldFocused)
-                                .foregroundColor(colors.onPrimary)
-                                .textFieldStyle(PlainTextFieldStyle())
-                                .onChange(of: searchText) { _, newValue in
-                                    onSearchTextChanged(newValue)
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(colors.onPrimary.opacity(0.2))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(colors.onPrimary.opacity(0.3), lineWidth: 1)
-                                )
-                        }
-                    }
-                    .padding(.top, geometry.safeAreaInsets.top)
-                }
-
-                // --- Content ---
-                if let sessions = state.sessions, !sessions.isEmpty {
-                    sessionsGrid(sessions: sessions)
-                } else {
-                    EmptyStateView(
-                        title: "No Sessions Found",
-                        message: "Start recording your first climbing session!",
-                        actionText: "Refresh",
-                        systemImage: "mountain.2",
-                        onActionTapped: onRefresh
-                    )
-                }
-            }
-            .background(colors.background.ignoresSafeArea())
-            .edgesIgnoringSafeArea(.top)
-            .onTapGesture {
-                // Dismiss keyboard when tapping outside
-                isSearchFieldFocused = false
-            }
+        // --- Content ---
+        if let sessions = state.sessions, !sessions.isEmpty {
+            sessionsGrid(sessions: sessions)
+        } else {
+            EmptyStateView(
+                title: "No Sessions Found",
+                message: "Start recording your first climbing session!",
+                actionText: "Refresh",
+                systemImage: "mountain.2",
+                onActionTapped: onRefresh
+            )
         }
     }
 
