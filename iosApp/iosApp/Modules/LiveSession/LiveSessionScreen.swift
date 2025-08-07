@@ -47,6 +47,8 @@ struct LiveSessionView: View {
                 Text("Are you sure you want to cancel this session? All tracking data will be permanently deleted and cannot be recovered.")
             }
         )
+        .ignoresSafeArea(edges: .top)  // Full-bleed for map view
+        .navigationBarHidden(true)     // Hide navigation bar completely for map experience
     }
     
     // MARK: – Computed Views

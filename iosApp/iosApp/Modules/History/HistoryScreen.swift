@@ -4,6 +4,8 @@ import Shared
 struct HistoryView: View {
     @ObservedObject private(set) var viewModel = ViewModelWrapper<SessionsState, SessionsViewModel>()
     @State private var selectedSession: Session?
+    @State private var searchText = ""
+    @State private var showingSortSheet = false
 
     // Our consistent color system pattern
     @Environment(\.colorScheme) private var colorScheme
@@ -19,48 +21,100 @@ struct HistoryView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                colors.background.ignoresSafeArea()
-                
-                // Use type checking instead of pattern matching for KMP enums
-                if viewModel.uiState is SessionsState.Loading {
-                    LoadingView()
-                } else if let loadedState = viewModel.uiState as? SessionsState.Loaded {
-                    SessionsContentView(
-                        state: loadedState,
-                        onSessionSelected: { session in
-                            selectedSession = session
-                        },
-                        onRefresh: {
-                            viewModel.viewModel.fetchSessions()
-                        },
-                        onSortOrderSelected: { sortOrder in
-                            viewModel.viewModel.sortSessions(sortOption: sortOrder)
-                        },
-                        onDeleteSession: { sessionId in
-                            // TODO: Add delete functionality to SessionsViewModel
-                        },
-                        onSearchTextChanged: { searchText in
-                            viewModel.viewModel.searchSessions(searchText: searchText)
-                        }
-                    )
-                } else if let errorState = viewModel.uiState as? SessionsState.Error {
-                    ErrorView(
-                        message: errorState.errorMessage,
-                        onRetry: {
-                            viewModel.viewModel.fetchSessions()
-                        }
-                    )
+        ZStack {
+            colors.background.ignoresSafeArea()
+
+            // Use type checking instead of pattern matching for KMP enums
+            if viewModel.uiState is SessionsState.Loading {
+                LoadingView()
+            } else if let loadedState = viewModel.uiState as? SessionsState.Loaded {
+                SessionsContentView(
+                    state: loadedState,
+                    onSessionSelected: { session in
+                        selectedSession = session
+                    },
+                    onRefresh: {
+                        viewModel.viewModel.fetchSessions()
+                    },
+                    onSortOrderSelected: { sortOrder in
+                        viewModel.viewModel.sortSessions(sortOption: sortOrder)
+                    },
+                    onDeleteSession: { sessionId in
+                        // TODO: Add delete functionality to SessionsViewModel
+                    },
+                    onSearchTextChanged: { searchText in
+                        viewModel.viewModel.searchSessions(searchText: searchText)
+                    }
+                )
+            } else if let errorState = viewModel.uiState as? SessionsState.Error {
+                ErrorView(
+                    message: errorState.errorMessage,
+                    onRetry: {
+                        viewModel.viewModel.fetchSessions()
+                    }
+                )
+            }
+        }
+        .searchable(text: $searchText, placement: .navigationBarDrawer)
+        .onChange(of: searchText) { _, newValue in
+            viewModel.viewModel.searchSessions(searchText: newValue)
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                Button(action: { showingSortSheet = true }) {
+                    Image(systemName: "arrow.up.arrow.down")
                 }
+                .frame(width: 44, height: 44)
             }
-            .onAppear {
-                viewModel.startObserving()
-                viewModel.viewModel.fetchSessions()
+        }
+        .sheet(isPresented: $showingSortSheet) {
+            SortOptionsSheet(
+                onSortSelected: { sortOption in
+                    viewModel.viewModel.sortSessions(sortOption: sortOption)
+                    showingSortSheet = false
+                }
+            )
+        }
+        .onAppear {
+            viewModel.startObserving()
+            viewModel.viewModel.fetchSessions()
+        }
+        .navigationDestination(item: $selectedSession) { session in
+            SessionDetailsView(sessionId: session.id)
+                .navigationTitle(session.title ?? "Session Details")
+                .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}
+
+// MARK: - Sort Options Sheet
+struct SortOptionsSheet: View {
+    let onSortSelected: (SortOption) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
+
+    private var colors: TopOutColorScheme {
+        (ThemePalette(rawValue: selectedTheme) ?? .classicRed).scheme(for: colorScheme)
+    }
+
+    var body: some View {
+        NavigationView {
+            List {
+                Button("Date (Newest)") { onSortSelected(.dateNewest) }
+                Button("Date (Oldest)") { onSortSelected(.dateOldest) }
+                Button("Duration (Longest)") { onSortSelected(.durationLongest) }
+                Button("Duration (Shortest)") { onSortSelected(.durationShortest) }
+                Button("Ascent (Highest)") { onSortSelected(.ascentHighest) }
+                Button("Ascent (Lowest)") { onSortSelected(.ascentLowest) }
             }
-            .navigationDestination(item: $selectedSession) { session in
-                SessionDetailsView(sessionId: session.id)
-                    .navigationTitle(session.title ?? "Session Details")
+            .navigationTitle("Sort Options")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
             }
         }
     }

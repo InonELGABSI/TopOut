@@ -16,7 +16,8 @@ struct SessionDetailsView: View {
     @State private var showDeleteConfirmation = false
     @State private var showEditTitleDialog = false
     @State private var editTitleText = ""
-    
+    @State private var showShareSheet = false
+
     init(sessionId: String) {
         self.viewModel.viewModel.loadSession(sessionId: sessionId)
     }
@@ -129,7 +130,20 @@ struct SessionDetailsView: View {
             }
 
         }
-        .navigationTitle("Session Details")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { showShareSheet = true }) {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .frame(width: 44, height: 44)
+            }
+        }
+        .sheet(isPresented: $showShareSheet) {
+            if let loadedState = viewModel.uiState as? SessionDetailsState.Loaded {
+                ShareSessionSheet(sessionDetails: loadedState.sessionDetails)
+            }
+        }
         .alert(isPresented: $showDeleteConfirmation) {
             Alert(
                 title: Text("Delete Session"),
@@ -165,6 +179,84 @@ struct SessionDetailsView: View {
         .onAppear {
             viewModel.startObserving()
         }
+    }
+}
+
+// MARK: - Share Session Sheet
+struct ShareSessionSheet: View {
+    let sessionDetails: SessionDetails
+    @Environment(\.dismiss) private var dismiss
+
+    @Environment(\.colorScheme) private var colorScheme
+    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
+
+    private var colors: TopOutColorScheme {
+        (ThemePalette(rawValue: selectedTheme) ?? .classicRed).scheme(for: colorScheme)
+    }
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 24) {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Share this climbing session")
+                        .font(.headline)
+                        .foregroundColor(colors.onSurface)
+
+                    Text("Session: \(sessionDetails.session.title ?? "Climbing Session")")
+                        .font(.subheadline)
+                        .foregroundColor(colors.onSurfaceVariant)
+
+                    Text("Duration: \(calculateSessionDuration(sessionDetails))")
+                        .font(.subheadline)
+                        .foregroundColor(colors.onSurfaceVariant)
+                }
+
+                VStack(spacing: 12) {
+                    ShareLink(
+                        item: generateShareText(),
+                        subject: Text("Climbing Session - \(sessionDetails.session.title ?? "Session")")
+                    ) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up")
+                            Text("Share Session Summary")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(colors.primary)
+                        .foregroundColor(colors.onPrimary)
+                        .cornerRadius(8)
+                    }
+                }
+
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("Share Session")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func generateShareText() -> String {
+        let title = sessionDetails.session.title ?? "Climbing Session"
+        let duration = calculateSessionDuration(sessionDetails)
+        let maxAlt = sessionDetails.points.map { $0.altitude?.double ?? 0.0 }.max() ?? 0.0
+        let totalGain = sessionDetails.points.last?.gain ?? 0.0
+
+        return """
+        🧗‍♂️ \(title)
+
+        📊 Session Stats:
+        ⏱️ Duration: \(duration)
+        📈 Max Altitude: \(String(format: "%.1f m", maxAlt))
+        ⬆️ Total Gain: \(String(format: "%.1f m", totalGain))
+
+        Tracked with TopOut 🏔️
+        """
     }
 }
 
