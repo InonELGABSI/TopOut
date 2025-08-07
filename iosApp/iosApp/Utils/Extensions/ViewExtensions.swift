@@ -43,6 +43,18 @@ extension View {
                 .stroke(color, lineWidth: width)
         )
     }
+    
+    func topShadow(
+        color: Color = .black.opacity(0.15),
+        blur:  CGFloat = 12,
+        distance: CGFloat = 6
+    ) -> some View {
+        // Shadow offset upward to create the stacking effect
+        shadow(color: color,
+               radius: blur,
+               x: 0,
+               y: -distance)
+    }
 }
 
 // Custom shape for specific corner radius

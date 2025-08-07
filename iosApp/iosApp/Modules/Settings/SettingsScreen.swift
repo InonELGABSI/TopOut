@@ -29,9 +29,7 @@ struct SettingsView: View {
                 SettingsLoadingContent(colors: colors)
             case .loaded(let state):
                 ScrollView {
-                    VStack(spacing: 0) {
-                        Spacer().frame(height: 20)
-
+                    LazyVStack(spacing: 0, pinnedViews: []) {
                         ProfileCard(
                             user: state.user,
                             isEditing: isEditingProfile,
@@ -39,8 +37,8 @@ struct SettingsView: View {
                             onUpdateUser: { user in viewModel.viewModel.updateUser(user: user) },
                             colors: colors
                         )
-                        .zIndex(4)
-                        .padding(.horizontal)
+                        .zIndex(1)
+                        .padding(.top, 8)
 
                         PreferencesCard(
                             user: state.user,
@@ -49,9 +47,7 @@ struct SettingsView: View {
                             onUpdateUser: { user in viewModel.viewModel.updateUser(user: user) },
                             colors: colors
                         )
-                        .zIndex(3)
-                        .padding(.horizontal)
-                        .offset(y: -20)
+                        .zIndex(2)
 
                         ThresholdsCard(
                             user: state.user,
@@ -60,16 +56,13 @@ struct SettingsView: View {
                             onUpdateUser: { user in viewModel.viewModel.updateUser(user: user) },
                             colors: colors
                         )
-                        .zIndex(2)
-                        .padding(.horizontal)
-                        .offset(y: -40)
+                        .zIndex(3)
 
                         ThemeCard(colors: colors)
                             .zIndex(1)
-                            .padding(.horizontal)
-                            .offset(y: -60)
 
-                        Spacer().frame(height: 80)
+                        // Extra scroll room below the final card
+                        Color.clear.frame(height: 80)
                     }
                 }
             case .error(let state):
@@ -77,10 +70,8 @@ struct SettingsView: View {
                 
             @unknown default:
                 EmptyView()
-            
             }
         }
-        .navigationTitle("Settings")
         .onAppear { viewModel.startObserving() }
     }
 }
@@ -135,6 +126,7 @@ struct ProfileCard: View {
                     }
                 }
             }
+
             Group {
                 EditableField(
                     label: "Name",
@@ -171,6 +163,7 @@ struct ProfileCard: View {
                     colors: colors
                 )
             }
+
             if isEditing {
                 HStack(spacing: 8) {
                     Button(action: {
@@ -199,11 +192,24 @@ struct ProfileCard: View {
             }
         }
         .padding(20)
-        .background(colors.surface)
-        .cornerRadius(16)
+        .background(
+            colors.surface
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 24,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 24
+                    )
+                )
+        )
+        .topShadow(blur: 12, distance: 6)          // first soft penumbra
+        .topShadow(color: .black.opacity(0.08),
+                   blur: 24,
+                   distance: 12)                    // second larger bloom
+
     }
 }
-
 
 struct PreferencesCard: View {
     let user: User
@@ -252,6 +258,7 @@ struct PreferencesCard: View {
                     }
                 }
             }
+
             UnitPreferenceSelector(
                 currentUnit: editableUser.unitPreference,
                 onUnitChange: { unit in editableUser.unitPreference = unit },
@@ -264,6 +271,7 @@ struct PreferencesCard: View {
                 isEditing: isEditing,
                 colors: colors
             )
+
             if isEditing {
                 HStack(spacing: 8) {
                     Button(action: {
@@ -292,8 +300,22 @@ struct PreferencesCard: View {
             }
         }
         .padding(20)
-        .background(colors.surfaceContainer)
-        .cornerRadius(16)
+        .background(
+            colors.surface
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 24,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 24
+                    )
+                )
+        )
+        .topShadow(blur: 12, distance: 6)          // first soft penumbra
+        .topShadow(color: .black.opacity(0.08),
+                   blur: 24,
+                   distance: 12)                    // second larger bloom
+
     }
 }
 
@@ -344,6 +366,7 @@ struct ThresholdsCard: View {
                     }
                 }
             }
+
             ThresholdField(
                 label: "Relative Height Threshold",
                 value: $editableUser.relativeHeightFromStartThr,
@@ -365,6 +388,7 @@ struct ThresholdsCard: View {
                 unit: "\(editableUser.unitPreference)/min",
                 colors: colors
             )
+
             if isEditing {
                 HStack(spacing: 8) {
                     Button(action: {
@@ -393,11 +417,24 @@ struct ThresholdsCard: View {
             }
         }
         .padding(20)
-        .background(colors.surface)
-        .cornerRadius(16)
+        .background(
+            colors.surface
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 24,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 24
+                    )
+                )
+        )
+        .topShadow(blur: 12, distance: 6)          // first soft penumbra
+        .topShadow(color: .black.opacity(0.08),
+                   blur: 24,
+                   distance: 12)                    // second larger bloom
+
     }
 }
-
 
 struct ThemeCard: View {
     @AppStorage("selectedTheme") private var selectedTheme = ThemePalette.classicRed.rawValue
@@ -406,7 +443,6 @@ struct ThemeCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-
             // — Header row —
             HStack {
                 Label("Theme", systemImage: "paintpalette.fill")
@@ -421,7 +457,7 @@ struct ThemeCard: View {
                                    onToggle: handleToggle,
                                    height: 60)
                     .frame(width: 80, height: 60)             // explicit square
-                    .fixedSize()                              // iOS 15 safeguard :contentReference[oaicite:3]{index=3}
+                    .fixedSize()                              // iOS 15 safeguard
             }
             .frame(maxWidth: .infinity)                       // space-between magic
 
@@ -443,8 +479,22 @@ struct ThemeCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)      // card fills parent
         .padding(20)
-        .background(colors.surface)
-        .cornerRadius(16, corners: [.bottomLeft, .bottomRight])
+        .background(
+            colors.surface
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 24,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 24
+                    )
+                )
+        )
+        .topShadow(blur: 12, distance: 6)          // first soft penumbra
+        .topShadow(color: .black.opacity(0.08),
+                   blur: 24,
+                   distance: 12)                    // second larger bloom
+
     }
 
     private func handleToggle(_ toggled: Bool) {
@@ -455,8 +505,6 @@ struct ThemeCard: View {
             .overrideUserInterfaceStyle = toggled ? .dark : .light
     }
 }
-
-
 
 // MARK: - Field Components
 

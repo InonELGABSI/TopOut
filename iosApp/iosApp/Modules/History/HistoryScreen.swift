@@ -210,12 +210,10 @@ struct SessionsContentView: View {
         }
     }
 
-    // MARK: - Card list with vertical overlap
+    // MARK: - Card list without spacing
     private func sessionsGrid(sessions: [Session]) -> some View {
-        let overlap: CGFloat = 32 // how far each card should overlap the previous one
-
         return ScrollView {
-            LazyVStack(spacing: -overlap, pinnedViews: []) {
+            LazyVStack(spacing: 0, pinnedViews: []) {
                 ForEach(Array(sessions.enumerated()), id: \.element.id) { index, session in
                     Button {
                         onSessionSelected(session)
@@ -224,8 +222,7 @@ struct SessionsContentView: View {
                             session: session,
                             onSessionClick: { _ in onSessionSelected(session) }
                         )
-                        .padding(.top, index == 0 ? 0 : overlap)
-                        .zIndex(Double(index))
+                        .zIndex(Double(sessions.count - index))
                     }
                     .buttonStyle(.plain)
                 }
