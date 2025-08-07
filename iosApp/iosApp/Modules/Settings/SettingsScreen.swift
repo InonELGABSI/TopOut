@@ -59,10 +59,7 @@ struct SettingsView: View {
                         .zIndex(3)
 
                         ThemeCard(colors: colors)
-                            .zIndex(1)
-
-                        // Extra scroll room below the final card
-                        Color.clear.frame(height: 80)
+                        .zIndex(4)
                     }
                 }
             case .error(let state):
@@ -98,34 +95,33 @@ struct ProfileCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            ZStack {
-                HStack(spacing: 8) {
-                    Image(systemName: "person.fill")
-                        .foregroundColor(colors.primary)
-                    Text("Profile")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(colors.onSurface)
-                }
+            HStack(spacing: 8) {
+                // Leading: Icon + Title
+                Image(systemName: "person.fill")
+                    .foregroundColor(colors.primary)
+                Text("Profile")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(colors.onSurface)
+                Spacer() // Pushes the button to the right
+
+                // Trailing: Edit button (shown only when not editing)
                 if !isEditing {
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            // Reset before editing!
-                            editableUser = EditableUser(user: user)
-                            onToggleEdit(true)
-                        }) {
-                            Circle()
-                                .fill(colors.primary)
-                                .frame(width: 40, height: 40)
-                                .overlay(
-                                    Image(systemName: "pencil")
-                                        .foregroundColor(colors.onPrimary)
-                                )
-                        }
+                    Button(action: {
+                        editableUser = EditableUser(user: user)
+                        onToggleEdit(true)
+                    }) {
+                        Circle()
+                            .fill(colors.primary)
+                            .frame(width: 40, height: 40)
+                            .overlay(
+                                Image(systemName: "pencil")
+                                    .foregroundColor(colors.onPrimary)
+                            )
                     }
                 }
             }
+
 
             Group {
                 EditableField(
