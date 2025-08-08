@@ -77,16 +77,16 @@ class SessionsViewModel (
 
         // Then apply sorting
         val sortedSessions = when (currentSortOption) {
-            SortOption.DATE_NEWEST -> filteredSessions.sortedBy { it.createdAt ?: 0L }
-            SortOption.DATE_OLDEST -> filteredSessions.sortedByDescending { it.createdAt ?: 0L }
-            SortOption.DURATION_LONGEST -> filteredSessions.sortedBy {
+            SortOption.DATE_NEWEST -> filteredSessions.sortedByDescending { it.createdAt ?: 0L }
+            SortOption.DATE_OLDEST -> filteredSessions.sortedBy { it.createdAt ?: 0L }
+            SortOption.DURATION_LONGEST -> filteredSessions.sortedByDescending {
                 calculateDuration(it.startTime, it.endTime)
             }
-            SortOption.DURATION_SHORTEST -> filteredSessions.sortedByDescending {
+            SortOption.DURATION_SHORTEST -> filteredSessions.sortedBy {
                 calculateDuration(it.startTime, it.endTime)
             }
-            SortOption.ASCENT_HIGHEST -> filteredSessions.sortedBy { it.totalAscent ?: 0.0 }
-            SortOption.ASCENT_LOWEST -> filteredSessions.sortedByDescending { it.totalAscent ?: 0.0 }
+            SortOption.ASCENT_HIGHEST -> filteredSessions.sortedByDescending { it.totalAscent ?: 0.0 }
+            SortOption.ASCENT_LOWEST -> filteredSessions.sortedBy { it.totalAscent ?: 0.0 }
         }
 
         scope.launch {
