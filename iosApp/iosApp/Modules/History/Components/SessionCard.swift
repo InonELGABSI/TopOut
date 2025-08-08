@@ -4,17 +4,7 @@ import Shared
 struct SessionCard: View {
     let session: Session
     let onSessionClick: (Session) -> Void
-
-    // Theme system
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
+    let theme: AppTheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -22,22 +12,22 @@ struct SessionCard: View {
             SessionHeader(
                 title: session.title ?? "Unnamed Session",
                 startTime: session.startTime?.int64,
-                colors: colors
+                theme: theme
             )
 
             // Stats section
-            SessionStats(session: session, colors: colors)
+            SessionStats(session: session, theme: theme)
 
             // Duration if available
             if let startTime = session.startTime.int64,
                let endTime = session.endTime.int64,
                endTime > startTime {
-                SessionDuration(startTime: startTime, endTime: endTime, colors: colors)
+                SessionDuration(startTime: startTime, endTime: endTime, theme: theme)
             }
         }
         .padding(16)
         .background(
-            colors.surface                      // your fill colour
+            theme.surface                      // your fill colour
                 .clipShape(                     // ⬅️ choose which corners
                     .rect(
                         topLeadingRadius: 24,
@@ -53,24 +43,24 @@ struct SessionCard: View {
 }
 
 @ViewBuilder
-private func SessionHeader(title: String, startTime: Int64?, colors: TopOutColorScheme) -> some View {
+private func SessionHeader(title: String, startTime: Int64?, theme: AppTheme) -> some View {
     HStack {
         Text(title)
             .font(.system(size: 18, weight: .bold))
-            .foregroundColor(colors.onSurface)
+            .foregroundColor(theme.onSurface)
             .lineLimit(1)
             .frame(maxWidth: .infinity, alignment: .leading)
 
         if let timestamp = startTime {
             Text(formatDate(timestamp))
                 .font(.subheadline)
-                .foregroundColor(colors.onSurfaceVariant)
+                .foregroundColor(theme.onSurfaceVariant)
         }
     }
 }
 
 @ViewBuilder
-private func SessionStats(session: Session, colors: TopOutColorScheme) -> some View {
+private func SessionStats(session: Session, theme: AppTheme) -> some View {
     HStack(spacing: 0) {
         // Total Ascent
         if let ascent = session.totalAscent {
@@ -78,7 +68,7 @@ private func SessionStats(session: Session, colors: TopOutColorScheme) -> some V
                 value: "\(Int(truncating: ascent))m",
                 label: "Ascent",
                 color: Color.green,
-                colors: colors
+                theme: theme
             )
         }
 
@@ -88,7 +78,7 @@ private func SessionStats(session: Session, colors: TopOutColorScheme) -> some V
                 value: "\(Int(truncating: descent))m",
                 label: "Descent",
                 color: Color.orange,
-                colors: colors
+                theme: theme
             )
         }
 
@@ -98,7 +88,7 @@ private func SessionStats(session: Session, colors: TopOutColorScheme) -> some V
                 value: "\(Int(truncating: altitude))m",
                 label: "Max Alt",
                 color: Color.blue,
-                colors: colors
+                theme: theme
             )
         }
 
@@ -108,19 +98,19 @@ private func SessionStats(session: Session, colors: TopOutColorScheme) -> some V
                 value: String(format: "%.1f", rate),
                 label: "Avg Rate",
                 color: Color.purple,
-                colors: colors
+                theme: theme
             )
         }
     }
     .padding(16)
     .background(
         RoundedRectangle(cornerRadius: 12)
-            .fill(colors.surfaceVariant.opacity(0.1))
+            .fill(theme.surfaceVariant.opacity(0.1))
     )
 }
 
 @ViewBuilder
-private func StatItem(value: String, label: String, color: Color, colors: TopOutColorScheme) -> some View {
+private func StatItem(value: String, label: String, color: Color, theme: AppTheme) -> some View {
     VStack(spacing: 4) {
         Text(value)
             .font(.system(size: 14, weight: .bold))
@@ -128,30 +118,30 @@ private func StatItem(value: String, label: String, color: Color, colors: TopOut
 
         Text(label)
             .font(.system(size: 12))
-            .foregroundColor(colors.onSurfaceVariant)
+            .foregroundColor(theme.onSurfaceVariant)
     }
     .frame(maxWidth: .infinity)
 }
 
 @ViewBuilder
-private func SessionDuration(startTime: Int64, endTime: Int64, colors: TopOutColorScheme) -> some View {
+private func SessionDuration(startTime: Int64, endTime: Int64, theme: AppTheme) -> some View {
     let durationMs = endTime - startTime
     let durationText = formatDuration(durationMs)
 
     HStack {
         Image(systemName: "clock")
-            .foregroundColor(colors.primary)
+            .foregroundColor(theme.primary)
             .font(.system(size: 16))
 
         Text("Duration: \(durationText)")
             .font(.system(size: 14, weight: .medium))
-            .foregroundColor(colors.onSurface)
+            .foregroundColor(theme.onSurface)
     }
     .padding(.horizontal, 12)
     .padding(.vertical, 8)
     .background(
         RoundedRectangle(cornerRadius: 8)
-            .fill(colors.surfaceVariant.opacity(0.3))
+            .fill(theme.surfaceVariant.opacity(0.3))
     )
 }
 

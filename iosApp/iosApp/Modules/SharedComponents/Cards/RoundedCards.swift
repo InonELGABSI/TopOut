@@ -28,21 +28,12 @@ struct TopRoundedCard<Content: View>: View {
     }
 }
 
-
 struct BottomRoundedCard<Content: View>: View {
     let content: Content
     
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
-    
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
+
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
@@ -50,7 +41,7 @@ struct BottomRoundedCard<Content: View>: View {
     var body: some View {
         content
             .padding()
-            .background(colors.surface)
+            .background(theme.surface)
             .clipShape(
                 UnevenRoundedRectangle(
                     topLeadingRadius: 0,
@@ -66,17 +57,9 @@ struct BottomRoundedCard<Content: View>: View {
 struct MiddleRoundedCard<Content: View>: View {
     let content: Content
     
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
-    
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
+
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
@@ -84,7 +67,7 @@ struct MiddleRoundedCard<Content: View>: View {
     var body: some View {
         content
             .padding()
-            .background(colors.surface)
+            .background(theme.surface)
             .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
 }
@@ -92,17 +75,9 @@ struct MiddleRoundedCard<Content: View>: View {
 struct FullRoundedCard<Content: View>: View {
     let content: Content
     
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
-    
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
+
     init(@ViewBuilder content: () -> Content) {
         self.content = content()
     }
@@ -110,7 +85,7 @@ struct FullRoundedCard<Content: View>: View {
     var body: some View {
         content
             .padding()
-            .background(colors.surface)
+            .background(theme.surface)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
     }

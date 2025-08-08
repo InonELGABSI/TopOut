@@ -11,6 +11,9 @@ struct MapView: UIViewRepresentable {
     // Optional: Only auto-center if this is true
     var followLastPoint: Bool = true
 
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
+
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
@@ -80,7 +83,7 @@ struct MapView: UIViewRepresentable {
         func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
             if let polyline = overlay as? MKPolyline {
                 let renderer = MKPolylineRenderer(polyline: polyline)
-                renderer.strokeColor = UIColor(red: 0.871, green: 0.169, blue: 0.169, alpha: 1.0) // climbingRed
+                renderer.strokeColor = UIColor(parent.theme.primary)
                 renderer.lineWidth = 4
                 return renderer
             }

@@ -9,8 +9,8 @@ struct ActiveSessionContent: View {
     @Binding var mapRegion: MKCoordinateRegion
     let onStopClicked:     () -> Void
     let onCancelClicked:   () -> Void
-    let colors:            TopOutColorScheme
-    
+    let theme:            AppTheme
+
     private let overlap: CGFloat = 18   // live panel rises 18 pt under map
     
     // MARK: – Body
@@ -26,14 +26,14 @@ struct ActiveSessionContent: View {
             
             /* ────────── LIVE DATA PANEL ────────── */
             VStack(spacing: 0) {
-                LiveDataCard(trackPoint: trackPoint, colors: colors)
+                LiveDataCard(trackPoint: trackPoint, theme: theme)
                     .padding(.horizontal, 16)
                     .padding(.top, 0)                   // nice top air
                     .padding(.bottom, 24)                // bottom air inside panel
             }
             .frame(maxWidth: .infinity, alignment: .top)
             .background(
-                colors.primary
+                theme.primary
                     .clipShape(.rect(bottomLeadingRadius: 24,
                                      bottomTrailingRadius: 24))
             )
@@ -47,7 +47,7 @@ struct ActiveSessionContent: View {
                 .offset(y: -overlap)                         // tuck under map
 
         }
-        .background(colors.background)                   // fallback colour
+        .background(theme.background)                   // fallback colour
     }
 }
 
@@ -100,36 +100,36 @@ private struct RoundedCornerBackground: View {
 
 private struct LiveDataCard: View {
     let trackPoint: TrackPoint
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HeaderRow(timestamp: trackPoint.timestamp, colors: colors)
-            LocationRow(trackPoint: trackPoint, colors: colors)
-            SpeedAltitudeRow(trackPoint: trackPoint, colors: colors)
+            HeaderRow(timestamp: trackPoint.timestamp, theme: theme)
+            LocationRow(trackPoint: trackPoint, theme: theme)
+            SpeedAltitudeRow(trackPoint: trackPoint, theme: theme)
         }
         .padding(20)
-        .background(colors.background.opacity(0.85))
+        .background(theme.background.opacity(0.85))
         .clipShape(RoundedRectangle(cornerRadius: 24))
     }
 }
 
 private struct HeaderRow: View {
     let timestamp: Int64
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         HStack {
             HStack(spacing: 8) {
                 Circle().fill(Color.red).frame(width: 8, height: 8)
                 Text("Live Data")
                     .font(.title2).bold()
-                    .foregroundColor(colors.onSurface)
+                    .foregroundColor(theme.onSurface)
             }
             Spacer()
             Text(formatTime(timestamp))
                 .font(.subheadline).fontWeight(.medium)
-                .foregroundColor(colors.onSurfaceVariant)
+                .foregroundColor(theme.onSurfaceVariant)
         }
     }
     
@@ -142,13 +142,13 @@ private struct HeaderRow: View {
 
 private struct LocationRow: View {
     let trackPoint: TrackPoint
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         HStack {
             Label("Location", systemImage: "location.fill")
                 .font(.headline)
-                .foregroundColor(colors.primary)
+                .foregroundColor(theme.primary)
             Spacer()
             DataTriplet(
                 first:   formatted(trackPoint.latitude?.double, suffix: "°"),
@@ -157,7 +157,7 @@ private struct LocationRow: View {
                 firstLab: "Lat",
                 secondLab:"Lon",
                 thirdLab: "Alt",
-                colors: colors
+                theme: theme
             )
         }
     }
@@ -167,8 +167,8 @@ private struct LocationRow: View {
 
 private struct SpeedAltitudeRow: View {
     let trackPoint: TrackPoint
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         HStack(spacing: 16) {
             StatCard(
@@ -179,8 +179,8 @@ private struct SpeedAltitudeRow: View {
                     String(format: "%.1f", trackPoint.vVertical),   "V",
                     String(format: "%.1f", trackPoint.avgVertical), "Avg-V"
                 ),
-                background: colors.secondaryContainer.opacity(0.3),
-                colors: colors
+                background: theme.secondaryContainer.opacity(0.3),
+                theme: theme
             )
             StatCard(
                 title: "Altitude",
@@ -190,8 +190,8 @@ private struct SpeedAltitudeRow: View {
                     "\(Int(trackPoint.loss))", "Loss",
                     "\(Int(trackPoint.relAltitude))", "Rel"
                 ),
-                background: colors.tertiaryContainer.opacity(0.3),
-                colors: colors
+                background: theme.tertiaryContainer.opacity(0.3),
+                theme: theme
             )
         }
     }
@@ -202,20 +202,20 @@ private struct StatCard: View {
     let icon: String
     let triplet: (String,String,String,String,String,String)
     let background: Color
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.system(size: 14)).foregroundColor(colors.primary)
+                    .font(.system(size: 14)).foregroundColor(theme.primary)
                 Text(title)
                     .font(.subheadline).bold()
             }
             DataTriplet(
                 first:  triplet.0, second: triplet.2, third: triplet.4,
                 firstLab: triplet.1, secondLab: triplet.3, thirdLab: triplet.5,
-                colors: colors
+                theme: theme
             )
         }
         .padding(12)
@@ -228,24 +228,24 @@ private struct StatCard: View {
 private struct DataTriplet: View {
     let first: String; let second: String; let third: String
     let firstLab: String; let secondLab: String; let thirdLab: String
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         HStack {
-            ValueLabel(value: first, label: firstLab, colors: colors)
-            ValueLabel(value: second, label: secondLab, colors: colors)
-            ValueLabel(value: third, label: thirdLab, colors: colors)
+            ValueLabel(value: first, label: firstLab, theme: theme)
+            ValueLabel(value: second, label: secondLab, theme: theme)
+            ValueLabel(value: third, label: thirdLab, theme: theme)
         }
     }
 }
 
 private struct ValueLabel: View {
-    let value: String; let label: String; let colors: TopOutColorScheme
-    
+    let value: String; let label: String; let theme: AppTheme
+
     var body: some View {
         VStack {
             Text(value).font(.caption).bold()
-            Text(label).font(.caption2).foregroundColor(colors.onSurfaceVariant)
+            Text(label).font(.caption2).foregroundColor(theme.onSurfaceVariant)
         }.frame(maxWidth: .infinity)
     }
 }
@@ -300,6 +300,4 @@ private struct ControlButton: View {
         }
     }
 }
-
-
 

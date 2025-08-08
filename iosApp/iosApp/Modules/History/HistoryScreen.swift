@@ -7,26 +7,17 @@ struct HistoryView: View {
     @State private var searchText = ""
     @State private var showingSortSheet = false
 
-    // Our consistent color system pattern
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
     @EnvironmentObject var networkMonitor: NetworkMonitor
-    
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
     
     var body: some View {
         ZStack {
-            colors.background.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
 
             // Use type checking instead of pattern matching for KMP enums
             if viewModel.uiState is SessionsState.Loading {
-                LoadingView()
+                LoadingView(theme: theme)
             } else if let loadedState = viewModel.uiState as? SessionsState.Loaded {
                 SessionsContentView(
                     state: loadedState,
@@ -44,14 +35,16 @@ struct HistoryView: View {
                     },
                     onSearchTextChanged: { searchText in
                         viewModel.viewModel.searchSessions(searchText: searchText)
-                    }
+                    },
+                    theme: theme
                 )
             } else if let errorState = viewModel.uiState as? SessionsState.Error {
                 ErrorView(
                     message: errorState.errorMessage,
                     onRetry: {
                         viewModel.viewModel.fetchSessions()
-                    }
+                    },
+                    theme: theme
                 )
             }
         }
@@ -72,7 +65,8 @@ struct HistoryView: View {
                 onSortSelected: { sortOption in
                     viewModel.viewModel.sortSessions(sortOption: sortOption)
                     showingSortSheet = false
-                }
+                },
+                theme: theme
             )
         }
         .onAppear {
@@ -90,14 +84,8 @@ struct HistoryView: View {
 // MARK: - Sort Options Sheet
 struct SortOptionsSheet: View {
     let onSortSelected: (SortOption) -> Void
+    let theme: AppTheme
     @Environment(\.dismiss) private var dismiss
-
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-
-    private var colors: TopOutColorScheme {
-        (ThemePalette(rawValue: selectedTheme) ?? .classicRed).scheme(for: colorScheme)
-    }
 
     var body: some View {
         NavigationView {
@@ -122,6 +110,8 @@ struct SortOptionsSheet: View {
 
 // Loading View
 struct LoadingView: View {
+    let theme: AppTheme
+
     var body: some View {
         VStack {
             Spacer()
@@ -135,25 +125,14 @@ struct LoadingView: View {
 struct ErrorView: View {
     let message: String
     let onRetry: () -> Void
-    
-    // Our consistent color system pattern
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
-    
+    let theme: AppTheme
+
     var body: some View {
         VStack {
             Spacer()
             Text(message)
                 .font(.headline)
-                .foregroundColor(colors.error)
+                .foregroundColor(theme.error)
                 .multilineTextAlignment(.center)
                 .padding()
             
@@ -161,8 +140,8 @@ struct ErrorView: View {
                 onRetry()
             }
             .padding()
-            .background(colors.primary)
-            .foregroundColor(colors.onPrimary)
+            .background(theme.primary)
+            .foregroundColor(theme.onPrimary)
             .cornerRadius(8)
             
             Spacer()
@@ -178,22 +157,12 @@ struct SessionsContentView: View {
     let onSortOrderSelected: (SortOption) -> Void
     let onDeleteSession: (String) -> Void
     let onSearchTextChanged: (String) -> Void
+    let theme: AppTheme
 
     @State private var sessionIdToDelete: String? = nil
     @State private var currentSortOrder: SortOption = .dateNewest
     @State private var searchText: String = ""
     @FocusState private var isSearchFieldFocused: Bool
-
-    // Color system
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
 
     var body: some View {
         // --- Content ---
@@ -205,7 +174,8 @@ struct SessionsContentView: View {
                 message: "Start recording your first climbing session!",
                 actionText: "Refresh",
                 systemImage: "mountain.2",
-                onActionTapped: onRefresh
+                onActionTapped: onRefresh,
+                theme: theme
             )
         }
     }
@@ -220,7 +190,8 @@ struct SessionsContentView: View {
                     } label: {
                         SessionCard(
                             session: session,
-                            onSessionClick: { _ in onSessionSelected(session) }
+                            onSessionClick: { _ in onSessionSelected(session) },
+                            theme: theme
                         )
                         .zIndex(Double(sessions.count - index))
                     }

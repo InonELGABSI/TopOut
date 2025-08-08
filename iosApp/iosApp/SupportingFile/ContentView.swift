@@ -2,22 +2,10 @@ import SwiftUI
 import Shared
 
 struct ContentView: View {
-    // Remove ThemeManager dependency
     @StateObject private var networkMonitor = NetworkMonitor()
+    @EnvironmentObject var themeManager: AppThemeManager
     @State private var selectedTab = 0
-    
-    // Add our consistent color system pattern
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
-    
+
     var body: some View {
         TabView(selection: $selectedTab) {
             LiveSessionView()
@@ -33,8 +21,8 @@ struct ContentView: View {
                 .tag(2)
         }
         .environmentObject(networkMonitor)
-        .accentColor(colors.primary)
-        .background(colors.background)
-        .preferredColorScheme(colorScheme)
+        .accentColor(themeManager.currentTheme.primary)
+        .background(themeManager.currentTheme.background)
+        .preferredColorScheme(nil) // Let system handle Dark Mode automatically
     }
 }

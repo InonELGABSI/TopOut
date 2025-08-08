@@ -5,13 +5,9 @@ import Charts
 struct SessionDetailsView: View {
     @StateObject private var viewModel = ViewModelWrapper<SessionDetailsState, SessionDetailsViewModel>()
     
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
-    private var colors: TopOutColorScheme {
-        (ThemePalette(rawValue: selectedTheme) ?? .classicRed).scheme(for: colorScheme)
-    }
-    
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
+
     @Environment(\.presentationMode) var presentationMode
     @State private var showDeleteConfirmation = false
     @State private var showEditTitleDialog = false
@@ -27,8 +23,8 @@ struct SessionDetailsView: View {
     
     var body: some View {
         ZStack {
-            colors.background.ignoresSafeArea()
-            
+            theme.background.ignoresSafeArea()
+
             switch onEnum(of: viewModel.uiState) {
             case .loading:
                 LoadingAnimation(
@@ -57,13 +53,13 @@ struct SessionDetailsView: View {
                                 editTitleText = state.sessionDetails.session.title ?? "Climbing Session"
                                 showEditTitleDialog = true
                             },
-                            colors: colors
+                            theme: theme
                         )
                         
                         SessionInfoSection(
                             sessionDetails: state.sessionDetails,
                             onDeleteClick: { showDeleteConfirmation = true },
-                            colors: colors
+                            theme: theme
                         )
                         
                         VStack(spacing: 0) {
@@ -74,14 +70,14 @@ struct SessionDetailsView: View {
                                 .padding(.vertical, 24)
                             
                             Divider()
-                                .background(colors.outline.opacity(0.3))
+                                .background(theme.outline.opacity(0.3))
                                 .padding(.horizontal, 24)
                             
-                            SessionStatisticsCard(sessionDetails: state.sessionDetails, colors: colors)
+                            SessionStatisticsCard(sessionDetails: state.sessionDetails, theme: theme)
                                 .padding(.top, 16)
                             
                             Divider()
-                                .background(colors.outline.opacity(0.3))
+                                .background(theme.outline.opacity(0.3))
                                 .padding(.horizontal, 24)
                                 .padding(.vertical, 16)
                             
@@ -89,7 +85,7 @@ struct SessionDetailsView: View {
                                 VStack(alignment: .leading, spacing: 12) {
                                     HStack {
                                         Image(systemName: "chart.xyaxis.line")
-                                            .foregroundColor(colors.primary)
+                                            .foregroundColor(theme.primary)
                                         Text("Altitude over Time")
                                             .font(.headline)
                                             .fontWeight(.bold)
@@ -98,7 +94,7 @@ struct SessionDetailsView: View {
                                     
                                     TimeHeightChartView(
                                         samples: prepareChartData(points: state.sessionDetails.points),
-                                        colors: colors
+                                        theme: theme
                                     )
                                     .frame(height: 200)
                                     .padding(.horizontal, 16)
@@ -106,11 +102,11 @@ struct SessionDetailsView: View {
                                 .padding(.vertical, 8)
                             }
                             
-                            TrackPointsSection(trackPoints: state.sessionDetails.points, colors: colors)
+                            TrackPointsSection(trackPoints: state.sessionDetails.points, theme: theme)
                                 .padding(16)
                             Spacer(minLength: 80)
                         }
-                        .background(colors.surfaceContainer)
+                        .background(theme.surfaceContainer)
                         .cornerRadius(24, corners: [.bottomLeft, .bottomRight])
                     }
                 }
@@ -121,7 +117,7 @@ struct SessionDetailsView: View {
                     onRetryClick: {
                         viewModel.viewModel.loadSession(sessionId: sessionId)
                     },
-                    colors: colors
+                    theme: theme
                 )
                 
             @unknown default:
@@ -164,7 +160,7 @@ struct SessionDetailsView: View {
                     }
                 },
                 onCancel: { showEditTitleDialog = false },
-                colors: colors
+                theme: theme
             )
         }
         .onAppear {
@@ -182,12 +178,8 @@ struct ShareSessionSheet: View {
     let sessionDetails: SessionDetails
     @Environment(\.dismiss) private var dismiss
 
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-
-    private var colors: TopOutColorScheme {
-        (ThemePalette(rawValue: selectedTheme) ?? .classicRed).scheme(for: colorScheme)
-    }
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
 
     var body: some View {
         NavigationView {
@@ -195,15 +187,15 @@ struct ShareSessionSheet: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Share this climbing session")
                         .font(.headline)
-                        .foregroundColor(colors.onSurface)
+                        .foregroundColor(theme.onSurface)
 
                     Text("Session: \(sessionDetails.session.title ?? "Climbing Session")")
                         .font(.subheadline)
-                        .foregroundColor(colors.onSurfaceVariant)
+                        .foregroundColor(theme.onSurfaceVariant)
 
                     Text("Duration: \(calculateSessionDuration(sessionDetails))")
                         .font(.subheadline)
-                        .foregroundColor(colors.onSurfaceVariant)
+                        .foregroundColor(theme.onSurfaceVariant)
                 }
 
                 VStack(spacing: 12) {
@@ -217,8 +209,8 @@ struct ShareSessionSheet: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(colors.primary)
-                        .foregroundColor(colors.onPrimary)
+                        .background(theme.primary)
+                        .foregroundColor(theme.onPrimary)
                         .cornerRadius(8)
                     }
                 }
@@ -255,13 +247,13 @@ struct ShareSessionSheet: View {
     }
 }
 
-// All color usage in these components should use the passed `colors` parameter:
+// All color usage in these components should use the passed `theme` parameter:
 
 struct SessionTitleSection: View {
     let sessionDetails: SessionDetails
     let onEditClick: () -> Void
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         ZStack {
             VStack {
@@ -269,21 +261,21 @@ struct SessionTitleSection: View {
                     .fill(Color.clear)
                     .frame(height: 15)
                 RoundedRectangle(cornerRadius: 24)
-                    .fill(colors.surfaceContainer)
+                    .fill(theme.surfaceContainer)
                     .cornerRadius(0, corners: [.topLeft, .topRight])
                     .cornerRadius(24, corners: [.bottomLeft, .bottomRight])
             }
             HStack {
                 Text("Title: ")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(colors.onSurfaceVariant)
+                    .foregroundColor(theme.onSurfaceVariant)
                 Text(sessionDetails.session.title ?? "Climbing Session")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(colors.onSurface)
+                    .foregroundColor(theme.onSurface)
                 Spacer()
                 Button(action: onEditClick) {
                     Image(systemName: "pencil")
-                        .foregroundColor(colors.primary)
+                        .foregroundColor(theme.primary)
                         .font(.system(size: 16))
                 }
                 .frame(width: 40, height: 40)
@@ -300,8 +292,8 @@ struct SessionTitleSection: View {
 struct SessionInfoSection: View {
     let sessionDetails: SessionDetails
     let onDeleteClick: () -> Void
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         HStack(spacing: 0) {
             VStack(spacing: 4) {
@@ -309,41 +301,41 @@ struct SessionInfoSection: View {
                     sessionDetails.session.startTime.map { formatDate(Int64(truncating: $0)) } ?? "-"
                 )
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(colors.onSurface)
+                .foregroundColor(theme.onSurface)
                 Text(
                     sessionDetails.session.startTime.map { formatDate(Int64(truncating: $0)) } ?? "-"
                 )
                 .font(.subheadline)
-                    .foregroundColor(colors.onSurfaceVariant)
+                    .foregroundColor(theme.onSurfaceVariant)
             }
             .frame(maxWidth: .infinity)
             VStack(spacing: 4) {
                 Text(calculateSessionDuration(sessionDetails))
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(colors.onSurface)
+                    .foregroundColor(theme.onSurface)
                 Text("Duration")
                     .font(.subheadline)
-                    .foregroundColor(colors.onSurfaceVariant)
+                    .foregroundColor(theme.onSurfaceVariant)
             }
             .frame(maxWidth: .infinity)
             VStack(spacing: 4) {
                 Button(action: onDeleteClick) {
                     Circle()
-                        .fill(colors.errorContainer)
+                        .fill(theme.errorContainer)
                         .frame(width: 40, height: 40)
                         .overlay(
                             Image(systemName: "trash")
-                                .foregroundColor(colors.onErrorContainer)
+                                .foregroundColor(theme.onErrorContainer)
                         )
                 }
                 Text("Delete")
                     .font(.caption)
-                    .foregroundColor(colors.error)
+                    .foregroundColor(theme.error)
             }
             .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 10)
-        .background(colors.surfaceContainer)
+        .background(theme.surfaceContainer)
     }
     
     private func formatDate(_ timestamp: Int64) -> String {
@@ -363,8 +355,8 @@ struct SessionInfoSection: View {
 
 struct SessionStatisticsCard: View {
     let sessionDetails: SessionDetails
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         VStack(spacing: 16) {
             HStack(spacing: 0) {
@@ -372,14 +364,14 @@ struct SessionStatisticsCard: View {
                     icon: "arrow.up",
                     label: "Max Altitude",
                     value: String(format: "%.1f m", sessionDetails.points.map { $0.altitude?.double ?? 0.0 }.max() ?? 0.0),
-                    colors: colors
+                    theme: theme
                 )
                 Spacer()
                 StatisticItemWithIcon(
                     icon: "arrow.down",
                     label: "Min Altitude",
                     value: String(format: "%.1f m", sessionDetails.points.map {$0.altitude?.double ?? 0.0}.min() ?? 0.0),
-                    colors: colors
+                    theme: theme
                 )
                 Spacer()
                 StatisticItemWithIcon(
@@ -387,7 +379,7 @@ struct SessionStatisticsCard: View {
                     label: "Total Gain",
                     value: String(format: "%.1f m", sessionDetails.points.last?.gain ?? 0.0),
                     textColor: .green,
-                    colors: colors
+                    theme: theme
                 )
             }
             .padding(.horizontal, 16)
@@ -398,7 +390,7 @@ struct SessionStatisticsCard: View {
                     label: "Total Loss",
                     value: String(format: "%.1f m", sessionDetails.points.last?.loss ?? 0.0),
                     textColor: .orange,
-                    colors: colors
+                    theme: theme
                 )
                 Spacer()
                 Spacer()
@@ -406,7 +398,7 @@ struct SessionStatisticsCard: View {
                     icon: "speedometer",
                     label: "Max Speed",
                     value: String(format: "%.1f m/s", sessionDetails.points.map { $0.vTotal }.max() ?? 0.0),
-                    colors: colors
+                    theme: theme
                 )
                 Spacer()
             }
@@ -421,12 +413,12 @@ struct StatisticItemWithIcon: View {
     let label: String
     let value: String
     var textColor: Color = Color.primary
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         HStack(alignment: .center, spacing: 8) {
             Image(systemName: icon)
-                .foregroundColor(colors.primary)
+                .foregroundColor(theme.primary)
                 .font(.system(size: 18))
             VStack(alignment: .leading, spacing: 2) {
                 Text(value)
@@ -434,7 +426,7 @@ struct StatisticItemWithIcon: View {
                     .foregroundColor(textColor)
                 Text(label)
                     .font(.caption)
-                    .foregroundColor(colors.onSurfaceVariant)
+                    .foregroundColor(theme.onSurfaceVariant)
             }
         }
     }
@@ -442,13 +434,13 @@ struct StatisticItemWithIcon: View {
 
 struct TrackPointsSection: View {
     let trackPoints: [TrackPoint]
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Image(systemName: "list.bullet")
-                    .foregroundColor(colors.primary)
+                    .foregroundColor(theme.primary)
                 Text("Track Points (\(trackPoints.count))")
                     .font(.headline)
                     .fontWeight(.bold)
@@ -459,8 +451,8 @@ struct TrackPointsSection: View {
 
 struct TimeHeightChartView: View {
     let samples: [(Float, Float)]
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         if #available(iOS 16.0, *) {
             Chart {
@@ -469,7 +461,7 @@ struct TimeHeightChartView: View {
                         x: .value("Time", samples[index].0),
                         y: .value("Altitude", samples[index].1)
                     )
-                    .foregroundStyle(colors.primary)
+                    .foregroundStyle(theme.primary)
                     .interpolationMethod(.catmullRom)
                     AreaMark(
                         x: .value("Time", samples[index].0),
@@ -478,8 +470,8 @@ struct TimeHeightChartView: View {
                     .foregroundStyle(
                         LinearGradient(
                             colors: [
-                                colors.primary.opacity(0.5),
-                                colors.primary.opacity(0.1)
+                                theme.primary.opacity(0.5),
+                                theme.primary.opacity(0.1)
                             ],
                             startPoint: .top,
                             endPoint: .bottom
@@ -491,15 +483,15 @@ struct TimeHeightChartView: View {
             .chartXAxisLabel("Time (seconds)")
             .chartYAxisLabel("Altitude (meters)")
         } else {
-            LegacyChartView(samples: samples, colors: colors)
+            LegacyChartView(samples: samples, theme: theme)
         }
     }
 }
 
 struct LegacyChartView: View {
     let samples: [(Float, Float)]
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         GeometryReader { geometry in
             if !samples.isEmpty {
@@ -526,7 +518,7 @@ struct LegacyChartView: View {
                     }
                     context.stroke(
                         path,
-                        with: .color(colors.primary),
+                        with: .color(theme.primary),
                         lineWidth: 2
                     )
                     var areaPath = Path()
@@ -541,8 +533,8 @@ struct LegacyChartView: View {
                     }
                     areaPath.closeSubpath()
                     let gradient = Gradient(colors: [
-                        colors.primary.opacity(0.5),
-                        colors.primary.opacity(0.1)
+                        theme.primary.opacity(0.5),
+                        theme.primary.opacity(0.1)
                     ])
                     context.fill(
                         areaPath,
@@ -557,18 +549,18 @@ struct LegacyChartView: View {
                     Spacer()
                     Text("Time (seconds)")
                         .font(.caption)
-                        .foregroundColor(colors.onSurfaceVariant)
+                        .foregroundColor(theme.onSurfaceVariant)
                 }
                 HStack {
                     Text("Altitude (meters)")
                         .font(.caption)
-                        .foregroundColor(colors.onSurfaceVariant)
+                        .foregroundColor(theme.onSurfaceVariant)
                         .rotationEffect(.degrees(-90))
                     Spacer()
                 }
             } else {
                 Text("No data available for chart")
-                    .foregroundColor(colors.onSurfaceVariant)
+                    .foregroundColor(theme.onSurfaceVariant)
             }
         }
     }
@@ -578,21 +570,21 @@ struct LegacyChartView: View {
 struct SessionErrorContent: View {
     let errorMessage: String
     let onRetryClick: () -> Void
-    let colors: TopOutColorScheme
+    let theme: AppTheme
     var body: some View {
         VStack(spacing: 16) {
             Spacer()
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 64))
-                .foregroundColor(colors.error)
+                .foregroundColor(theme.error)
             Text("Failed to Load Session")
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(colors.error)
+                .foregroundColor(theme.error)
                 .multilineTextAlignment(.center)
             Text(errorMessage)
                 .font(.body)
-                .foregroundColor(colors.onSurfaceVariant)
+                .foregroundColor(theme.onSurfaceVariant)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
             Button(action: onRetryClick) {
@@ -601,10 +593,10 @@ struct SessionErrorContent: View {
                     Text("Try Again")
                 }
                 .font(.headline)
-                .foregroundColor(colors.onPrimary)
+                .foregroundColor(theme.onPrimary)
                 .padding(.horizontal, 64)
                 .padding(.vertical, 16)
-                .background(colors.primary)
+                .background(theme.primary)
                 .cornerRadius(8)
             }
             .padding(.top, 16)
@@ -618,16 +610,16 @@ struct EditTitleView: View {
     let currentTitle: String
     let onSave: (String) -> Void
     let onCancel: () -> Void
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     @State private var titleText: String
     @Environment(\.presentationMode) var presentationMode
     
-    init(currentTitle: String, onSave: @escaping (String) -> Void, onCancel: @escaping () -> Void, colors: TopOutColorScheme) {
+    init(currentTitle: String, onSave: @escaping (String) -> Void, onCancel: @escaping () -> Void, theme: AppTheme) {
         self.currentTitle = currentTitle
         self.onSave = onSave
         self.onCancel = onCancel
-        self.colors = colors
+        self.theme = theme
         _titleText = State(initialValue: currentTitle)
     }
     
@@ -637,10 +629,10 @@ struct EditTitleView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Enter a new title for this climbing session:")
                         .font(.body)
-                        .foregroundColor(colors.onSurfaceVariant)
+                        .foregroundColor(theme.onSurfaceVariant)
                     TextField("Session Title", text: $titleText)
                         .padding()
-                        .background(colors.surfaceVariant.opacity(0.3))
+                        .background(theme.surfaceVariant.opacity(0.3))
                         .cornerRadius(8)
                 }
                 .padding(.horizontal)

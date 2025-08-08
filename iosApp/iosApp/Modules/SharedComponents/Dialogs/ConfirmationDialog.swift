@@ -9,28 +9,20 @@ struct ConfirmationDialog: View {
     let onCancel: () -> Void
     @Binding var isPresented: Bool
     
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
-    
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
+
     var body: some View {
         VStack(spacing: 20) {
             VStack(spacing: 8) {
                 Text(title)
                     .font(.headline)
-                    .foregroundColor(colors.onSurface)
+                    .foregroundColor(theme.onSurface)
                     .multilineTextAlignment(.center)
                 
                 Text(message)
                     .font(.body)
-                    .foregroundColor(colors.onSurfaceVariant)
+                    .foregroundColor(theme.onSurfaceVariant)
                     .multilineTextAlignment(.center)
             }
             
@@ -49,30 +41,22 @@ struct ConfirmationDialog: View {
             }
         }
         .padding(24)
-        .background(colors.surface)
+        .background(theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.2), radius: 20)
     }
 }
 
 struct PrimaryButtonStyle: ButtonStyle {
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
-    
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
-            .background(colors.primary)
-            .foregroundColor(colors.onPrimary)
+            .background(theme.primary)
+            .foregroundColor(theme.onPrimary)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
             .opacity(configuration.isPressed ? 0.8 : 1.0)
@@ -80,23 +64,15 @@ struct PrimaryButtonStyle: ButtonStyle {
 }
 
 struct SecondaryButtonStyle: ButtonStyle {
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
-    
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
-            .background(colors.surfaceVariant)
-            .foregroundColor(colors.onSurfaceVariant)
+            .background(theme.surfaceVariant)
+            .foregroundColor(theme.onSurfaceVariant)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
             .opacity(configuration.isPressed ? 0.8 : 1.0)

@@ -13,15 +13,10 @@ struct MapPreview: View {
     @State private var cameraPosition: MapCameraPosition
     
     // MARK: ‑ Environment
-    @Environment(\.colorScheme) private var systemColorScheme
-    @AppStorage("selectedTheme") private var selectedTheme = ThemePalette.classicRed.rawValue
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
 
     // MARK: ‑ Styling
-    private var colors: TopOutColorScheme {
-        (ThemePalette(rawValue: selectedTheme) ?? .classicRed)
-            .scheme(for: systemColorScheme)
-    }
-
     private static let overlayLineWidth: CGFloat      = 3
     private static let segmentThresholdMeters: Double = 500
 
@@ -81,7 +76,7 @@ struct MapPreview: View {
                     ZStack {
                         ForEach(routeOverlays.indices, id: \.self) { idx in
                             RouteOverlay(coordinates: routeOverlays[idx])
-                                .stroke(colors.primary, lineWidth: Self.overlayLineWidth)
+                                .stroke(theme.primary, lineWidth: Self.overlayLineWidth)
                                 .frame(width: geo.size.width, height: geo.size.height)
                         }
                     }

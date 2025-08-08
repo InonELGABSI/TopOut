@@ -17,13 +17,9 @@ struct LiveSessionView: View {
     @State private var hasLocationPermission   = false
     @State private var hasNavigatedToDetails = false
 
-    @Environment(\.colorScheme)         private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme = ThemePalette.classicRed.rawValue
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
     @EnvironmentObject var networkMonitor: NetworkMonitor
-    
-    private var colors: TopOutColorScheme {
-        (ThemePalette(rawValue: selectedTheme) ?? .classicRed).scheme(for: colorScheme)
-    }
     
     // ⬅️ ADDED for navigation to SessionDetails
     @State private var navigateToDetails = false
@@ -33,7 +29,7 @@ struct LiveSessionView: View {
     
     var body: some View {
         ZStack {
-            colors.background.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
             sessionContent          // big switch broken out
             dangerToastView         // toast broken out
         }
@@ -84,7 +80,7 @@ struct LiveSessionView: View {
                     onStartClick:          { viewModel.viewModel.onStartClicked() },
                     onRequestLocationPermission: { requestLocationPermission() },
                     mslHeightState:        viewModel.viewModel.mslHeightState.value,
-                    colors:                colors
+                    theme:                 theme
                 )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -96,7 +92,7 @@ struct LiveSessionView: View {
                 mapRegion:     $mapRegion,
                 onStopClicked: { showingStopConfirmation    = true },
                 onCancelClicked: { showingDiscardConfirmation = true },
-                colors:        colors
+                theme:         theme
             )
 
         case .stopping:
@@ -121,7 +117,7 @@ struct LiveSessionView: View {
             ErrorContent(
                 errorMessage: state.errorMessage,
                 onRetryClick: { viewModel.viewModel.onStartClicked() },
-                colors:       colors
+                theme:        theme
             )
         }
     }
@@ -133,7 +129,7 @@ struct LiveSessionView: View {
                 DangerToast(
                     message:  getAlertMessage(alertType: currentAlertType),
                     isVisible: showDangerToast,
-                    color:    colors.error,
+                    color:    theme.error,
                     onDismiss:{ showDangerToast = false }
                 )
                 .padding(.horizontal)

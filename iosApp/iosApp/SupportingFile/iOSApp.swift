@@ -4,12 +4,18 @@ import Firebase
 
 // MARK: - Transparent Navigation Bar Appearance
 extension UINavigationBarAppearance {
-    static var clearBar: UINavigationBarAppearance {
+    static func primaryBar(primaryColor: UIColor) -> UINavigationBarAppearance {
         let appearance = UINavigationBarAppearance()
-        appearance.configureWithTransparentBackground()     // zero opacity
-        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterial) // subtle glass
-        appearance.titleTextAttributes = [.foregroundColor: UIColor.label]
-        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
+        appearance.configureWithOpaqueBackground()
+
+        // Set transparent primary color background
+        appearance.backgroundColor = primaryColor.withAlphaComponent(0.85)
+        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+
+        // Set text colors to contrast with primary color
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+
         return appearance
     }
 }
@@ -55,24 +61,17 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 struct iOSApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     
-    // Shared singletons
-    @StateObject private var themeManager   = ThemeManager.shared
+    // Apple's best practice: Simple theme management with @AppStorage
+    @StateObject private var themeManager = AppThemeManager.shared
     @StateObject private var networkMonitor = NetworkMonitor()
-    
+
     // UI state
     @State private var selectedTab: NavTab = .liveSession
-    @State private var isAppLoading        = true
-    
+    @State private var isAppLoading = true
+
     // DI / Koin bootstrap
     init() {
         KoinKt.doInitKoin()
-
-        // Configure transparent navigation bar globally
-        let clearBar = UINavigationBarAppearance.clearBar
-        UINavigationBar.appearance().standardAppearance = clearBar
-        UINavigationBar.appearance().scrollEdgeAppearance = clearBar
-        UINavigationBar.appearance().compactAppearance = clearBar
-        UINavigationBar.appearance().tintColor = .label
 
         Task {
             let ensureAnon: EnsureAnonymousUser = get()
@@ -80,52 +79,60 @@ struct iOSApp: App {
         }
     }
 
-    
-    // MARK: Scene
+    private func updateNavigationBarAppearance() {
+        let primaryColor = UIColor(themeManager.currentTheme.primary)
+        let primaryBar = UINavigationBarAppearance.primaryBar(primaryColor: primaryColor)
+        UINavigationBar.appearance().standardAppearance = primaryBar
+        UINavigationBar.appearance().scrollEdgeAppearance = primaryBar
+        UINavigationBar.appearance().compactAppearance = primaryBar
+        UINavigationBar.appearance().tintColor = .white
+    }
+
     var body: some Scene {
         WindowGroup {
             Group {
                 if isAppLoading {
-                    AnyView(
-                        LoadingAnimation(text: "Welcome to TopOut")
-                            .onAppear {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                    isAppLoading = false
-                                }
-                            }
-                    )
-                } else {
-                    AnyView(
-                        TabView(selection: $selectedTab) {
-                            HistoryNavStack()
-                                .tabItem { Label("History", systemImage: NavTab.history.icon) }
-                                .tag(NavTab.history)
-
-                            LiveNavStack()
-                                .tabItem { Label("Live", systemImage: NavTab.liveSession.icon) }
-                                .tag(NavTab.liveSession)
-
-                            SettingsNavStack()
-                                .tabItem { Label("Settings", systemImage: NavTab.settings.icon) }
-                                .tag(NavTab.settings)
-                        }
+                    LoadingAnimation(text: "Welcome to TopOut")
                         .onAppear {
-                            if networkMonitor.status == .available {
-                                Task {
-                                    let sync: SyncOfflineChanges = get()
-                                    _ = try? await sync.invoke()
-                                }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                isAppLoading = false
                             }
                         }
-                    )
+                } else {
+                    TabView(selection: $selectedTab) {
+                        HistoryNavStack()
+                            .tabItem { Label("History", systemImage: NavTab.history.icon) }
+                            .tag(NavTab.history)
+
+                        LiveNavStack()
+                            .tabItem { Label("Live", systemImage: NavTab.liveSession.icon) }
+                            .tag(NavTab.liveSession)
+
+                        SettingsNavStack()
+                            .tabItem { Label("Settings", systemImage: NavTab.settings.icon) }
+                            .tag(NavTab.settings)
+                    }
+                    .accentColor(themeManager.currentTheme.primary)
+                    .onAppear {
+                        if networkMonitor.status == .available {
+                            Task {
+                                let sync: SyncOfflineChanges = get()
+                                _ = try? await sync.invoke()
+                            }
+                        }
+                    }
                 }
             }
-
-            // Global environment injections
             .environmentObject(networkMonitor)
-            .environmentObject(themeManager)          // still useful for Settings screen
-            .topOutTheme(themeManager.current)        // 🔑 new theme Environment value
-            .preferredColorScheme(themeManager.current.colorScheme)
+            .environmentObject(themeManager)
+            .withAppTheme()
+            .preferredColorScheme(.none) // Let system handle dark/light mode automatically
+            .onAppear {
+                updateNavigationBarAppearance()
+            }
+            .onReceive(themeManager.objectWillChange) { _ in
+                updateNavigationBarAppearance()
+            }
         }
     }
 }
@@ -133,11 +140,16 @@ struct iOSApp: App {
 // MARK: - Navigation Stacks
 
 struct HistoryNavStack: View {
+    @EnvironmentObject private var themeManager: AppThemeManager
+
     var body: some View {
         NavigationStack {
             HistoryView()
                 .navigationTitle("Sessions History")
                 .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(themeManager.currentTheme.primary.opacity(0.85), for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
+                .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }
 }
@@ -152,11 +164,16 @@ struct LiveNavStack: View {
 }
 
 struct SettingsNavStack: View {
+    @EnvironmentObject private var themeManager: AppThemeManager
+
     var body: some View {
         NavigationStack {
             SettingsView()
                 .navigationTitle("Settings")
                 .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(themeManager.currentTheme.primary.opacity(0.85), for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
+                .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }
 }

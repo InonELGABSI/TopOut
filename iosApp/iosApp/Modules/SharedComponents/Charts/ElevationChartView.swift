@@ -5,27 +5,19 @@ import Charts
 struct ElevationChartView: View {
     let trackPoints: [TrackPoint]
     
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
-    
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
+
     var body: some View {
         FullRoundedCard {
             VStack(alignment: .leading, spacing: 16) {
                 Text("Elevation Profile")
                     .font(.headline)
-                    .foregroundColor(colors.onSurface)
-                
+                    .foregroundColor(theme.onSurface)
+
                 Divider()
-                    .background(colors.surfaceVariant)
-                
+                    .background(theme.surfaceVariant)
+
                 if #available(iOS 16.0, *) {
                     Chart {
                         ForEach(elevationData, id: \.distance) { point in
@@ -33,7 +25,7 @@ struct ElevationChartView: View {
                                 x: .value("Distance", point.distance),
                                 y: .value("Elevation", point.elevation)
                             )
-                            .foregroundStyle(colors.primary)
+                            .foregroundStyle(theme.primary)
                             .interpolationMethod(.catmullRom)
                             
                             AreaMark(
@@ -43,8 +35,8 @@ struct ElevationChartView: View {
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [
-                                        colors.primary.opacity(0.5),
-                                        colors.primary.opacity(0.1)
+                                        theme.primary.opacity(0.5),
+                                        theme.primary.opacity(0.1)
                                     ],
                                     startPoint: .top,
                                     endPoint: .bottom
@@ -56,39 +48,39 @@ struct ElevationChartView: View {
                     .chartYAxis {
                         AxisMarks { _ in
                             AxisGridLine()
-                                .foregroundStyle(colors.surfaceVariant)
+                                .foregroundStyle(theme.surfaceVariant)
                             AxisTick()
-                                .foregroundStyle(colors.onSurfaceVariant)
+                                .foregroundStyle(theme.onSurfaceVariant)
                             AxisValueLabel()
-                                .foregroundStyle(colors.onSurfaceVariant)
+                                .foregroundStyle(theme.onSurfaceVariant)
                         }
                     }
                     .chartXAxis {
                         AxisMarks { _ in
                             AxisGridLine()
-                                .foregroundStyle(colors.surfaceVariant)
+                                .foregroundStyle(theme.surfaceVariant)
                             AxisTick()
-                                .foregroundStyle(colors.onSurfaceVariant)
+                                .foregroundStyle(theme.onSurfaceVariant)
                             AxisValueLabel()
-                                .foregroundStyle(colors.onSurfaceVariant)
+                                .foregroundStyle(theme.onSurfaceVariant)
                         }
                     }
                     .frame(height: 200)
                 } else {
                     // Fallback for iOS 15
-                    LegacyElevationChart(elevationData: elevationData)
+                    LegacyElevationChart(elevationData: elevationData, theme: theme)
                 }
                 
                 HStack {
                     Text("Min: \(String(format: "%.1f m", minElevation))")
                         .font(.caption)
-                        .foregroundColor(colors.onSurfaceVariant)
-                    
+                        .foregroundColor(theme.onSurfaceVariant)
+
                     Spacer()
                     
                     Text("Max: \(String(format: "%.1f m", maxElevation))")
                         .font(.caption)
-                        .foregroundColor(colors.onSurfaceVariant)
+                        .foregroundColor(theme.onSurfaceVariant)
                 }
             }
         }
@@ -148,18 +140,8 @@ struct ElevationPoint {
 // Fallback chart for iOS 15
 struct LegacyElevationChart: View {
     let elevationData: [ElevationPoint]
-    
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
-    
+    let theme: AppTheme
+
     var body: some View {
         GeometryReader { geometry in
             Path { path in
@@ -184,8 +166,8 @@ struct LegacyElevationChart: View {
                     }
                 }
             }
-            .stroke(colors.primary, lineWidth: 2)
-            
+            .stroke(theme.primary, lineWidth: 2)
+
             // Add a gradient area below the line
             Path { path in
                 let width = geometry.size.width
@@ -215,8 +197,8 @@ struct LegacyElevationChart: View {
             .fill(
                 LinearGradient(
                     colors: [
-                        colors.primary.opacity(0.5),
-                        colors.primary.opacity(0.1)
+                        theme.primary.opacity(0.5),
+                        theme.primary.opacity(0.1)
                     ],
                     startPoint: .top,
                     endPoint: .bottom

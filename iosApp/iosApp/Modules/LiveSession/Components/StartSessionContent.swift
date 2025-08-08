@@ -11,22 +11,22 @@ struct StartSessionContent: View {
     let onStartClick: () -> Void
     let onRequestLocationPermission: () -> Void
     let mslHeightState: MSLHeightState
-    let colors: TopOutColorScheme
+    let theme: AppTheme
 
     var body: some View {
         ScrollView {
             VStack(spacing: 32) {
                 Text("Ready to Track")
                     .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(colors.onSurface)
+                    .foregroundColor(theme.onSurface)
 
                 Text("Start your climbing session to track altitude, speed, and get real-time alerts")
                     .font(.body)
                     .multilineTextAlignment(.center)
-                    .foregroundColor(colors.onSurfaceVariant)
+                    .foregroundColor(theme.onSurfaceVariant)
                     .padding(.horizontal, 16)
 
-                MSLCard(mslHeightState: mslHeightState, colors: colors)
+                MSLCard(mslHeightState: mslHeightState, theme: theme)
                     .padding(.horizontal, 16)
 
                 Button(action: {
@@ -37,10 +37,10 @@ struct StartSessionContent: View {
                         Text("Start Session")
                     }
                     .font(.headline)
-                    .foregroundColor(colors.onPrimary)
+                    .foregroundColor(theme.onPrimary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(colors.primary)
+                    .background(theme.primary)
                     .clipShape(RoundedRectangle(cornerRadius: 28))
                 }
                 .padding(.horizontal, 16)
@@ -53,23 +53,23 @@ struct StartSessionContent: View {
 
 private struct MSLCard: View {
     let mslHeightState: MSLHeightState
-    let colors: TopOutColorScheme
+    let theme: AppTheme
 
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .bottom) {
                 // Card background
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(colors.primaryContainer.opacity(0.3))
+                    .fill(theme.primaryContainer.opacity(0.3))
 
                 // Card content (text and info)
                 VStack(spacing: 16) {
                     HStack {
                         Image(systemName: "arrow.up.and.down")
-                            .foregroundColor(colors.primary)
+                            .foregroundColor(theme.primary)
                         Text("Current Mean Sea Level")
                             .font(.headline)
-                            .foregroundColor(colors.primary)
+                            .foregroundColor(theme.primary)
                         Spacer()
                     }
                     VStack(spacing: 4) {
@@ -78,24 +78,24 @@ private struct MSLCard: View {
                             ProgressView().scaleEffect(0.7)
                             Text("Getting location…")
                                 .font(.caption)
-                                .foregroundColor(colors.onSurfaceVariant)
+                                .foregroundColor(theme.onSurfaceVariant)
                         case let success as MSLHeightState.Success:
                             Text("\(Int(success.data.mslHeight)) m")
                                 .font(.system(size: 24, weight: .bold))
-                                .foregroundColor(colors.primary)
+                                .foregroundColor(theme.primary)
                             Text("GPS \(Int(success.data.ellipsoidHeight)) m | Geoid \(Int(success.data.geoidHeight)) m")
                                 .font(.caption)
-                                .foregroundColor(colors.onSurfaceVariant)
+                                .foregroundColor(theme.onSurfaceVariant)
                             Text(success.data.accuracy)
                                 .font(.caption2)
-                                .foregroundColor(colors.onSurfaceVariant)
+                                .foregroundColor(theme.onSurfaceVariant)
                         case let error as MSLHeightState.Error:
                             Image(systemName: "exclamationmark.triangle")
-                                .foregroundColor(colors.error)
+                                .foregroundColor(theme.error)
                             Text(error.message)
                                 .font(.caption)
                                 .multilineTextAlignment(.center)
-                                .foregroundColor(colors.error)
+                                .foregroundColor(theme.error)
                         default:
                             EmptyView()
                         }

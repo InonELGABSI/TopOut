@@ -8,28 +8,28 @@ import Shared
 struct ErrorContent: View {
     let errorMessage: String
     let onRetryClick: () -> Void
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 64))
-                .foregroundColor(colors.error)
+                .foregroundColor(theme.error)
             Text("Session Error")
                 .font(.system(size: 24, weight: .bold))
-                .foregroundColor(colors.onSurface)
+                .foregroundColor(theme.onSurface)
             Text(errorMessage)
                 .multilineTextAlignment(.center)
-                .foregroundColor(colors.onSurfaceVariant)
+                .foregroundColor(theme.onSurfaceVariant)
                 .padding(.horizontal, 32)
             Button(action: onRetryClick) {
                 Label("Try Again", systemImage: "arrow.clockwise")
                     .font(.headline)
-                    .foregroundColor(colors.onPrimary)
+                    .foregroundColor(theme.onPrimary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(colors.primary)
+                    .background(theme.primary)
                     .cornerRadius(28)
             }
             .padding(.horizontal, 24)
