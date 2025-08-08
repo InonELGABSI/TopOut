@@ -147,9 +147,9 @@ struct HistoryNavStack: View {
             HistoryView()
                 .navigationTitle("Sessions History")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbarBackground(themeManager.currentTheme.primary.opacity(0.85), for: .navigationBar)
-                .toolbarBackground(.visible, for: .navigationBar)
+                .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
                 .toolbarColorScheme(.dark, for: .navigationBar)
+                .background(themeManager.currentTheme.primary.opacity(0.1))
         }
     }
 }
@@ -171,9 +171,9 @@ struct SettingsNavStack: View {
             SettingsView()
                 .navigationTitle("Settings")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbarBackground(themeManager.currentTheme.primary.opacity(0.85), for: .navigationBar)
-                .toolbarBackground(.visible, for: .navigationBar)
+                .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
                 .toolbarColorScheme(.dark, for: .navigationBar)
+                .background(themeManager.currentTheme.primary.opacity(0.1))
         }
     }
 }
