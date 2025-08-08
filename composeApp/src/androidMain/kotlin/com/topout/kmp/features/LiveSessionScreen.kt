@@ -29,6 +29,7 @@ import com.topout.kmp.shared_components.TopRoundedCard
 import com.topout.kmp.shared_components.WaveAnimation
 import com.topout.kmp.utils.extensions.latLngOrNull
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +40,7 @@ fun LiveSessionScreen(
     viewModel: LiveSessionViewModel = koinViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsState().value
+    val context = LocalContext.current
 
     // Toast state management
     var showDangerToast by remember { mutableStateOf(false) }
