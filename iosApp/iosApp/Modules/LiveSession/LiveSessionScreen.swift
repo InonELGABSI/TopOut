@@ -1,7 +1,3 @@
-//==============================================================
-//  LiveSessionView.swift
-//==============================================================
-
 import SwiftUI
 import Shared
 import MapKit
@@ -19,7 +15,8 @@ struct LiveSessionView: View {
     @State private var currentAlertType = AlertType.none
     @State private var lastToastTimestamp: Int64 = 0
     @State private var hasLocationPermission   = false
-    
+    @State private var hasNavigatedToDetails = false
+
     @Environment(\.colorScheme)         private var colorScheme
     @AppStorage("selectedTheme") private var selectedTheme = ThemePalette.classicRed.rawValue
     @EnvironmentObject var networkMonitor: NetworkMonitor
@@ -27,6 +24,10 @@ struct LiveSessionView: View {
     private var colors: TopOutColorScheme {
         (ThemePalette(rawValue: selectedTheme) ?? .classicRed).scheme(for: colorScheme)
     }
+    
+    // ⬅️ ADDED for navigation to SessionDetails
+    @State private var navigateToDetails = false
+    @State private var stoppedSessionId: String? = nil
     
     // MARK: – Body
     
@@ -47,8 +48,22 @@ struct LiveSessionView: View {
                 Text("Are you sure you want to cancel this session? All tracking data will be permanently deleted and cannot be recovered.")
             }
         )
-        .ignoresSafeArea(edges: .top)  // Full-bleed for map view
-        .navigationBarHidden(true)     // Hide navigation bar completely for map experience
+        .ignoresSafeArea(edges: .top)
+        .navigationBarHidden(true)
+        
+        .navigationDestination(isPresented: $navigateToDetails) {
+            if let sessionId = stoppedSessionId {
+                SessionDetailsView(sessionId: sessionId)
+                    .navigationTitle("Session Details")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .onDisappear {
+                        viewModel.viewModel.resetToInitialState() // clear ViewModel state
+                        stoppedSessionId = nil
+                        hasNavigatedToDetails = false              // allow navigation next time
+                    }
+            }
+        }
+
     }
     
     // MARK: – Computed Views
@@ -59,10 +74,10 @@ struct LiveSessionView: View {
         case .loading:
             VStack(spacing: 32) {
                 MountainAnimationView(
-                    animationAsset: "Travel_Mountain", // your asset name
+                    animationAsset: "Travel_Mountain",
                     speed: 1.2,
                     animationSize: 220,
-                    iterations: 1 // 0 means infinite loop
+                    iterations: 1
                 )
                 StartSessionContent(
                     hasLocationPermission: hasLocationPermission,
@@ -74,7 +89,6 @@ struct LiveSessionView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-
         case .loaded(let state):
             ActiveSessionContent(
                 trackPoint:    state.trackPoint,
@@ -84,14 +98,25 @@ struct LiveSessionView: View {
                 onCancelClicked: { showingDiscardConfirmation = true },
                 colors:        colors
             )
+
         case .stopping:
-            // Show a loading/spinner or message
-            ProgressView("Stopping session…")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // ⬅️ CHANGED: Show loading spinner while stopping
+            VStack {
+                ProgressView("Stopping session…")
+                    .progressViewStyle(CircularProgressViewStyle())
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
         case .sessionStopped(let state):
-            // Show a summary, or just an empty screen
-            Text("Session stopped (ID: \(state.sessionId))")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Color.clear
+                .onAppear {
+                    if !hasNavigatedToDetails {
+                        stoppedSessionId = state.sessionId
+                        navigateToDetails = true
+                        hasNavigatedToDetails = true
+                    }
+                }
+
         case .error(let state):
             ErrorContent(
                 errorMessage: state.errorMessage,
@@ -100,9 +125,6 @@ struct LiveSessionView: View {
             )
         }
     }
-
-
-
     
     @ViewBuilder private var dangerToastView: some View {
         if showDangerToast {
@@ -130,9 +152,6 @@ struct LiveSessionView: View {
         
         Task {
             for await state in viewModel.viewModel.uiState {
-                if state is LiveSessionState.SessionStopped {
-                    viewModel.viewModel.resetToInitialState()
-                }
                 if let loaded = state as? LiveSessionState.Loaded,
                    loaded.trackPoint.danger {
                     let now = Int64(Date().timeIntervalSince1970 * 1000)

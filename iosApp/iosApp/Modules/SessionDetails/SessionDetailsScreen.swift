@@ -3,11 +3,11 @@ import Shared
 import Charts
 
 struct SessionDetailsView: View {
-    @ObservedObject private(set) var viewModel = ViewModelWrapper<SessionDetailsState, SessionDetailsViewModel>()
+    @StateObject private var viewModel = ViewModelWrapper<SessionDetailsState, SessionDetailsViewModel>()
     
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-
+    
     private var colors: TopOutColorScheme {
         (ThemePalette(rawValue: selectedTheme) ?? .classicRed).scheme(for: colorScheme)
     }
@@ -17,9 +17,12 @@ struct SessionDetailsView: View {
     @State private var showEditTitleDialog = false
     @State private var editTitleText = ""
     @State private var showShareSheet = false
-
+    
+    private let sessionId: String
+    @State private var hasLoaded = false   // prevent multiple loads
+    
     init(sessionId: String) {
-        self.viewModel.viewModel.loadSession(sessionId: sessionId)
+        self.sessionId = sessionId
     }
     
     var body: some View {
@@ -37,7 +40,6 @@ struct SessionDetailsView: View {
                     containerHeight: 170,
                     spacing: 24
                 )
-
                 
             case .loaded(let state):
                 ScrollView {
@@ -117,18 +119,14 @@ struct SessionDetailsView: View {
                 SessionErrorContent(
                     errorMessage: state.errorMessage,
                     onRetryClick: {
-                        if let session = viewModel.viewModel.uiState.value as? SessionDetailsState.Loaded {
-                            viewModel.viewModel.loadSession(sessionId: session.sessionDetails.session.id)
-                        }
+                        viewModel.viewModel.loadSession(sessionId: sessionId)
                     },
                     colors: colors
                 )
                 
             @unknown default:
                 EmptyView()
-            
             }
-
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -149,13 +147,9 @@ struct SessionDetailsView: View {
                 title: Text("Delete Session"),
                 message: Text("This action cannot be undone. Are you sure you want to delete this session?"),
                 primaryButton: .destructive(Text("Delete")) {
-                    // Only run delete on loaded state
-                    switch onEnum(of: viewModel.uiState) {
-                    case .loaded(let loadedState):
+                    if case .loaded(let loadedState) = onEnum(of: viewModel.uiState) {
                         viewModel.viewModel.deleteSession(sessionId: loadedState.sessionDetails.session.id)
                         presentationMode.wrappedValue.dismiss()
-                    default:
-                        break
                     }
                 },
                 secondaryButton: .cancel()
@@ -165,11 +159,8 @@ struct SessionDetailsView: View {
             EditTitleView(
                 currentTitle: editTitleText,
                 onSave: { newTitle in
-                    switch onEnum(of: viewModel.uiState) {
-                    case .loaded(let state):
+                    if case .loaded(let state) = onEnum(of: viewModel.uiState) {
                         viewModel.viewModel.updateSessionTitle(sessionId: state.sessionDetails.session.id, newTitle: newTitle)
-                    default:
-                        break
                     }
                 },
                 onCancel: { showEditTitleDialog = false },
@@ -178,6 +169,10 @@ struct SessionDetailsView: View {
         }
         .onAppear {
             viewModel.startObserving()
+            if !hasLoaded {
+                viewModel.viewModel.loadSession(sessionId: sessionId)
+                hasLoaded = true
+            }
         }
     }
 }
