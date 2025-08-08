@@ -29,6 +29,7 @@ import com.topout.kmp.shared_components.TopRoundedCard
 import com.topout.kmp.shared_components.WaveAnimation
 import com.topout.kmp.utils.extensions.latLngOrNull
 import org.koin.androidx.compose.koinViewModel
+import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,6 +42,13 @@ fun LiveSessionScreen(
 ) {
     val uiState = viewModel.uiState.collectAsState().value
     val context = LocalContext.current
+
+    // Toast for session started
+    LaunchedEffect(uiState) {
+        if (uiState is LiveSessionState.Loaded) {
+            Toast.makeText(context, "Session started!", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     // Toast state management
     var showDangerToast by remember { mutableStateOf(false) }
