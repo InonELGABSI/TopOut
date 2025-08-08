@@ -31,6 +31,8 @@ import com.topout.kmp.utils.extensions.latLngOrNull
 import org.koin.androidx.compose.koinViewModel
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,16 +45,13 @@ fun LiveSessionScreen(
     val uiState = viewModel.uiState.collectAsState().value
     val context = LocalContext.current
 
-    // Toast for session started
-    LaunchedEffect(uiState) {
-        if (uiState is LiveSessionState.Loaded) {
-            Toast.makeText(context, "Session started!", Toast.LENGTH_SHORT).show()
-        }
-    }
+    // Track last state to detect transitions
+    var lastUiState by remember { mutableStateOf<LiveSessionState?>(null) }
+
 
     // Toast for session saved
     LaunchedEffect(uiState) {
-        if (uiState is LiveSessionState.SessionStopped) {
+        if (uiState is LiveSessionState.SessionStopped && lastUiState !is LiveSessionState.SessionStopped) {
             Toast.makeText(context, "Session saved!", Toast.LENGTH_SHORT).show()
         }
     }
