@@ -48,12 +48,15 @@ fun LiveSessionScreen(
     // Track last state to detect transitions
     var lastUiState by remember { mutableStateOf<LiveSessionState?>(null) }
 
-
-    // Toast for session saved
+    // Show toast only on state transitions
     LaunchedEffect(uiState) {
-        if (uiState is LiveSessionState.SessionStopped && lastUiState !is LiveSessionState.SessionStopped) {
-            Toast.makeText(context, "Session saved!", Toast.LENGTH_SHORT).show()
+        if (uiState is LiveSessionState.Loaded && lastUiState !is LiveSessionState.Loaded) {
+            Toast.makeText(context, "Live session started", Toast.LENGTH_SHORT).show()
         }
+        if (uiState is LiveSessionState.SessionStopped && lastUiState !is LiveSessionState.SessionStopped) {
+            Toast.makeText(context, "Live session saved", Toast.LENGTH_SHORT).show()
+        }
+        lastUiState = uiState
     }
 
     // Toast state management
