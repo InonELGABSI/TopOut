@@ -50,6 +50,13 @@ fun LiveSessionScreen(
         }
     }
 
+    // Toast for session saved
+    LaunchedEffect(uiState) {
+        if (uiState is LiveSessionState.SessionStopped) {
+            Toast.makeText(context, "Session saved!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     // Toast state management
     var showDangerToast by remember { mutableStateOf(false) }
     var currentAlertType by remember { mutableStateOf(AlertType.NONE) }
