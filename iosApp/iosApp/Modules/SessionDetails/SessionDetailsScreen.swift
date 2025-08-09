@@ -47,28 +47,58 @@ struct SessionDetailsView: View {
                                 .ignoresSafeArea(edges: .top)
                         }
                         
-                        SessionTitleSection(
-                            sessionDetails: state.sessionDetails,
-                            onEditClick: {
-                                editTitleText = state.sessionDetails.session.title ?? "Climbing Session"
-                                showEditTitleDialog = true
-                            },
-                            theme: theme
-                        )
-                        
+                        // Title Section with circular corners
+                        VStack {
+                            HStack {
+                                Text(state.sessionDetails.session.title ?? "Climbing Session")
+                                    .font(.title3)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(theme.onSurface)
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.leading)
+
+                                Spacer()
+
+                                Button(action: {
+                                    editTitleText = state.sessionDetails.session.title ?? "Climbing Session"
+                                    showEditTitleDialog = true
+                                }) {
+                                    Image(systemName: "pencil")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(theme.primary)
+                                        .frame(width: 32, height: 32)
+                                        .background(theme.primary.opacity(0.1))
+                                        .clipShape(Circle())
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                            .background(theme.surfaceContainer)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.top, 16)
+
+                        // Info Section with no background
                         SessionInfoSection(
                             sessionDetails: state.sessionDetails,
                             onDeleteClick: { showDeleteConfirmation = true },
                             theme: theme
                         )
-                        
+                        .background(Color.clear)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 16)
+
+                        // Climbing Session Card with top rounded corners only and 3D shading
                         VStack(spacing: 0) {
                             Text("Climbing Session")
                                 .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(theme.onSurface)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, 24)
-                                .padding(.vertical, 24)
-                            
+                                .padding(.top, 24)
+                                .padding(.bottom, 16)
+
                             Divider()
                                 .background(theme.outline.opacity(0.3))
                                 .padding(.horizontal, 24)
@@ -106,8 +136,10 @@ struct SessionDetailsView: View {
                                 .padding(16)
                             Spacer(minLength: 80)
                         }
-                        .background(theme.surfaceContainer)
-                        .cornerRadius(24, corners: [.bottomLeft, .bottomRight])
+                        .background(theme.surface)
+                        .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
+                        .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: -4)
+                        .padding(.top, 8)
                     }
                 }
                 
@@ -335,7 +367,6 @@ struct SessionInfoSection: View {
             .frame(maxWidth: .infinity)
         }
         .padding(.vertical, 10)
-        .background(theme.surfaceContainer)
     }
     
     private func formatDate(_ timestamp: Int64) -> String {
