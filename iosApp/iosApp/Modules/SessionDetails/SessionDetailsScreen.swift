@@ -38,108 +38,118 @@ struct SessionDetailsView: View {
                 )
                 
             case .loaded(let state):
-                ScrollView {
-                    VStack(spacing: 0) {
-                        if !state.sessionDetails.points.isEmpty {
-                            MapPreview(trackPoints: state.sessionDetails.points)
-                                .frame(height: 500)
-                                .clipShape(.rect(bottomLeadingRadius: 24, bottomTrailingRadius: 24))
-                                .ignoresSafeArea(edges: .top)
-                        }
-                        
-                        // Title Section with circular corners
-                        VStack {
-                            HStack {
-                                Text(state.sessionDetails.session.title ?? "Climbing Session")
-                                    .font(.title3)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(theme.onSurface)
-                                    .lineLimit(2)
-                                    .multilineTextAlignment(.leading)
-
-                                Spacer()
-
-                                Button(action: {
-                                    editTitleText = state.sessionDetails.session.title ?? "Climbing Session"
-                                    showEditTitleDialog = true
-                                }) {
-                                    Image(systemName: "pencil")
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(theme.primary)
-                                        .frame(width: 32, height: 32)
-                                        .background(theme.primary.opacity(0.1))
-                                        .clipShape(Circle())
-                                }
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 16)
-                            .background(theme.surfaceContainer)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.top, 16)
-
-                        // Info Section with no background
-                        SessionInfoSection(
-                            sessionDetails: state.sessionDetails,
-                            onDeleteClick: { showDeleteConfirmation = true },
-                            theme: theme
-                        )
-                        .background(Color.clear)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 16)
-
-                        // Climbing Session Card with top rounded corners only and 3D shading
+                GeometryReader { geometry in
+                    ScrollView {
                         VStack(spacing: 0) {
-                            Text("Climbing Session")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(theme.onSurface)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 24)
-                                .padding(.top, 24)
-                                .padding(.bottom, 16)
+                            if !state.sessionDetails.points.isEmpty {
+                                GeometryReader { scrollGeometry in
+                                    let offset = scrollGeometry.frame(in: .named("scroll")).minY
+                                    let heightIncrease = max(0, offset)
 
-                            Divider()
-                                .background(theme.outline.opacity(0.3))
-                                .padding(.horizontal, 24)
-                            
-                            SessionStatisticsCard(sessionDetails: state.sessionDetails, theme: theme)
-                                .padding(.top, 16)
-                            
-                            Divider()
-                                .background(theme.outline.opacity(0.3))
-                                .padding(.horizontal, 24)
-                                .padding(.vertical, 16)
-                            
-                            if state.sessionDetails.points.count > 1 {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    HStack {
-                                        Image(systemName: "chart.xyaxis.line")
-                                            .foregroundColor(theme.primary)
-                                        Text("Altitude over Time")
-                                            .font(.headline)
-                                            .fontWeight(.bold)
-                                    }
-                                    .padding(.horizontal, 16)
-                                    
-                                    TimeHeightChartView(
-                                        samples: prepareChartData(points: state.sessionDetails.points),
-                                        theme: theme
-                                    )
-                                    .frame(height: 200)
-                                    .padding(.horizontal, 16)
+                                    MapPreview(trackPoints: state.sessionDetails.points)
+                                        .frame(height: 500 + heightIncrease)
+                                        .clipShape(.rect(bottomLeadingRadius: 24, bottomTrailingRadius: 24))
+                                        .ignoresSafeArea(edges: .top)
+                                        .offset(y: -heightIncrease)
                                 }
-                                .padding(.vertical, 8)
+                                .frame(height: 500)
                             }
-                            
-                            TrackPointsSection(trackPoints: state.sessionDetails.points, theme: theme)
-                                .padding(16)
+
+                            // Title Section with circular corners
+                            VStack {
+                                HStack {
+                                    Text(state.sessionDetails.session.title ?? "Climbing Session")
+                                        .font(.title3)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(theme.onSurface)
+                                        .lineLimit(2)
+                                        .multilineTextAlignment(.leading)
+
+                                    Spacer()
+
+                                    Button(action: {
+                                        editTitleText = state.sessionDetails.session.title ?? "Climbing Session"
+                                        showEditTitleDialog = true
+                                    }) {
+                                        Image(systemName: "pencil")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(theme.primary)
+                                            .frame(width: 32, height: 32)
+                                            .background(theme.primary.opacity(0.1))
+                                            .clipShape(Circle())
+                                    }
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
+                                .background(theme.surfaceContainer)
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.top, 16)
+
+                            // Info Section with no background
+                            SessionInfoSection(
+                                sessionDetails: state.sessionDetails,
+                                onDeleteClick: { showDeleteConfirmation = true },
+                                theme: theme
+                            )
+                            .background(Color.clear)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 16)
+
+                            // Climbing Session Card with top rounded corners only and 3D shading
+                            VStack(spacing: 0) {
+                                Text("Climbing Session")
+                                    .font(.system(size: 28, weight: .bold))
+                                    .foregroundColor(theme.onSurface)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 24)
+                                    .padding(.top, 24)
+                                    .padding(.bottom, 16)
+
+                                Divider()
+                                    .background(theme.outline.opacity(0.3))
+                                    .padding(.horizontal, 24)
+
+                                SessionStatisticsCard(sessionDetails: state.sessionDetails, theme: theme)
+                                    .padding(.top, 16)
+
+                                Divider()
+                                    .background(theme.outline.opacity(0.3))
+                                    .padding(.horizontal, 24)
+                                    .padding(.vertical, 16)
+
+                                if state.sessionDetails.points.count > 1 {
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        HStack {
+                                            Image(systemName: "chart.xyaxis.line")
+                                                .foregroundColor(theme.primary)
+                                            Text("Altitude over Time")
+                                                .font(.headline)
+                                                .fontWeight(.bold)
+                                        }
+                                        .padding(.horizontal, 16)
+
+                                        TimeHeightChartView(
+                                            samples: prepareChartData(points: state.sessionDetails.points),
+                                            theme: theme
+                                        )
+                                        .frame(height: 200)
+                                        .padding(.horizontal, 16)
+                                    }
+                                    .padding(.vertical, 8)
+                                }
+
+                                TrackPointsSection(trackPoints: state.sessionDetails.points, theme: theme)
+                                    .padding(16)
+                            }
+                            .background(theme.surface)
+                            .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
+                            .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: -4)
+                            .padding(.top, 8)
                         }
-                        .background(theme.surface)
-                        .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
-                        .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: -4)
-                        .padding(.top, 8)
                     }
+                    .coordinateSpace(name: "scroll")
                 }
                 
             case .error(let state):
@@ -266,7 +276,7 @@ struct ShareSessionSheet: View {
         let totalGain = sessionDetails.points.last?.gain ?? 0.0
 
         return """
-        🧗‍♂️ \(title)
+        ���‍♂️ \(title)
 
         📊 Session Stats:
         ⏱️ Duration: \(duration)
