@@ -472,7 +472,7 @@ struct ThemeCard: View {
                     .font(.title2.bold())
                     .foregroundColor(theme.onSurface)
 
-                Spacer(minLength: 0)
+                Spacer()
 
                 // Dark mode toggle with Lottie animation
                 LottieToggleButton(
@@ -484,12 +484,10 @@ struct ThemeCard: View {
                             .first?.windows.first?
                             .overrideUserInterfaceStyle = isDark ? .dark : .light
                     },
-                    height: 60
+                    height: 80
                 )
-                .frame(width: 80, height: 60)
-                .fixedSize()
+                .frame(width: 80, height: 80)
             }
-            .frame(maxWidth: .infinity)
 
             Text("Color Palette")
                 .font(.subheadline.weight(.medium))

@@ -71,11 +71,8 @@ struct LottieToggleButtonContent: UIViewRepresentable {
         animationView.animationSpeed = 1.0
         animationView.contentMode = .scaleAspectFit
         
-        // Calculate aspect ratio
-        let aspectRatio = animation.bounds.width / animation.bounds.height
-        let width = height * aspectRatio
-        
-        containerView.frame = CGRect(x: 0, y: 0, width: width, height: height)
+        // Use a square container to maintain aspect ratio
+        containerView.frame = CGRect(x: 0, y: 0, width: height, height: height)
         animationView.frame = containerView.bounds
         
         containerView.addSubview(animationView)
