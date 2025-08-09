@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-
 import com.topout.kmp.map.LiveMap
 import com.topout.kmp.features.live_session.LiveSessionState
 import com.topout.kmp.features.live_session.LiveSessionViewModel
@@ -35,10 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.topout.kmp.shared_components.SessionToast
 import com.topout.kmp.shared_components.SessionToastType
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.ui.zIndex
-import com.topout.kmp.BuildConfig
-import kotlinx.coroutines.delay
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,7 +92,11 @@ fun LiveSessionScreen(
                 trackPoint = uiState.trackPoint,
                 historyTrackPoints = uiState.historyTrackPoints,
                 onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
-                onCancelClick = { viewModel.onCancelClicked(uiState.trackPoint.sessionId) }
+                onCancelClick = {
+                    viewModel.onCancelClicked(uiState.trackPoint.sessionId)
+                    toastType = SessionToastType.SESSION_CANCELLED
+                    showSessionToast = true
+                }
             )
             is LiveSessionState.Stopping -> StoppingSessionContent()
             is LiveSessionState.SessionStopped -> Unit

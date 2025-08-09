@@ -17,7 +17,8 @@ import kotlinx.coroutines.delay
 
 enum class SessionToastType {
     SESSION_STARTED,
-    SESSION_SAVED
+    SESSION_SAVED,
+    SESSION_CANCELLED
 }
 
 @Composable
@@ -51,6 +52,11 @@ fun SessionToast(
                     Icons.Default.CheckCircle,
                     "Live session saved",
                     Color(0xFF2196F3)
+                )
+                SessionToastType.SESSION_CANCELLED -> Triple(
+                    Icons.Default.Cancel,
+                    "Live session cancelled",
+                    Color(0xFFE57373)
                 )
             }
             Card(
