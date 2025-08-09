@@ -134,7 +134,6 @@ struct SessionDetailsView: View {
                             
                             TrackPointsSection(trackPoints: state.sessionDetails.points, theme: theme)
                                 .padding(16)
-                            Spacer(minLength: 80)
                         }
                         .background(theme.surface)
                         .clipShape(.rect(topLeadingRadius: 24, topTrailingRadius: 24))
@@ -722,8 +721,10 @@ func formatDuration(_ durationMs: Int64) -> String {
 func prepareChartData(points: [TrackPoint]) -> [(Float, Float)] {
     if points.isEmpty { return [] }
     
-    // Filter points that have altitude data
-    let pointsWithAltitude = points.filter { $0.altitude != 0.0 || $0.relAltitude != 0.0 }
+    // Filter points that have altitude data (including 0 values)
+    let pointsWithAltitude = points.filter {
+        $0.altitude != nil || $0.relAltitude != 0.0
+    }
     if pointsWithAltitude.isEmpty { return [] }
     
     let sessionStartTime = pointsWithAltitude.first?.timestamp ?? 0
@@ -739,9 +740,6 @@ func prepareChartData(points: [TrackPoint]) -> [(Float, Float)] {
         }
     }
 
-
-    
-    // If we have more than 50 points, aggregate them
     // If we have more than 50 points, aggregate them
     let step = pointsWithAltitude.count / 50
     var aggregatedPoints: [(Float, Float)] = []
@@ -757,9 +755,8 @@ func prepareChartData(points: [TrackPoint]) -> [(Float, Float)] {
             let middlePoint = pointsInRange[pointsInRange.count / 2]
             let timeFromStart = Float((middlePoint.timestamp - sessionStartTime) / 1000)
 
-            // ---- FIXED MAP BELOW ----
             let altitudes: [Double] = pointsInRange.map { point in
-                let alt = Double(truncating: point.altitude ?? 0)
+                let alt = Double(truncating: point.altitude ?? KotlinDouble(value: 0.0))
                 let relAlt = point.relAltitude
                 return (alt != 0.0) ? alt : relAlt
             }
@@ -771,7 +768,5 @@ func prepareChartData(points: [TrackPoint]) -> [(Float, Float)] {
         }
     }
 
-
-    
     return aggregatedPoints
 }
