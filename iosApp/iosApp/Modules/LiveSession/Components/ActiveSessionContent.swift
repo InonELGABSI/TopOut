@@ -15,39 +15,37 @@ struct ActiveSessionContent: View {
     
     // MARK: – Body
     var body: some View {
-        VStack(spacing: 0) {
-            /* ────────── MAP ────────── */
-            MapView(trackPoints: trackPoints, region: $mapRegion)
-                .ignoresSafeArea(edges: .top)
-                .frame(height: UIScreen.main.bounds.height * 0.50)
-                .clipShape(.rect(bottomLeadingRadius: 24,
-                                 bottomTrailingRadius: 24))
-                .zIndex(1)                              // stays in front
-            
-            /* ────────── LIVE DATA PANEL ────────── */
-            VStack(spacing: 0) {
-                LiveDataCard(trackPoint: trackPoint, theme: theme)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 0)                   // nice top air
-                    .padding(.bottom, 24)                // bottom air inside panel
-            }
-            .frame(maxWidth: .infinity, alignment: .top)
-            .background(
-                theme.primary
-                    .clipShape(.rect(bottomLeadingRadius: 24,
-                                     bottomTrailingRadius: 24))
-            )
-            .offset(y: -overlap)                         // tuck under map
-            .zIndex(0)
-            
-            /* ────────── BUTTONS (now OUTSIDE panel) ────────── */
-            BottomControls(onStopClicked:  onStopClicked,
-                           onCancelClicked: onCancelClicked)
-                .padding(.top, 12)                       // little gap below panel
-                .offset(y: -overlap)                         // tuck under map
+        ZStack(alignment: .top) {
+            // Background
+            theme.background
+                .ignoresSafeArea()
 
+            // Live Data Card positioned first (behind)
+            VStack {
+                Spacer()
+                    .frame(height: UIScreen.main.bounds.height * 0.45) // Start earlier to be behind map
+
+                LiveDataCard(trackPoint: trackPoint, theme: theme)
+                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: -4)
+
+                BottomControls(onStopClicked: onStopClicked, onCancelClicked: onCancelClicked)
+                    .padding(.top, 24)
+                    .padding(.bottom, 32)
+
+                Spacer()
+            }
+
+            // Map positioned last (in front)
+            VStack {
+                MapView(trackPoints: trackPoints, region: $mapRegion)
+                    .frame(height: UIScreen.main.bounds.height * 0.50)
+                    .clipShape(.rect(bottomLeadingRadius: 24, bottomTrailingRadius: 24))
+                    .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 8)
+                    .ignoresSafeArea(edges: .top)
+
+                Spacer()
+            }
         }
-        .background(theme.background)                   // fallback colour
     }
 }
 
@@ -103,14 +101,30 @@ private struct LiveDataCard: View {
     let theme: AppTheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 20) {
             HeaderRow(timestamp: trackPoint.timestamp, theme: theme)
-            LocationRow(trackPoint: trackPoint, theme: theme)
-            SpeedAltitudeRow(trackPoint: trackPoint, theme: theme)
+
+            VStack(spacing: 16) {
+                LocationRow(trackPoint: trackPoint, theme: theme)
+                SpeedAltitudeRow(trackPoint: trackPoint, theme: theme)
+            }
         }
-        .padding(20)
-        .background(theme.background.opacity(0.85))
-        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .padding(.top, 48)
+        .padding(.horizontal, 24)
+        .padding(.bottom, 28)
+        .background(
+            RoundedRectangle(cornerRadius: 0)
+                .fill(theme.surface)
+                .clipShape(.rect(bottomLeadingRadius: 32, bottomTrailingRadius: 32))
+        )
+        .overlay(
+            // Subtle top border line
+            Rectangle()
+                .fill(theme.outline.opacity(0.1))
+                .frame(height: 1)
+                .frame(maxWidth: .infinity)
+                .position(x: UIScreen.main.bounds.width / 2, y: 0)
+        )
     }
 }
 
@@ -300,4 +314,3 @@ private struct ControlButton: View {
         }
     }
 }
-
