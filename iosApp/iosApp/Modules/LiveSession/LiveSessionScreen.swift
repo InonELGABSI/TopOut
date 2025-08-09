@@ -77,6 +77,7 @@ struct LiveSessionView: View {
                         animationSize: 220,
                         iterations: 1
                     )
+                    .id(UUID()) // Force recreation on each navigation
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 60) // Generous top spacing after safe area
