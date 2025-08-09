@@ -33,6 +33,12 @@ import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import com.topout.kmp.shared_components.SessionToast
+import com.topout.kmp.shared_components.SessionToastType
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.ui.zIndex
+import com.topout.kmp.BuildConfig
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,44 +49,34 @@ fun LiveSessionScreen(
     viewModel: LiveSessionViewModel = koinViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsState().value
-    val context = LocalContext.current
 
-    // Track last state to detect transitions
     var lastUiState by remember { mutableStateOf<LiveSessionState?>(null) }
+    var toastType by remember { mutableStateOf<SessionToastType?>(null) }
+    var showSessionToast by remember { mutableStateOf(false) }
 
-    // Show toast only on state transitions
-    LaunchedEffect(uiState) {
-        if (uiState is LiveSessionState.Loaded && lastUiState !is LiveSessionState.Loaded) {
-            Toast.makeText(context, "Live session started", Toast.LENGTH_SHORT).show()
-        }
-        if (uiState is LiveSessionState.SessionStopped && lastUiState !is LiveSessionState.SessionStopped) {
-            Toast.makeText(context, "Live session saved", Toast.LENGTH_SHORT).show()
-        }
-        lastUiState = uiState
-    }
-
-    // Toast state management
     var showDangerToast by remember { mutableStateOf(false) }
     var currentAlertType by remember { mutableStateOf(AlertType.NONE) }
     var lastToastTimestamp by remember { mutableStateOf(0L) }
 
-    // Monitor danger alerts from track points
+    // מצית טוסט על טרנזיציות מצב
     LaunchedEffect(uiState) {
-        if (uiState is LiveSessionState.Loaded && uiState.trackPoint.danger) {
-            val currentTime = System.currentTimeMillis()
-
-            // Only show toast if no toast is currently active (10 second window)
-            if (!showDangerToast && (currentTime - lastToastTimestamp) > 10000) {
-                currentAlertType = uiState.trackPoint.alertType
-                showDangerToast = true
-                lastToastTimestamp = currentTime
+        when {
+            uiState is LiveSessionState.Loaded && lastUiState !is LiveSessionState.Loaded -> {
+                toastType = SessionToastType.SESSION_STARTED
+                showSessionToast = true
+            }
+            uiState is LiveSessionState.SessionStopped && lastUiState !is LiveSessionState.SessionStopped -> {
+                toastType = SessionToastType.SESSION_SAVED
+                showSessionToast = true
             }
         }
+        lastUiState = uiState
     }
 
-    // Handle navigation when session is stopped
+    // מנווטים רק אחרי שהטוסט קיבל זמן להופיע
     LaunchedEffect(uiState) {
         if (uiState is LiveSessionState.SessionStopped) {
+            kotlinx.coroutines.delay(1800)   // 1.8–2.2 שנ׳ (הטוסט נעלם אחרי ~3שנ׳, זה מספיק כדי "לראות")
             onNavigateToSessionDetails(uiState.sessionId)
             viewModel.resetToInitialState()
         }
@@ -103,16 +99,14 @@ fun LiveSessionScreen(
                 onCancelClick = { viewModel.onCancelClicked(uiState.trackPoint.sessionId) }
             )
             is LiveSessionState.Stopping -> StoppingSessionContent()
-            is LiveSessionState.SessionStopped -> {
-                // Navigation handled in LaunchedEffect
-            }
+            is LiveSessionState.SessionStopped -> Unit
             is LiveSessionState.Error -> ErrorContent(
                 errorMessage = uiState.errorMessage,
                 onRetryClick = { viewModel.onStartClicked() }
             )
         }
 
-        // Danger Toast - positioned at the bottom with proper spacing
+        // Danger Toast
         DangerToast(
             alertType = currentAlertType,
             isVisible = showDangerToast,
@@ -121,6 +115,21 @@ fun LiveSessionScreen(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 120.dp) // Above the chip buttons
         )
+
+        SessionToast(
+            toastType = toastType,
+            isVisible = showSessionToast && toastType != null,
+            onDismiss = {
+                showSessionToast = false
+                toastType = null
+            },
+            modifier = Modifier
+                .align(Alignment.BottomCenter) // לתחתית הדף
+                .padding(WindowInsets.navigationBars.asPaddingValues()) // רווח מעל ה-Navigation bar
+                .padding(bottom = 12.dp) // עוד קצת ריווח נעים
+        )
+
+
     }
 }
 
