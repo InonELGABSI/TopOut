@@ -114,13 +114,13 @@ private struct LiveDataCard: View {
         .padding(.bottom, 28)
         .background(
             RoundedRectangle(cornerRadius: 0)
-                .fill(theme.surface)
+                .fill(theme.primary)
                 .clipShape(.rect(bottomLeadingRadius: 32, bottomTrailingRadius: 32))
         )
         .overlay(
             // Subtle top border line
             Rectangle()
-                .fill(theme.outline.opacity(0.1))
+                .fill(theme.onPrimary.opacity(0.1))
                 .frame(height: 1)
                 .frame(maxWidth: .infinity)
                 .position(x: UIScreen.main.bounds.width / 2, y: 0)
@@ -138,12 +138,12 @@ private struct HeaderRow: View {
                 Circle().fill(Color.red).frame(width: 8, height: 8)
                 Text("Live Data")
                     .font(.title2).bold()
-                    .foregroundColor(theme.onSurface)
+                    .foregroundColor(theme.onPrimary)
             }
             Spacer()
             Text(formatTime(timestamp))
                 .font(.subheadline).fontWeight(.medium)
-                .foregroundColor(theme.onSurfaceVariant)
+                .foregroundColor(theme.onPrimary.opacity(0.8))
         }
     }
     
@@ -162,7 +162,7 @@ private struct LocationRow: View {
         HStack {
             Label("Location", systemImage: "location.fill")
                 .font(.headline)
-                .foregroundColor(theme.primary)
+                .foregroundColor(theme.onPrimary)
             Spacer()
             DataTriplet(
                 first:   formatted(trackPoint.latitude?.double, suffix: "°"),
@@ -222,9 +222,10 @@ private struct StatCard: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.system(size: 14)).foregroundColor(theme.primary)
+                    .font(.system(size: 14)).foregroundColor(theme.onPrimary)
                 Text(title)
                     .font(.subheadline).bold()
+                    .foregroundColor(theme.onPrimary)
             }
             DataTriplet(
                 first:  triplet.0, second: triplet.2, third: triplet.4,
@@ -233,7 +234,7 @@ private struct StatCard: View {
             )
         }
         .padding(12)
-        .background(background)
+        .background(theme.onPrimary.opacity(0.15))
         .cornerRadius(12)
         .frame(maxWidth: .infinity)
     }
@@ -259,7 +260,9 @@ private struct ValueLabel: View {
     var body: some View {
         VStack {
             Text(value).font(.caption).bold()
-            Text(label).font(.caption2).foregroundColor(theme.onSurfaceVariant)
+                .foregroundColor(theme.onPrimary)
+            Text(label).font(.caption2)
+                .foregroundColor(theme.onPrimary.opacity(0.7))
         }.frame(maxWidth: .infinity)
     }
 }
