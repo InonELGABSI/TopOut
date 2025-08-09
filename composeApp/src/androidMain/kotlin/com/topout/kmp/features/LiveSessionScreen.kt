@@ -54,7 +54,6 @@ fun LiveSessionScreen(
     var currentAlertType by remember { mutableStateOf(AlertType.NONE) }
     var lastToastTimestamp by remember { mutableStateOf(0L) }
 
-    // מצית טוסט על טרנזיציות מצב
     LaunchedEffect(uiState) {
         when {
             uiState is LiveSessionState.Loaded && lastUiState !is LiveSessionState.Loaded -> {
@@ -69,10 +68,9 @@ fun LiveSessionScreen(
         lastUiState = uiState
     }
 
-    // מנווטים רק אחרי שהטוסט קיבל זמן להופיע
     LaunchedEffect(uiState) {
         if (uiState is LiveSessionState.SessionStopped) {
-            kotlinx.coroutines.delay(1800)   // 1.8–2.2 שנ׳ (הטוסט נעלם אחרי ~3שנ׳, זה מספיק כדי "לראות")
+            kotlinx.coroutines.delay(1500)
             onNavigateToSessionDetails(uiState.sessionId)
             viewModel.resetToInitialState()
         }
@@ -113,7 +111,7 @@ fun LiveSessionScreen(
             onDismiss = { showDangerToast = false },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 120.dp) // Above the chip buttons
+                .padding(bottom = 120.dp)
         )
 
         SessionToast(
@@ -124,9 +122,9 @@ fun LiveSessionScreen(
                 toastType = null
             },
             modifier = Modifier
-                .align(Alignment.BottomCenter) // לתחתית הדף
-                .padding(WindowInsets.navigationBars.asPaddingValues()) // רווח מעל ה-Navigation bar
-                .padding(bottom = 12.dp) // עוד קצת ריווח נעים
+                .align(Alignment.BottomCenter)
+                .padding(WindowInsets.navigationBars.asPaddingValues())
+                .padding(bottom = 12.dp)
         )
 
 
