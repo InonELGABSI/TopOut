@@ -43,7 +43,7 @@ struct SessionDetailsView: View {
                         if !state.sessionDetails.points.isEmpty {
                             MapPreview(trackPoints: state.sessionDetails.points)
                                 .frame(height: 500)
-                                .clipShape(RoundedRectangle(cornerRadius: 24))
+                                .clipShape(.rect(bottomLeadingRadius: 24, bottomTrailingRadius: 24))
                                 .ignoresSafeArea(edges: .top)
                         }
                         
