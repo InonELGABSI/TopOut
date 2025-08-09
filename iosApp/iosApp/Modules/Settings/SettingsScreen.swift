@@ -106,12 +106,23 @@ struct ProfileCard: View {
                         onToggleEdit(true)
                     }) {
                         Circle()
-                            .fill(theme.primary)
-                            .frame(width: 40, height: 40)
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        theme.primary,
+                                        theme.primary.opacity(0.8)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 32, height: 32)
                             .overlay(
                                 Image(systemName: "pencil")
+                                    .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(theme.onPrimary)
                             )
+                            .shadow(color: theme.primary.opacity(0.3), radius: 4, x: 0, y: 2)
                     }
                 }
             }
@@ -221,30 +232,40 @@ struct PreferencesCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            ZStack {
-                HStack(spacing: 8) {
-                    Image(systemName: "gearshape.fill")
-                        .foregroundColor(theme.primary)
-                    Text("Preferences")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(theme.onSurface)
-                }
+            HStack(spacing: 8) {
+                // Leading: Icon + Title
+                Image(systemName: "gearshape.fill")
+                    .foregroundColor(theme.primary)
+                Text("Preferences")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(theme.onSurface)
+                Spacer() // Pushes the button to the right
+
+                // Trailing: Edit button (shown only when not editing)
                 if !isEditing {
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            editableUser = EditableUser(user: user)
-                            onToggleEdit(true)
-                        }) {
-                            Circle()
-                                .fill(theme.primary)
-                                .frame(width: 40, height: 40)
-                                .overlay(
-                                    Image(systemName: "pencil")
-                                        .foregroundColor(theme.onPrimary)
+                    Button(action: {
+                        editableUser = EditableUser(user: user)
+                        onToggleEdit(true)
+                    }) {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        theme.primary,
+                                        theme.primary.opacity(0.8)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
                                 )
-                        }
+                            )
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(theme.onPrimary)
+                            )
+                            .shadow(color: theme.primary.opacity(0.3), radius: 4, x: 0, y: 2)
                     }
                 }
             }
@@ -329,30 +350,40 @@ struct ThresholdsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            ZStack {
-                HStack(spacing: 8) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(theme.primary)
-                    Text("Alert Thresholds")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(theme.onSurface)
-                }
+            HStack(spacing: 8) {
+                // Leading: Icon + Title
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(theme.primary)
+                Text("Alert Thresholds")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(theme.onSurface)
+                Spacer() // Pushes the button to the right
+
+                // Trailing: Edit button (shown only when not editing)
                 if !isEditing {
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            editableUser = EditableUser(user: user)
-                            onToggleEdit(true)
-                        }) {
-                            Circle()
-                                .fill(theme.primary)
-                                .frame(width: 40, height: 40)
-                                .overlay(
-                                    Image(systemName: "pencil")
-                                        .foregroundColor(theme.onPrimary)
+                    Button(action: {
+                        editableUser = EditableUser(user: user)
+                        onToggleEdit(true)
+                    }) {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        theme.primary,
+                                        theme.primary.opacity(0.8)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
                                 )
-                        }
+                            )
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(theme.onPrimary)
+                            )
+                            .shadow(color: theme.primary.opacity(0.3), radius: 4, x: 0, y: 2)
                     }
                 }
             }
