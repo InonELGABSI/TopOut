@@ -9,34 +9,15 @@ struct EmptyStateView: View {
     let onActionTapped: () -> Void
     let theme: AppTheme
 
-    // Name of your Lottie asset (string literal)
-    private let emptyListLottie = "empty_list_animation"
 
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
             
-            // Use the shared LoadingAnimation if the Lottie file exists.
-            if LottieAnimation.named(emptyListLottie) != nil {
-                LoadingAnimation(
-                    text: "",
-                    animationAsset: emptyListLottie,
-                    speed: 1.2,
-                    animationSize: 200,
-                    containerWidth: 220,
-                    containerHeight: 180,
-                    spacing: 0
-                )
-            } else {
-                // Fallbacks: emoji + SF Symbol
-                Text("📊")
-                    .font(.system(size: 64))
-                    .padding(.bottom, 8)
-                
-                Image(systemName: systemImage)
-                    .font(.system(size: 72))
-                    .foregroundColor(theme.primary.opacity(0.7))
-            }
+            // Fallbacks: emoji + SF Symbol
+            Image(systemName: systemImage)
+                .font(.system(size: 72))
+                .foregroundColor(theme.primary.opacity(0.7))
             
             Text(title)
                 .font(.title2)

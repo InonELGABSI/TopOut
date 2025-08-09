@@ -68,13 +68,21 @@ struct LiveSessionView: View {
     private var sessionContent: some View {
         switch onEnum(of: viewModel.uiState) {
         case .loading:
-            VStack(spacing: 32) {
-                MountainAnimationView(
-                    animationAsset: "Travel_Mountain",
-                    speed: 1.2,
-                    animationSize: 220,
-                    iterations: 1
-                )
+            VStack(spacing: 0) {
+                // Mountain animation section
+                VStack {
+                    MountainAnimationView(
+                        animationAsset: "Travel_Mountain",
+                        speed: 1.2,
+                        animationSize: 220,
+                        iterations: 1
+                    )
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 60) // Generous top spacing after safe area
+                .padding(.bottom, 40) // Space before content
+
+                // Content section
                 StartSessionContent(
                     hasLocationPermission: hasLocationPermission,
                     onStartClick:          { viewModel.viewModel.onStartClicked() },
@@ -82,8 +90,12 @@ struct LiveSessionView: View {
                     mslHeightState:        viewModel.viewModel.mslHeightState.value,
                     theme:                 theme
                 )
+
+                // Push content up, button stays at natural position
+                Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .safeAreaInset(edge: .top) { Color.clear.frame(height: 0) }
 
         case .loaded(let state):
             ActiveSessionContent(

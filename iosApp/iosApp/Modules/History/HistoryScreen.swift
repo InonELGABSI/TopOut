@@ -6,6 +6,7 @@ struct HistoryView: View {
     @State private var selectedSession: Session?
     @State private var searchText = ""
     @State private var showingSortSheet = false
+    @State private var currentSortOption: SortOption = .dateNewest
 
     @EnvironmentObject private var themeManager: AppThemeManager
     @Environment(\.appTheme) private var theme
@@ -29,6 +30,7 @@ struct HistoryView: View {
                     },
                     onSortOrderSelected: { sortOrder in
                         viewModel.viewModel.sortSessions(sortOption: sortOrder)
+                        currentSortOption = sortOrder
                     },
                     onDeleteSession: { sessionId in
                         // TODO: Add delete functionality to SessionsViewModel
@@ -62,8 +64,10 @@ struct HistoryView: View {
         }
         .sheet(isPresented: $showingSortSheet) {
             SortOptionsSheet(
+                currentSortOption: currentSortOption,
                 onSortSelected: { sortOption in
                     viewModel.viewModel.sortSessions(sortOption: sortOption)
+                    currentSortOption = sortOption
                     showingSortSheet = false
                 },
                 theme: theme
@@ -83,28 +87,133 @@ struct HistoryView: View {
 
 // MARK: - Sort Options Sheet
 struct SortOptionsSheet: View {
+    let currentSortOption: SortOption
     let onSortSelected: (SortOption) -> Void
     let theme: AppTheme
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
-                Button("Date (Newest)") { onSortSelected(.dateNewest) }
-                Button("Date (Oldest)") { onSortSelected(.dateOldest) }
-                Button("Duration (Longest)") { onSortSelected(.durationLongest) }
-                Button("Duration (Shortest)") { onSortSelected(.durationShortest) }
-                Button("Ascent (Highest)") { onSortSelected(.ascentHighest) }
-                Button("Ascent (Lowest)") { onSortSelected(.ascentLowest) }
+                Section {
+                    SortOptionRow(
+                        title: "Newest First",
+                        sortOption: .dateNewest,
+                        isSelected: currentSortOption == .dateNewest,
+                        onTap: { onSortSelected(.dateNewest) },
+                        theme: theme
+                    )
+
+                    SortOptionRow(
+                        title: "Oldest First",
+                        sortOption: .dateOldest,
+                        isSelected: currentSortOption == .dateOldest,
+                        onTap: { onSortSelected(.dateOldest) },
+                        theme: theme
+                    )
+                } header: {
+                    Text("Date")
+                        .font(.footnote)
+                        .foregroundColor(theme.onSurfaceVariant)
+                }
+
+                Section {
+                    SortOptionRow(
+                        title: "Longest First",
+                        sortOption: .durationLongest,
+                        isSelected: currentSortOption == .durationLongest,
+                        onTap: { onSortSelected(.durationLongest) },
+                        theme: theme
+                    )
+
+                    SortOptionRow(
+                        title: "Shortest First",
+                        sortOption: .durationShortest,
+                        isSelected: currentSortOption == .durationShortest,
+                        onTap: { onSortSelected(.durationShortest) },
+                        theme: theme
+                    )
+                } header: {
+                    Text("Duration")
+                        .font(.footnote)
+                        .foregroundColor(theme.onSurfaceVariant)
+                }
+
+                Section {
+                    SortOptionRow(
+                        title: "Highest First",
+                        sortOption: .ascentHighest,
+                        isSelected: currentSortOption == .ascentHighest,
+                        onTap: { onSortSelected(.ascentHighest) },
+                        theme: theme
+                    )
+
+                    SortOptionRow(
+                        title: "Lowest First",
+                        sortOption: .ascentLowest,
+                        isSelected: currentSortOption == .ascentLowest,
+                        onTap: { onSortSelected(.ascentLowest) },
+                        theme: theme
+                    )
+                } header: {
+                    Text("Elevation")
+                        .font(.footnote)
+                        .foregroundColor(theme.onSurfaceVariant)
+                }
             }
-            .navigationTitle("Sort Options")
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(theme.background)
+            .navigationTitle("Sort Sessions")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .font(.body.weight(.medium))
+                    .foregroundColor(theme.primary)
                 }
             }
         }
+        .presentationDetents([.height(400)])
+        .presentationDragIndicator(.visible)
+        .presentationCornerRadius(20)
+    }
+}
+
+// MARK: - Sort Option Row
+struct SortOptionRow: View {
+    let title: String
+    let sortOption: SortOption
+    let isSelected: Bool
+    let onTap: () -> Void
+    let theme: AppTheme
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                Text(title)
+                    .foregroundColor(theme.onSurface)
+                    .font(.body)
+                    .multilineTextAlignment(.leading)
+
+                Spacer()
+
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .foregroundColor(theme.primary)
+                        .font(.body.weight(.semibold))
+                        .imageScale(.medium)
+                }
+            }
+            .frame(minHeight: 40) // Slightly reduced from 44
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .listRowBackground(theme.surface)
+        .listRowSeparatorTint(theme.outline.opacity(0.2))
+        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
     }
 }
 
