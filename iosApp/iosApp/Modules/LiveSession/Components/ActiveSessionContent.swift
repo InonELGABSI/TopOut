@@ -28,10 +28,6 @@ struct ActiveSessionContent: View {
                 LiveDataCard(trackPoint: trackPoint, theme: theme)
                     .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: -4)
 
-                BottomControls(onStopClicked: onStopClicked, onCancelClicked: onCancelClicked)
-                    .padding(.top, 24)
-                    .padding(.bottom, 32)
-
                 Spacer()
             }
 
@@ -44,6 +40,14 @@ struct ActiveSessionContent: View {
                     .ignoresSafeArea(edges: .top)
 
                 Spacer()
+            }
+
+            // Bottom Controls positioned at bottom
+            VStack {
+                Spacer()
+                BottomControls(onStopClicked: onStopClicked, onCancelClicked: onCancelClicked)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 40)
             }
         }
     }
@@ -109,7 +113,7 @@ private struct LiveDataCard: View {
                 SpeedAltitudeRow(trackPoint: trackPoint, theme: theme)
             }
         }
-        .padding(.top, 48)
+        .padding(.top, 60)
         .padding(.horizontal, 24)
         .padding(.bottom, 28)
         .background(
@@ -274,46 +278,50 @@ private struct BottomControls: View {
     let onCancelClicked: () -> Void
     
     var body: some View {
-        HStack {
-            ControlButton(
-                label:    "Cancel",
-                icon:     "xmark",
-                gradient: [Color(red: 0.90, green: 0.45, blue: 0.45),
-                           Color(red: 0.80, green: 0.18, blue: 0.18)],
-                corners:  [.topRight, .bottomRight],
-                action:   onCancelClicked
-            )
-            ControlButton(
-                label:    "Stop & Save",
-                icon:     "stop.fill",
-                gradient: [Color(red: 0.22, green: 0.55, blue: 0.24),
-                           Color(red: 0.40, green: 0.73, blue: 0.42)],
-                corners:  [.topLeft, .bottomLeft],
-                action:   onStopClicked
-            )
-        }
-    }
-}
-
-private struct ControlButton: View {
-    let label: String
-    let icon: String
-    let gradient: [Color]
-    let corners: UIRectCorner
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: icon).font(.system(size: 16))
-                Text(label).bold()
+        HStack(spacing: 12) {
+            Button(action: onCancelClicked) {
+                HStack(spacing: 12) {
+                    Image(systemName: "xmark")
+                    Text("Cancel")
+                }
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.95, green: 0.35, blue: 0.35),
+                            Color(red: 0.80, green: 0.18, blue: 0.18)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 28))
             }
-            .foregroundColor(.white)
-            .frame(height: 48).frame(maxWidth: .infinity)
-            .background(
-                LinearGradient(colors: gradient, startPoint: .leading, endPoint: .trailing)
-            )
-            .cornerRadius(24, corners: corners)
+
+            Button(action: onStopClicked) {
+                HStack(spacing: 12) {
+                    Image(systemName: "stop.fill")
+                    Text("Stop & Save")
+                }
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.30, green: 0.70, blue: 0.35),
+                            Color(red: 0.22, green: 0.55, blue: 0.24)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 28))
+            }
         }
     }
 }
