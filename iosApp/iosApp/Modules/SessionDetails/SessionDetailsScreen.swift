@@ -4,23 +4,30 @@ import Charts
 
 struct SessionDetailsView: View {
     @StateObject private var viewModel = ViewModelWrapper<SessionDetailsState, SessionDetailsViewModel>()
-    
-    @EnvironmentObject private var themeManager: AppThemeManager
-    @Environment(\.appTheme) private var theme
 
+    @Environment(\.appTheme) private var theme
     @Environment(\.presentationMode) var presentationMode
+    
     @State private var showDeleteConfirmation = false
     @State private var showEditTitleDialog = false
     @State private var editTitleText = ""
     @State private var showShareSheet = false
-    
+    @State private var hasLoaded = false
+
     private let sessionId: String
-    @State private var hasLoaded = false   // prevent multiple loads
-    
     init(sessionId: String) {
         self.sessionId = sessionId
     }
-    
+
+    // Use a reactive title so the inline nav title appears in BOTH entry paths
+    private var navTitle: String {
+        if case .loaded(let state) = onEnum(of: viewModel.uiState) {
+            return state.sessionDetails.session.title ?? "Session Details"
+        }
+        return "Session Details"
+    }
+    private let mapHeight: CGFloat = 500
+
     var body: some View {
         ZStack {
             theme.background.ignoresSafeArea()
@@ -36,24 +43,16 @@ struct SessionDetailsView: View {
                     containerHeight: 170,
                     spacing: 24
                 )
-                
+
             case .loaded(let state):
-                GeometryReader { geometry in
+                GeometryReader { _ in
                     ScrollView {
                         VStack(spacing: 0) {
-                            if !state.sessionDetails.points.isEmpty {
-                                GeometryReader { scrollGeometry in
-                                    let offset = scrollGeometry.frame(in: .named("scroll")).minY
-                                    let heightIncrease = max(0, offset)
-
-                                    MapPreview(trackPoints: state.sessionDetails.points)
-                                        .frame(height: 500 + heightIncrease)
-                                        .clipShape(.rect(bottomLeadingRadius: 24, bottomTrailingRadius: 24))
-                                        .ignoresSafeArea(edges: .top)
-                                        .offset(y: -heightIncrease)
-                                }
-                                .frame(height: 500)
-                            }
+//                            if !state.sessionDetails.points.isEmpty {
+//                                MapPreview(trackPoints: state.sessionDetails.points)
+//                                    .frame(height: 500)
+//                                    .clipShape(.rect(bottomLeadingRadius: 24, bottomTrailingRadius: 24))
+//                            }
 
                             // Title Section with circular corners
                             VStack {
@@ -97,7 +96,7 @@ struct SessionDetailsView: View {
                             .padding(.horizontal, 16)
                             .padding(.vertical, 16)
 
-                            // Climbing Session Card with top rounded corners only and 3D shading
+                            // Climbing Session Card
                             VStack(spacing: 0) {
                                 Text("Climbing Session")
                                     .font(.system(size: 28, weight: .bold))
@@ -148,10 +147,11 @@ struct SessionDetailsView: View {
                             .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: -4)
                             .padding(.top, 8)
                         }
+                        .padding(.top, 1) // Small padding to prevent content from touching navigation bar
                     }
                     .coordinateSpace(name: "scroll")
                 }
-                
+
             case .error(let state):
                 SessionErrorContent(
                     errorMessage: state.errorMessage,
@@ -160,11 +160,12 @@ struct SessionDetailsView: View {
                     },
                     theme: theme
                 )
-                
+
             @unknown default:
                 EmptyView()
             }
         }
+        .navigationTitle(navTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -197,7 +198,10 @@ struct SessionDetailsView: View {
                 currentTitle: editTitleText,
                 onSave: { newTitle in
                     if case .loaded(let state) = onEnum(of: viewModel.uiState) {
-                        viewModel.viewModel.updateSessionTitle(sessionId: state.sessionDetails.session.id, newTitle: newTitle)
+                        viewModel.viewModel.updateSessionTitle(
+                            sessionId: state.sessionDetails.session.id,
+                            newTitle: newTitle
+                        )
                     }
                 },
                 onCancel: { showEditTitleDialog = false },
@@ -214,7 +218,7 @@ struct SessionDetailsView: View {
     }
 }
 
-// MARK: - Share Session Sheet
+// MARK: - Share Session Sheet (keep its own NavigationStack; it’s presented modally)
 struct ShareSessionSheet: View {
     let sessionDetails: SessionDetails
     @Environment(\.dismiss) private var dismiss
@@ -223,50 +227,68 @@ struct ShareSessionSheet: View {
     @Environment(\.appTheme) private var theme
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 24) {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Share this climbing session")
-                        .font(.headline)
-                        .foregroundColor(theme.onSurface)
-
-                    Text("Session: \(sessionDetails.session.title ?? "Climbing Session")")
-                        .font(.subheadline)
-                        .foregroundColor(theme.onSurfaceVariant)
-
-                    Text("Duration: \(calculateSessionDuration(sessionDetails))")
-                        .font(.subheadline)
-                        .foregroundColor(theme.onSurfaceVariant)
-                }
-
-                VStack(spacing: 12) {
-                    ShareLink(
-                        item: generateShareText(),
-                        subject: Text("Climbing Session - \(sessionDetails.session.title ?? "Session")")
-                    ) {
-                        HStack {
-                            Image(systemName: "square.and.arrow.up")
-                            Text("Share Session Summary")
+        if #available(iOS 16.0, *) {
+            NavigationStack {
+                content
+                    .navigationTitle("Share Session")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbarBackground(.visible, for: .navigationBar)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Done") { dismiss() }
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(theme.primary)
-                        .foregroundColor(theme.onPrimary)
-                        .cornerRadius(8)
                     }
-                }
-
-                Spacer()
             }
-            .padding()
-            .navigationTitle("Share Session")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
-                }
+        } else {
+            NavigationView {
+                content
+                    .navigationTitle("Share Session")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Done") { dismiss() }
+                        }
+                    }
             }
         }
+    }
+
+    private var content: some View {
+        VStack(spacing: 24) {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Share this climbing session")
+                    .font(.headline)
+                    .foregroundColor(theme.onSurface)
+
+                Text("Session: \(sessionDetails.session.title ?? "Climbing Session")")
+                    .font(.subheadline)
+                    .foregroundColor(theme.onSurfaceVariant)
+
+                Text("Duration: \(calculateSessionDuration(sessionDetails))")
+                    .font(.subheadline)
+                    .foregroundColor(theme.onSurfaceVariant)
+            }
+
+            VStack(spacing: 12) {
+                ShareLink(
+                    item: generateShareText(),
+                    subject: Text("Climbing Session - \(sessionDetails.session.title ?? "Session")")
+                ) {
+                    HStack {
+                        Image(systemName: "square.and.arrow.up")
+                        Text("Share Session Summary")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(theme.primary)
+                    .foregroundColor(theme.onPrimary)
+                    .cornerRadius(8)
+                }
+            }
+
+            Spacer()
+        }
+        .padding()
     }
 
     private func generateShareText() -> String {
@@ -276,7 +298,7 @@ struct ShareSessionSheet: View {
         let totalGain = sessionDetails.points.last?.gain ?? 0.0
 
         return """
-        ���‍♂️ \(title)
+        🧗‍♂️ \(title)
 
         📊 Session Stats:
         ⏱️ Duration: \(duration)
@@ -287,6 +309,8 @@ struct ShareSessionSheet: View {
         """
     }
 }
+
+
 
 // All color usage in these components should use the passed `theme` parameter:
 

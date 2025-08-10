@@ -79,8 +79,6 @@ struct HistoryView: View {
         }
         .navigationDestination(item: $selectedSession) { session in
             SessionDetailsView(sessionId: session.id)
-                .navigationTitle(session.title ?? "Session Details")
-                .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
