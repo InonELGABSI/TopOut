@@ -103,8 +103,8 @@ fun LiveSessionScreen(
                 trackPoint = uiState.trackPoint,
                 historyTrackPoints = uiState.historyTrackPoints,
                 isPaused = true,
-                onPauseClick = { viewModel.onResumeClicked() },
-                onResumeClick = { viewModel.onPauseClicked() },
+                onPauseClick = { viewModel.onPauseClicked() },
+                onResumeClick = { viewModel.onResumeClicked() },
                 onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
                 onCancelClick = {
                     viewModel.onCancelClicked(uiState.trackPoint.sessionId)
