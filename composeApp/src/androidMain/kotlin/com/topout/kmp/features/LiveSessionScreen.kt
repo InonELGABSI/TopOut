@@ -403,14 +403,15 @@ fun ActiveSessionContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 32.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                        .padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Cancel chip button with gradient (light left, dark right)
                     Box(
                         modifier = Modifier
                             .height(48.dp)
-                            .width(160.dp)
+                            .weight(1f)
                             .background(
                                 brush = Brush.horizontalGradient(
                                     colors = listOf(
@@ -449,11 +450,47 @@ fun ActiveSessionContent(
                         }
                     }
 
+                    // Pause/Resume
+                    Box(
+                        modifier = Modifier
+                            .height(48.dp)
+                            .weight(1f)
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = if (!isPaused)
+                                        listOf(Color(0xFF757575), Color(0xFF9E9E9E))   // Pause (אפור)
+                                    else
+                                        listOf(Color(0xFF1976D2), Color(0xFF64B5F6))   // Resume (כחול)
+                                ),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .clickable { if (!isPaused) onPauseClick() else onResumeClick() }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                imageVector = if (!isPaused) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = Color.White
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = if (!isPaused) "Pause" else "Resume",
+                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                color = Color.White
+                            )
+                        }
+                    }
+
                     // Stop & Save chip button with gradient (dark left, light right)
                     Box(
                         modifier = Modifier
                             .height(48.dp)
-                            .width(160.dp)
+                            .weight(1f)
                             .background(
                                 brush = Brush.horizontalGradient(
                                     colors = listOf(
@@ -484,44 +521,6 @@ fun ActiveSessionContent(
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "Stop & Save",
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                color = Color.White
-                            )
-                        }
-                    }
-                    Box(
-                        modifier = Modifier
-                            .height(48.dp)
-                            .width(160.dp)
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = if (!isPaused)
-                                        listOf(Color(0xFF757575), Color(0xFF9E9E9E)) // Grey for Pause
-                                    else
-                                        listOf(Color(0xFF1976D2), Color(0xFF64B5F6)) // Blue for Resume
-                                ),
-                                shape = RoundedCornerShape(24.dp)
-                            )
-                            .clickable {
-                                if (!isPaused) onPauseClick() else onResumeClick()
-                            }
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Icon(
-                                imageVector = if (!isPaused) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = Color.White
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = if (!isPaused) "Pause" else "Resume",
                                 style = MaterialTheme.typography.labelLarge.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
