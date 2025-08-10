@@ -48,11 +48,11 @@ struct SessionDetailsView: View {
                 GeometryReader { _ in
                     ScrollView {
                         VStack(spacing: 0) {
-//                            if !state.sessionDetails.points.isEmpty {
-//                                MapPreview(trackPoints: state.sessionDetails.points)
-//                                    .frame(height: 500)
-//                                    .clipShape(.rect(bottomLeadingRadius: 24, bottomTrailingRadius: 24))
-//                            }
+                            if !state.sessionDetails.points.isEmpty {
+                                MapPreview(trackPoints: state.sessionDetails.points)
+                                    .frame(height: 500)
+                                    .clipShape(.rect(bottomLeadingRadius: 24, bottomTrailingRadius: 24))
+                            }
 
                             // Title Section with circular corners
                             VStack {
@@ -147,9 +147,8 @@ struct SessionDetailsView: View {
                             .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: -4)
                             .padding(.top, 8)
                         }
-                        .padding(.top, 1) // Small padding to prevent content from touching navigation bar
                     }
-                    .coordinateSpace(name: "scroll")
+                    .ignoresSafeArea(edges: .top)
                 }
 
             case .error(let state):

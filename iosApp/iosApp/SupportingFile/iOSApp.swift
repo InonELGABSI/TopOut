@@ -48,12 +48,65 @@ extension UINavigationBarAppearance {
 enum NavBarThemer {
     static func apply(primary: UIColor) {
         let themed = UINavigationBarAppearance.translucentThemed(primary: primary)
+
+        // Apply to global appearance (for new navigation controllers)
         let nav = UINavigationBar.appearance()
         nav.standardAppearance           = themed
         nav.compactAppearance            = themed
         nav.scrollEdgeAppearance         = themed
         nav.compactScrollEdgeAppearance  = themed
         nav.tintColor = .label
+
+        // Apply to all existing navigation controllers immediately
+        applyToExistingNavigationControllers(appearance: themed)
+    }
+
+    /// Apple's best practice: Update all active navigation controllers immediately
+    private static func applyToExistingNavigationControllers(appearance: UINavigationBarAppearance) {
+        DispatchQueue.main.async {
+            guard let windowScene = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first else { return }
+
+            for window in windowScene.windows {
+                updateNavigationControllers(in: window.rootViewController, with: appearance)
+            }
+        }
+    }
+
+    /// Recursively find and update all navigation controllers
+    private static func updateNavigationControllers(in viewController: UIViewController?, with appearance: UINavigationBarAppearance) {
+        guard let viewController = viewController else { return }
+
+        if let navigationController = viewController as? UINavigationController {
+            // Apply the new appearance immediately
+            navigationController.navigationBar.standardAppearance = appearance
+            navigationController.navigationBar.compactAppearance = appearance
+            navigationController.navigationBar.scrollEdgeAppearance = appearance
+            if #available(iOS 15.0, *) {
+                navigationController.navigationBar.compactScrollEdgeAppearance = appearance
+            }
+
+            // Force the navigation bar to update its appearance
+            navigationController.navigationBar.setNeedsLayout()
+        }
+
+        // Check child view controllers
+        for child in viewController.children {
+            updateNavigationControllers(in: child, with: appearance)
+        }
+
+        // Check presented view controllers
+        if let presented = viewController.presentedViewController {
+            updateNavigationControllers(in: presented, with: appearance)
+        }
+
+        // For tab bar controllers, check all tabs
+        if let tabBarController = viewController as? UITabBarController {
+            for tabViewController in tabBarController.viewControllers ?? [] {
+                updateNavigationControllers(in: tabViewController, with: appearance)
+            }
+        }
     }
 }
 
@@ -173,4 +226,3 @@ struct SettingsNavStack: View {
         .background(themeManager.currentTheme.primary.opacity(0.05))
     }
 }
-
