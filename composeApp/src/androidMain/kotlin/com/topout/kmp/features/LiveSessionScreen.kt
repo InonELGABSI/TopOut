@@ -78,7 +78,7 @@ fun LiveSessionScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Main content
-        when (uiState) {
+        when(uiState) {
             is LiveSessionState.Loading -> StartSessionContent(
                 hasLocationPermission = hasLocationPermission,
                 onStartClick = { viewModel.onStartClicked() },
@@ -89,6 +89,35 @@ fun LiveSessionScreen(
             is LiveSessionState.Loaded -> ActiveSessionContent(
                 trackPoint = uiState.trackPoint,
                 historyTrackPoints = uiState.historyTrackPoints,
+                isPaused = false,
+                onPauseClick = { viewModel.onPauseClicked() },
+                onResumeClick = { viewModel.onResumeClicked() },
+                onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
+                onCancelClick = {
+                    viewModel.onCancelClicked(uiState.trackPoint.sessionId)
+                    toastType = SessionToastType.SESSION_CANCELLED
+                    showSessionToast = true
+                }
+            )
+            is LiveSessionState.Paused -> ActiveSessionContent(
+                trackPoint = uiState.trackPoint,
+                historyTrackPoints = uiState.historyTrackPoints,
+                isPaused = true,
+                onPauseClick = { viewModel.onResumeClicked() },
+                onResumeClick = { viewModel.onPauseClicked() },
+                onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
+                onCancelClick = {
+                    viewModel.onCancelClicked(uiState.trackPoint.sessionId)
+                    toastType = SessionToastType.SESSION_CANCELLED
+                    showSessionToast = true
+                }
+            )
+            is LiveSessionState.Resumed -> ActiveSessionContent(
+                trackPoint = uiState.trackPoint,
+                historyTrackPoints = uiState.historyTrackPoints,
+                isPaused = false,
+                onPauseClick = { viewModel.onPauseClicked() },
+                onResumeClick = { viewModel.onResumeClicked() },
                 onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
                 onCancelClick = {
                     viewModel.onCancelClicked(uiState.trackPoint.sessionId)
@@ -335,6 +364,9 @@ fun StartSessionContent(
 fun ActiveSessionContent(
     trackPoint: TrackPoint,
     historyTrackPoints: List<TrackPoint>,
+    isPaused: Boolean,
+    onPauseClick: () -> Unit,
+    onResumeClick: () -> Unit,
     onStopClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
@@ -452,6 +484,44 @@ fun ActiveSessionContent(
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "Stop & Save",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = Color.White
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .height(48.dp)
+                            .width(160.dp)
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = if (!isPaused)
+                                        listOf(Color(0xFF757575), Color(0xFF9E9E9E)) // Grey for Pause
+                                    else
+                                        listOf(Color(0xFF1976D2), Color(0xFF64B5F6)) // Blue for Resume
+                                ),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .clickable {
+                                if (!isPaused) onPauseClick() else onResumeClick()
+                            }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                imageVector = if (!isPaused) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (!isPaused) "Pause" else "Resume",
                                 style = MaterialTheme.typography.labelLarge.copy(
                                     fontWeight = FontWeight.Bold
                                 ),
@@ -900,6 +970,3 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
         }
     }
 }
-
-
-

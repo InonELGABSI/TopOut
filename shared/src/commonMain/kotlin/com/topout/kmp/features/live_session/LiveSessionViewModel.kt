@@ -184,8 +184,32 @@ class LiveSessionViewModel(
             }
         }
     }
+    fun onPauseClicked() {
+        // לא סוגרים jobs – רק משעים
+        liveSessionManager?.pause()
+
+        // עדכון מצב ל־Paused
+        currentTrackPoint?.let { tp ->
+            _uiState.value = LiveSessionState.Paused(
+                trackPoint = tp,
+                historyTrackPoints = currentHistoryPoints
+            )
+        }
+    }
 
     fun refreshMSLHeight() {
         loadCurrentMSLHeight()
+    }
+
+    fun onResumeClicked() {
+        liveSessionManager?.resume()
+
+        // חזרה למצב Loaded
+        currentTrackPoint?.let { tp ->
+            _uiState.value = LiveSessionState.Loaded(
+                trackPoint = tp,
+                historyTrackPoints = currentHistoryPoints
+            )
+        }
     }
 }
