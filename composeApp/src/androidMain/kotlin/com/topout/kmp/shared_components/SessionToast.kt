@@ -18,7 +18,9 @@ import kotlinx.coroutines.delay
 enum class SessionToastType {
     SESSION_STARTED,
     SESSION_SAVED,
-    SESSION_CANCELLED
+    SESSION_CANCELLED,
+    SESSION_PAUSED,
+    SESSION_RESUMED
 }
 
 @Composable
@@ -57,6 +59,16 @@ fun SessionToast(
                     Icons.Default.Cancel,
                     "Live session cancelled",
                     Color(0xFFE57373)
+                )
+                SessionToastType.SESSION_PAUSED -> Triple(
+                    Icons.Default.Pause,
+                    "Live session paused",
+                    Color(0xFF9E9E9E) // אפור
+                )
+                SessionToastType.SESSION_RESUMED -> Triple(
+                    Icons.Default.PlayArrow,
+                    "Live session resumed",
+                    Color(0xFF64B5F6) // כחול בהיר
                 )
             }
             Card(

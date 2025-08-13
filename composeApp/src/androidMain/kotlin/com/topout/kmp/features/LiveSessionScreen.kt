@@ -64,6 +64,14 @@ fun LiveSessionScreen(
                 toastType = SessionToastType.SESSION_SAVED
                 showSessionToast = true
             }
+            uiState is LiveSessionState.Loaded && lastUiState is LiveSessionState.Paused -> {
+                toastType = SessionToastType.SESSION_RESUMED
+                showSessionToast = true
+            }
+            uiState is LiveSessionState.Paused && lastUiState is LiveSessionState.Loaded -> {
+                toastType = SessionToastType.SESSION_PAUSED
+                showSessionToast = true
+            }
         }
         lastUiState = uiState
     }
@@ -112,19 +120,7 @@ fun LiveSessionScreen(
                     showSessionToast = true
                 }
             )
-            is LiveSessionState.Resumed -> ActiveSessionContent(
-                trackPoint = uiState.trackPoint,
-                historyTrackPoints = uiState.historyTrackPoints,
-                isPaused = false,
-                onPauseClick = { viewModel.onPauseClicked() },
-                onResumeClick = { viewModel.onResumeClicked() },
-                onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
-                onCancelClick = {
-                    viewModel.onCancelClicked(uiState.trackPoint.sessionId)
-                    toastType = SessionToastType.SESSION_CANCELLED
-                    showSessionToast = true
-                }
-            )
+
             is LiveSessionState.Stopping -> StoppingSessionContent()
             is LiveSessionState.SessionStopped -> Unit
             is LiveSessionState.Error -> ErrorContent(
