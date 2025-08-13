@@ -16,6 +16,7 @@ struct LiveSessionView: View {
     @State private var lastToastTimestamp: Int64 = 0
     @State private var hasLocationPermission   = false
     @State private var hasNavigatedToDetails = false
+    @State private var animationTrigger = 0  // Add animation trigger state
 
     @EnvironmentObject private var themeManager: AppThemeManager
     @Environment(\.appTheme) private var theme
@@ -77,11 +78,15 @@ struct LiveSessionView: View {
                         animationSize: 220,
                         iterations: 1
                     )
-                    .id(UUID()) // Force recreation on each navigation
+                    .id("mountain_animation_\(animationTrigger)") // Restart animation with stable but refreshable ID
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, 60) // Generous top spacing after safe area
                 .padding(.bottom, 40) // Space before content
+                .onAppear {
+                    // Trigger animation restart every time we enter the loading state
+                    animationTrigger += 1
+                }
 
                 // Content section
                 StartSessionContent(

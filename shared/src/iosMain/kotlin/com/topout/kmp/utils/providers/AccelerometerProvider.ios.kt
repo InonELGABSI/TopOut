@@ -33,7 +33,7 @@ actual class AccelerometerProvider {
     actual suspend fun getAcceleration(): AccelerationData {
         // SIMULATOR: Return dummy/fake data (gravity only)
         if (isSimulator()) {
-            log.w { "Simulating accelerometer data in Simulator" }
+            //log.w { "Simulating accelerometer data in Simulator" }
             return AccelerationData(
                 x = 0.0f,
                 y = 0.0f,

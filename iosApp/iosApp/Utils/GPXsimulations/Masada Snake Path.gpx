@@ -1,0 +1,2203 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gpx version="1.1" creator="Xcode">
+  <!--
+ Provide one or more waypoints containing a latitude/longitude pair. If you provide one
+ waypoint, Xcode will simulate that specific location. If you provide multiple waypoints,
+ Xcode will simulate a route visiting each waypoint.
+-->
+  <wpt lat="31.312510" lon="35.364030">
+    <name>Masada Snake Path #001</name>
+    <ele>-295.46</ele>
+    <time>2025-08-12T05:00:00Z</time>
+  </wpt>
+  <wpt lat="31.312580" lon="35.363700">
+    <name>Masada Snake Path #002</name>
+    <ele>-291.02</ele>
+    <time>2025-08-12T05:00:05Z</time>
+  </wpt>
+  <wpt lat="31.312540" lon="35.363300">
+    <name>Masada Snake Path #003</name>
+    <ele>-284.80</ele>
+    <time>2025-08-12T05:00:10Z</time>
+  </wpt>
+  <wpt lat="31.312380" lon="35.363110">
+    <name>Masada Snake Path #004</name>
+    <ele>-280.47</ele>
+    <time>2025-08-12T05:00:15Z</time>
+  </wpt>
+  <wpt lat="31.312340" lon="35.362990">
+    <name>Masada Snake Path #005</name>
+    <ele>-279.53</ele>
+    <time>2025-08-12T05:00:20Z</time>
+  </wpt>
+  <wpt lat="31.312520" lon="35.362860">
+    <name>Masada Snake Path #006</name>
+    <ele>-275.80</ele>
+    <time>2025-08-12T05:00:25Z</time>
+  </wpt>
+  <wpt lat="31.312810" lon="35.362760">
+    <name>Masada Snake Path #007</name>
+    <ele>-275.09</ele>
+    <time>2025-08-12T05:00:30Z</time>
+  </wpt>
+  <wpt lat="31.312950" lon="35.362810">
+    <name>Masada Snake Path #008</name>
+    <ele>-275.87</ele>
+    <time>2025-08-12T05:00:35Z</time>
+  </wpt>
+  <wpt lat="31.313130" lon="35.362800">
+    <name>Masada Snake Path #009</name>
+    <ele>-276.10</ele>
+    <time>2025-08-12T05:00:40Z</time>
+  </wpt>
+  <wpt lat="31.313280" lon="35.362730">
+    <name>Masada Snake Path #010</name>
+    <ele>-276.60</ele>
+    <time>2025-08-12T05:00:45Z</time>
+  </wpt>
+  <wpt lat="31.313400" lon="35.362620">
+    <name>Masada Snake Path #011</name>
+    <ele>-277.76</ele>
+    <time>2025-08-12T05:00:50Z</time>
+  </wpt>
+  <wpt lat="31.313450" lon="35.362500">
+    <name>Masada Snake Path #012</name>
+    <ele>-278.24</ele>
+    <time>2025-08-12T05:00:55Z</time>
+  </wpt>
+  <wpt lat="31.313450" lon="35.362480">
+    <name>Masada Snake Path #013</name>
+    <ele>-278.24</ele>
+    <time>2025-08-12T05:01:00Z</time>
+  </wpt>
+  <wpt lat="31.313440" lon="35.361870">
+    <name>Masada Snake Path #014</name>
+    <ele>-278.92</ele>
+    <time>2025-08-12T05:01:05Z</time>
+  </wpt>
+  <wpt lat="31.313470" lon="35.361040">
+    <name>Masada Snake Path #015</name>
+    <ele>-278.76</ele>
+    <time>2025-08-12T05:01:10Z</time>
+  </wpt>
+  <wpt lat="31.313450" lon="35.360900">
+    <name>Masada Snake Path #016</name>
+    <ele>-278.59</ele>
+    <time>2025-08-12T05:01:15Z</time>
+  </wpt>
+  <wpt lat="31.313480" lon="35.360800">
+    <name>Masada Snake Path #017</name>
+    <ele>-278.53</ele>
+    <time>2025-08-12T05:01:20Z</time>
+  </wpt>
+  <wpt lat="31.313470" lon="35.360720">
+    <name>Masada Snake Path #018</name>
+    <ele>-278.53</ele>
+    <time>2025-08-12T05:01:25Z</time>
+  </wpt>
+  <wpt lat="31.313480" lon="35.360570">
+    <name>Masada Snake Path #019</name>
+    <ele>-278.14</ele>
+    <time>2025-08-12T05:01:30Z</time>
+  </wpt>
+  <wpt lat="31.313430" lon="35.360410">
+    <name>Masada Snake Path #020</name>
+    <ele>-277.64</ele>
+    <time>2025-08-12T05:01:35Z</time>
+  </wpt>
+  <wpt lat="31.313350" lon="35.360300">
+    <name>Masada Snake Path #021</name>
+    <ele>-277.59</ele>
+    <time>2025-08-12T05:01:40Z</time>
+  </wpt>
+  <wpt lat="31.313340" lon="35.360000">
+    <name>Masada Snake Path #022</name>
+    <ele>-277.81</ele>
+    <time>2025-08-12T05:01:45Z</time>
+  </wpt>
+  <wpt lat="31.313300" lon="35.359760">
+    <name>Masada Snake Path #023</name>
+    <ele>-277.31</ele>
+    <time>2025-08-12T05:01:50Z</time>
+  </wpt>
+  <wpt lat="31.313320" lon="35.359670">
+    <name>Masada Snake Path #024</name>
+    <ele>-277.20</ele>
+    <time>2025-08-12T05:01:55Z</time>
+  </wpt>
+  <wpt lat="31.313390" lon="35.359630">
+    <name>Masada Snake Path #025</name>
+    <ele>-276.88</ele>
+    <time>2025-08-12T05:02:00Z</time>
+  </wpt>
+  <wpt lat="31.313370" lon="35.359420">
+    <name>Masada Snake Path #026</name>
+    <ele>-273.65</ele>
+    <time>2025-08-12T05:02:05Z</time>
+  </wpt>
+  <wpt lat="31.313330" lon="35.359260">
+    <name>Masada Snake Path #027</name>
+    <ele>-273.65</ele>
+    <time>2025-08-12T05:02:10Z</time>
+  </wpt>
+  <wpt lat="31.313330" lon="35.359150">
+    <name>Masada Snake Path #028</name>
+    <ele>-272.59</ele>
+    <time>2025-08-12T05:02:15Z</time>
+  </wpt>
+  <wpt lat="31.313340" lon="35.359080">
+    <name>Masada Snake Path #029</name>
+    <ele>-271.59</ele>
+    <time>2025-08-12T05:02:20Z</time>
+  </wpt>
+  <wpt lat="31.313450" lon="35.359000">
+    <name>Masada Snake Path #030</name>
+    <ele>-269.70</ele>
+    <time>2025-08-12T05:02:25Z</time>
+  </wpt>
+  <wpt lat="31.313550" lon="35.358980">
+    <name>Masada Snake Path #031</name>
+    <ele>-267.00</ele>
+    <time>2025-08-12T05:02:30Z</time>
+  </wpt>
+  <wpt lat="31.313650" lon="35.359030">
+    <name>Masada Snake Path #032</name>
+    <ele>-265.37</ele>
+    <time>2025-08-12T05:02:35Z</time>
+  </wpt>
+  <wpt lat="31.313730" lon="35.359150">
+    <name>Masada Snake Path #033</name>
+    <ele>-263.38</ele>
+    <time>2025-08-12T05:02:40Z</time>
+  </wpt>
+  <wpt lat="31.313780" lon="35.359280">
+    <name>Masada Snake Path #034</name>
+    <ele>-261.32</ele>
+    <time>2025-08-12T05:02:45Z</time>
+  </wpt>
+  <wpt lat="31.313940" lon="35.359450">
+    <name>Masada Snake Path #035</name>
+    <ele>-259.10</ele>
+    <time>2025-08-12T05:02:50Z</time>
+  </wpt>
+  <wpt lat="31.314020" lon="35.359480">
+    <name>Masada Snake Path #036</name>
+    <ele>-258.49</ele>
+    <time>2025-08-12T05:02:55Z</time>
+  </wpt>
+  <wpt lat="31.314220" lon="35.359710">
+    <name>Masada Snake Path #037</name>
+    <ele>-252.46</ele>
+    <time>2025-08-12T05:03:00Z</time>
+  </wpt>
+  <wpt lat="31.314260" lon="35.359710">
+    <name>Masada Snake Path #038</name>
+    <ele>-252.46</ele>
+    <time>2025-08-12T05:03:05Z</time>
+  </wpt>
+  <wpt lat="31.314290" lon="35.359690">
+    <name>Masada Snake Path #039</name>
+    <ele>-252.46</ele>
+    <time>2025-08-12T05:03:10Z</time>
+  </wpt>
+  <wpt lat="31.314350" lon="35.359490">
+    <name>Masada Snake Path #040</name>
+    <ele>-248.79</ele>
+    <time>2025-08-12T05:03:15Z</time>
+  </wpt>
+  <wpt lat="31.314400" lon="35.359400">
+    <name>Masada Snake Path #041</name>
+    <ele>-246.26</ele>
+    <time>2025-08-12T05:03:20Z</time>
+  </wpt>
+  <wpt lat="31.314400" lon="35.359330">
+    <name>Masada Snake Path #042</name>
+    <ele>-246.26</ele>
+    <time>2025-08-12T05:03:25Z</time>
+  </wpt>
+  <wpt lat="31.314430" lon="35.359310">
+    <name>Masada Snake Path #043</name>
+    <ele>-240.49</ele>
+    <time>2025-08-12T05:03:30Z</time>
+  </wpt>
+  <wpt lat="31.314580" lon="35.359310">
+    <name>Masada Snake Path #044</name>
+    <ele>-237.91</ele>
+    <time>2025-08-12T05:03:35Z</time>
+  </wpt>
+  <wpt lat="31.314690" lon="35.359290">
+    <name>Masada Snake Path #045</name>
+    <ele>-233.47</ele>
+    <time>2025-08-12T05:03:40Z</time>
+  </wpt>
+  <wpt lat="31.314750" lon="35.359290">
+    <name>Masada Snake Path #046</name>
+    <ele>-233.47</ele>
+    <time>2025-08-12T05:03:45Z</time>
+  </wpt>
+  <wpt lat="31.314760" lon="35.359250">
+    <name>Masada Snake Path #047</name>
+    <ele>-233.47</ele>
+    <time>2025-08-12T05:03:50Z</time>
+  </wpt>
+  <wpt lat="31.314610" lon="35.359040">
+    <name>Masada Snake Path #048</name>
+    <ele>-226.81</ele>
+    <time>2025-08-12T05:03:55Z</time>
+  </wpt>
+  <wpt lat="31.314620" lon="35.358980">
+    <name>Masada Snake Path #049</name>
+    <ele>-226.81</ele>
+    <time>2025-08-12T05:04:00Z</time>
+  </wpt>
+  <wpt lat="31.314780" lon="35.359030">
+    <name>Masada Snake Path #050</name>
+    <ele>-223.06</ele>
+    <time>2025-08-12T05:04:05Z</time>
+  </wpt>
+  <wpt lat="31.314910" lon="35.359030">
+    <name>Masada Snake Path #051</name>
+    <ele>-218.54</ele>
+    <time>2025-08-12T05:04:10Z</time>
+  </wpt>
+  <wpt lat="31.315070" lon="35.358960">
+    <name>Masada Snake Path #052</name>
+    <ele>-214.87</ele>
+    <time>2025-08-12T05:04:15Z</time>
+  </wpt>
+  <wpt lat="31.315070" lon="35.358940">
+    <name>Masada Snake Path #053</name>
+    <ele>-214.87</ele>
+    <time>2025-08-12T05:04:20Z</time>
+  </wpt>
+  <wpt lat="31.315030" lon="35.358900">
+    <name>Masada Snake Path #054</name>
+    <ele>-214.87</ele>
+    <time>2025-08-12T05:04:25Z</time>
+  </wpt>
+  <wpt lat="31.314990" lon="35.358890">
+    <name>Masada Snake Path #055</name>
+    <ele>-210.05</ele>
+    <time>2025-08-12T05:04:30Z</time>
+  </wpt>
+  <wpt lat="31.314920" lon="35.358780">
+    <name>Masada Snake Path #056</name>
+    <ele>-208.79</ele>
+    <time>2025-08-12T05:04:35Z</time>
+  </wpt>
+  <wpt lat="31.314900" lon="35.358680">
+    <name>Masada Snake Path #057</name>
+    <ele>-204.64</ele>
+    <time>2025-08-12T05:04:40Z</time>
+  </wpt>
+  <wpt lat="31.315030" lon="35.358680">
+    <name>Masada Snake Path #058</name>
+    <ele>-202.11</ele>
+    <time>2025-08-12T05:04:45Z</time>
+  </wpt>
+  <wpt lat="31.315040" lon="35.358640">
+    <name>Masada Snake Path #059</name>
+    <ele>-201.00</ele>
+    <time>2025-08-12T05:04:50Z</time>
+  </wpt>
+  <wpt lat="31.314900" lon="35.358550">
+    <name>Masada Snake Path #060</name>
+    <ele>-197.09</ele>
+    <time>2025-08-12T05:04:55Z</time>
+  </wpt>
+  <wpt lat="31.314890" lon="35.358480">
+    <name>Masada Snake Path #061</name>
+    <ele>-196.09</ele>
+    <time>2025-08-12T05:05:00Z</time>
+  </wpt>
+  <wpt lat="31.314910" lon="35.358400">
+    <name>Masada Snake Path #062</name>
+    <ele>-195.03</ele>
+    <time>2025-08-12T05:05:05Z</time>
+  </wpt>
+  <wpt lat="31.315000" lon="35.358310">
+    <name>Masada Snake Path #063</name>
+    <ele>-191.73</ele>
+    <time>2025-08-12T05:05:10Z</time>
+  </wpt>
+  <wpt lat="31.315030" lon="35.358230">
+    <name>Masada Snake Path #064</name>
+    <ele>-190.75</ele>
+    <time>2025-08-12T05:05:15Z</time>
+  </wpt>
+  <wpt lat="31.315010" lon="35.358040">
+    <name>Masada Snake Path #065</name>
+    <ele>-187.28</ele>
+    <time>2025-08-12T05:05:20Z</time>
+  </wpt>
+  <wpt lat="31.315040" lon="35.357980">
+    <name>Masada Snake Path #066</name>
+    <ele>-185.49</ele>
+    <time>2025-08-12T05:05:25Z</time>
+  </wpt>
+  <wpt lat="31.315220" lon="35.358070">
+    <name>Masada Snake Path #067</name>
+    <ele>-182.21</ele>
+    <time>2025-08-12T05:05:30Z</time>
+  </wpt>
+  <wpt lat="31.315350" lon="35.358090">
+    <name>Masada Snake Path #068</name>
+    <ele>-180.87</ele>
+    <time>2025-08-12T05:05:35Z</time>
+  </wpt>
+  <wpt lat="31.315460" lon="35.358170">
+    <name>Masada Snake Path #069</name>
+    <ele>-178.57</ele>
+    <time>2025-08-12T05:05:40Z</time>
+  </wpt>
+  <wpt lat="31.315500" lon="35.358240">
+    <name>Masada Snake Path #070</name>
+    <ele>-177.24</ele>
+    <time>2025-08-12T05:05:45Z</time>
+  </wpt>
+  <wpt lat="31.315560" lon="35.358280">
+    <name>Masada Snake Path #071</name>
+    <ele>-176.44</ele>
+    <time>2025-08-12T05:05:50Z</time>
+  </wpt>
+  <wpt lat="31.315610" lon="35.358280">
+    <name>Masada Snake Path #072</name>
+    <ele>-174.85</ele>
+    <time>2025-08-12T05:05:55Z</time>
+  </wpt>
+  <wpt lat="31.315650" lon="35.358110">
+    <name>Masada Snake Path #073</name>
+    <ele>-170.67</ele>
+    <time>2025-08-12T05:06:00Z</time>
+  </wpt>
+  <wpt lat="31.315640" lon="35.358060">
+    <name>Masada Snake Path #074</name>
+    <ele>-170.67</ele>
+    <time>2025-08-12T05:06:05Z</time>
+  </wpt>
+  <wpt lat="31.315530" lon="35.357790">
+    <name>Masada Snake Path #075</name>
+    <ele>-164.51</ele>
+    <time>2025-08-12T05:06:10Z</time>
+  </wpt>
+  <wpt lat="31.315450" lon="35.357670">
+    <name>Masada Snake Path #076</name>
+    <ele>-164.51</ele>
+    <time>2025-08-12T05:06:15Z</time>
+  </wpt>
+  <wpt lat="31.315360" lon="35.357590">
+    <name>Masada Snake Path #077</name>
+    <ele>-160.22</ele>
+    <time>2025-08-12T05:06:20Z</time>
+  </wpt>
+  <wpt lat="31.315360" lon="35.357540">
+    <name>Masada Snake Path #078</name>
+    <ele>-160.22</ele>
+    <time>2025-08-12T05:06:25Z</time>
+  </wpt>
+  <wpt lat="31.315660" lon="35.357460">
+    <name>Masada Snake Path #079</name>
+    <ele>-152.15</ele>
+    <time>2025-08-12T05:06:30Z</time>
+  </wpt>
+  <wpt lat="31.315800" lon="35.357390">
+    <name>Masada Snake Path #080</name>
+    <ele>-149.76</ele>
+    <time>2025-08-12T05:06:35Z</time>
+  </wpt>
+  <wpt lat="31.315860" lon="35.357330">
+    <name>Masada Snake Path #081</name>
+    <ele>-144.87</ele>
+    <time>2025-08-12T05:06:40Z</time>
+  </wpt>
+  <wpt lat="31.315950" lon="35.357300">
+    <name>Masada Snake Path #082</name>
+    <ele>-144.87</ele>
+    <time>2025-08-12T05:06:45Z</time>
+  </wpt>
+  <wpt lat="31.315990" lon="35.357260">
+    <name>Masada Snake Path #083</name>
+    <ele>-144.87</ele>
+    <time>2025-08-12T05:06:50Z</time>
+  </wpt>
+  <wpt lat="31.316160" lon="35.357220">
+    <name>Masada Snake Path #084</name>
+    <ele>-139.68</ele>
+    <time>2025-08-12T05:06:55Z</time>
+  </wpt>
+  <wpt lat="31.316230" lon="35.357150">
+    <name>Masada Snake Path #085</name>
+    <ele>-133.36</ele>
+    <time>2025-08-12T05:07:00Z</time>
+  </wpt>
+  <wpt lat="31.316350" lon="35.357090">
+    <name>Masada Snake Path #086</name>
+    <ele>-132.03</ele>
+    <time>2025-08-12T05:07:05Z</time>
+  </wpt>
+  <wpt lat="31.316380" lon="35.357020">
+    <name>Masada Snake Path #087</name>
+    <ele>-129.47</ele>
+    <time>2025-08-12T05:07:10Z</time>
+  </wpt>
+  <wpt lat="31.316380" lon="35.356990">
+    <name>Masada Snake Path #088</name>
+    <ele>-129.47</ele>
+    <time>2025-08-12T05:07:15Z</time>
+  </wpt>
+  <wpt lat="31.316360" lon="35.356970">
+    <name>Masada Snake Path #089</name>
+    <ele>-127.61</ele>
+    <time>2025-08-12T05:07:20Z</time>
+  </wpt>
+  <wpt lat="31.316310" lon="35.356970">
+    <name>Masada Snake Path #090</name>
+    <ele>-127.61</ele>
+    <time>2025-08-12T05:07:25Z</time>
+  </wpt>
+  <wpt lat="31.316320" lon="35.356900">
+    <name>Masada Snake Path #091</name>
+    <ele>-122.58</ele>
+    <time>2025-08-12T05:07:30Z</time>
+  </wpt>
+  <wpt lat="31.316290" lon="35.356880">
+    <name>Masada Snake Path #092</name>
+    <ele>-122.58</ele>
+    <time>2025-08-12T05:07:35Z</time>
+  </wpt>
+  <wpt lat="31.315960" lon="35.356840">
+    <name>Masada Snake Path #093</name>
+    <ele>-113.10</ele>
+    <time>2025-08-12T05:07:40Z</time>
+  </wpt>
+  <wpt lat="31.315840" lon="35.356710">
+    <name>Masada Snake Path #094</name>
+    <ele>-111.06</ele>
+    <time>2025-08-12T05:07:45Z</time>
+  </wpt>
+  <wpt lat="31.315660" lon="35.356620">
+    <name>Masada Snake Path #095</name>
+    <ele>-104.30</ele>
+    <time>2025-08-12T05:07:50Z</time>
+  </wpt>
+  <wpt lat="31.315650" lon="35.356570">
+    <name>Masada Snake Path #096</name>
+    <ele>-102.97</ele>
+    <time>2025-08-12T05:07:55Z</time>
+  </wpt>
+  <wpt lat="31.315710" lon="35.356590">
+    <name>Masada Snake Path #097</name>
+    <ele>-102.97</ele>
+    <time>2025-08-12T05:08:00Z</time>
+  </wpt>
+  <wpt lat="31.315820" lon="35.356510">
+    <name>Masada Snake Path #098</name>
+    <ele>-97.42</ele>
+    <time>2025-08-12T05:08:05Z</time>
+  </wpt>
+  <wpt lat="31.315940" lon="35.356490">
+    <name>Masada Snake Path #099</name>
+    <ele>-94.84</ele>
+    <time>2025-08-12T05:08:10Z</time>
+  </wpt>
+  <wpt lat="31.316000" lon="35.356510">
+    <name>Masada Snake Path #100</name>
+    <ele>-91.33</ele>
+    <time>2025-08-12T05:08:15Z</time>
+  </wpt>
+  <wpt lat="31.316080" lon="35.356460">
+    <name>Masada Snake Path #101</name>
+    <ele>-90.04</ele>
+    <time>2025-08-12T05:08:20Z</time>
+  </wpt>
+  <wpt lat="31.316080" lon="35.356410">
+    <name>Masada Snake Path #102</name>
+    <ele>-88.68</ele>
+    <time>2025-08-12T05:08:25Z</time>
+  </wpt>
+  <wpt lat="31.315990" lon="35.356320">
+    <name>Masada Snake Path #103</name>
+    <ele>-83.89</ele>
+    <time>2025-08-12T05:08:30Z</time>
+  </wpt>
+  <wpt lat="31.315980" lon="35.356290">
+    <name>Masada Snake Path #104</name>
+    <ele>-83.89</ele>
+    <time>2025-08-12T05:08:35Z</time>
+  </wpt>
+  <wpt lat="31.316020" lon="35.356270">
+    <name>Masada Snake Path #105</name>
+    <ele>-78.49</ele>
+    <time>2025-08-12T05:08:40Z</time>
+  </wpt>
+  <wpt lat="31.316040" lon="35.356180">
+    <name>Masada Snake Path #106</name>
+    <ele>-78.49</ele>
+    <time>2025-08-12T05:08:45Z</time>
+  </wpt>
+  <wpt lat="31.316090" lon="35.356150">
+    <name>Masada Snake Path #107</name>
+    <ele>-75.63</ele>
+    <time>2025-08-12T05:08:50Z</time>
+  </wpt>
+  <wpt lat="31.316100" lon="35.356090">
+    <name>Masada Snake Path #108</name>
+    <ele>-74.67</ele>
+    <time>2025-08-12T05:08:55Z</time>
+  </wpt>
+  <wpt lat="31.316170" lon="35.356040">
+    <name>Masada Snake Path #109</name>
+    <ele>-73.63</ele>
+    <time>2025-08-12T05:09:00Z</time>
+  </wpt>
+  <wpt lat="31.316310" lon="35.356100">
+    <name>Masada Snake Path #110</name>
+    <ele>-73.23</ele>
+    <time>2025-08-12T05:09:05Z</time>
+  </wpt>
+  <wpt lat="31.316480" lon="35.356110">
+    <name>Masada Snake Path #111</name>
+    <ele>-73.05</ele>
+    <time>2025-08-12T05:09:10Z</time>
+  </wpt>
+  <wpt lat="31.316550" lon="35.356090">
+    <name>Masada Snake Path #112</name>
+    <ele>-72.84</ele>
+    <time>2025-08-12T05:09:15Z</time>
+  </wpt>
+  <wpt lat="31.316610" lon="35.356100">
+    <name>Masada Snake Path #113</name>
+    <ele>-72.63</ele>
+    <time>2025-08-12T05:09:20Z</time>
+  </wpt>
+  <wpt lat="31.316650" lon="35.356090">
+    <name>Masada Snake Path #114</name>
+    <ele>-72.37</ele>
+    <time>2025-08-12T05:09:25Z</time>
+  </wpt>
+  <wpt lat="31.316730" lon="35.356000">
+    <name>Masada Snake Path #115</name>
+    <ele>-71.16</ele>
+    <time>2025-08-12T05:09:30Z</time>
+  </wpt>
+  <wpt lat="31.316730" lon="35.355930">
+    <name>Masada Snake Path #116</name>
+    <ele>-68.69</ele>
+    <time>2025-08-12T05:09:35Z</time>
+  </wpt>
+  <wpt lat="31.316660" lon="35.355900">
+    <name>Masada Snake Path #117</name>
+    <ele>-68.69</ele>
+    <time>2025-08-12T05:09:40Z</time>
+  </wpt>
+  <wpt lat="31.316690" lon="35.355810">
+    <name>Masada Snake Path #118</name>
+    <ele>-63.89</ele>
+    <time>2025-08-12T05:09:45Z</time>
+  </wpt>
+  <wpt lat="31.316770" lon="35.355700">
+    <name>Masada Snake Path #119</name>
+    <ele>-60.42</ele>
+    <time>2025-08-12T05:09:50Z</time>
+  </wpt>
+  <wpt lat="31.316900" lon="35.355670">
+    <name>Masada Snake Path #120</name>
+    <ele>-58.14</ele>
+    <time>2025-08-12T05:09:55Z</time>
+  </wpt>
+  <wpt lat="31.316940" lon="35.355580">
+    <name>Masada Snake Path #121</name>
+    <ele>-56.12</ele>
+    <time>2025-08-12T05:10:00Z</time>
+  </wpt>
+  <wpt lat="31.316960" lon="35.355510">
+    <name>Masada Snake Path #122</name>
+    <ele>-53.01</ele>
+    <time>2025-08-12T05:10:05Z</time>
+  </wpt>
+  <wpt lat="31.316860" lon="35.355560">
+    <name>Masada Snake Path #123</name>
+    <ele>-49.30</ele>
+    <time>2025-08-12T05:10:10Z</time>
+  </wpt>
+  <wpt lat="31.316750" lon="35.355530">
+    <name>Masada Snake Path #124</name>
+    <ele>-47.08</ele>
+    <time>2025-08-12T05:10:15Z</time>
+  </wpt>
+  <wpt lat="31.316630" lon="35.355620">
+    <name>Masada Snake Path #125</name>
+    <ele>-45.42</ele>
+    <time>2025-08-12T05:10:20Z</time>
+  </wpt>
+  <wpt lat="31.316590" lon="35.355610">
+    <name>Masada Snake Path #126</name>
+    <ele>-43.18</ele>
+    <time>2025-08-12T05:10:25Z</time>
+  </wpt>
+  <wpt lat="31.316470" lon="35.355650">
+    <name>Masada Snake Path #127</name>
+    <ele>-41.93</ele>
+    <time>2025-08-12T05:10:30Z</time>
+  </wpt>
+  <wpt lat="31.316260" lon="35.355660">
+    <name>Masada Snake Path #128</name>
+    <ele>-39.09</ele>
+    <time>2025-08-12T05:10:35Z</time>
+  </wpt>
+  <wpt lat="31.316210" lon="35.355650">
+    <name>Masada Snake Path #129</name>
+    <ele>-37.80</ele>
+    <time>2025-08-12T05:10:40Z</time>
+  </wpt>
+  <wpt lat="31.316220" lon="35.355640">
+    <name>Masada Snake Path #130</name>
+    <ele>-37.80</ele>
+    <time>2025-08-12T05:10:45Z</time>
+  </wpt>
+  <wpt lat="31.316340" lon="35.355630">
+    <name>Masada Snake Path #131</name>
+    <ele>-36.15</ele>
+    <time>2025-08-12T05:10:50Z</time>
+  </wpt>
+  <wpt lat="31.316370" lon="35.355600">
+    <name>Masada Snake Path #132</name>
+    <ele>-33.18</ele>
+    <time>2025-08-12T05:10:55Z</time>
+  </wpt>
+  <wpt lat="31.316520" lon="35.355580">
+    <name>Masada Snake Path #133</name>
+    <ele>-29.75</ele>
+    <time>2025-08-12T05:11:00Z</time>
+  </wpt>
+  <wpt lat="31.316540" lon="35.355530">
+    <name>Masada Snake Path #134</name>
+    <ele>-29.75</ele>
+    <time>2025-08-12T05:11:05Z</time>
+  </wpt>
+  <wpt lat="31.316530" lon="35.355470">
+    <name>Masada Snake Path #135</name>
+    <ele>-26.80</ele>
+    <time>2025-08-12T05:11:10Z</time>
+  </wpt>
+  <wpt lat="31.316550" lon="35.355410">
+    <name>Masada Snake Path #136</name>
+    <ele>-26.80</ele>
+    <time>2025-08-12T05:11:15Z</time>
+  </wpt>
+  <wpt lat="31.316570" lon="35.355410">
+    <name>Masada Snake Path #137</name>
+    <ele>-21.95</ele>
+    <time>2025-08-12T05:11:20Z</time>
+  </wpt>
+  <wpt lat="31.316650" lon="35.355310">
+    <name>Masada Snake Path #138</name>
+    <ele>-18.82</ele>
+    <time>2025-08-12T05:11:25Z</time>
+  </wpt>
+  <wpt lat="31.316770" lon="35.355260">
+    <name>Masada Snake Path #139</name>
+    <ele>-18.82</ele>
+    <time>2025-08-12T05:11:30Z</time>
+  </wpt>
+  <wpt lat="31.316920" lon="35.355080">
+    <name>Masada Snake Path #140</name>
+    <ele>-2.16</ele>
+    <time>2025-08-12T05:11:35Z</time>
+  </wpt>
+  <wpt lat="31.316940" lon="35.355000">
+    <name>Masada Snake Path #141</name>
+    <ele>-2.16</ele>
+    <time>2025-08-12T05:11:40Z</time>
+  </wpt>
+  <wpt lat="31.316990" lon="35.354990">
+    <name>Masada Snake Path #142</name>
+    <ele>-2.16</ele>
+    <time>2025-08-12T05:11:45Z</time>
+  </wpt>
+  <wpt lat="31.316980" lon="35.354960">
+    <name>Masada Snake Path #143</name>
+    <ele>-2.16</ele>
+    <time>2025-08-12T05:11:50Z</time>
+  </wpt>
+  <wpt lat="31.316910" lon="35.354960">
+    <name>Masada Snake Path #144</name>
+    <ele>-0.79</ele>
+    <time>2025-08-12T05:11:55Z</time>
+  </wpt>
+  <wpt lat="31.316900" lon="35.354950">
+    <name>Masada Snake Path #145</name>
+    <ele>-0.79</ele>
+    <time>2025-08-12T05:12:00Z</time>
+  </wpt>
+  <wpt lat="31.316920" lon="35.354920">
+    <name>Masada Snake Path #146</name>
+    <ele>0.47</ele>
+    <time>2025-08-12T05:12:05Z</time>
+  </wpt>
+  <wpt lat="31.317140" lon="35.354910">
+    <name>Masada Snake Path #147</name>
+    <ele>6.66</ele>
+    <time>2025-08-12T05:12:10Z</time>
+  </wpt>
+  <wpt lat="31.317190" lon="35.354880">
+    <name>Masada Snake Path #148</name>
+    <ele>7.04</ele>
+    <time>2025-08-12T05:12:15Z</time>
+  </wpt>
+  <wpt lat="31.317160" lon="35.354860">
+    <name>Masada Snake Path #149</name>
+    <ele>7.57</ele>
+    <time>2025-08-12T05:12:20Z</time>
+  </wpt>
+  <wpt lat="31.317120" lon="35.354870">
+    <name>Masada Snake Path #150</name>
+    <ele>8.32</ele>
+    <time>2025-08-12T05:12:25Z</time>
+  </wpt>
+  <wpt lat="31.317100" lon="35.354850">
+    <name>Masada Snake Path #151</name>
+    <ele>8.93</ele>
+    <time>2025-08-12T05:12:30Z</time>
+  </wpt>
+  <wpt lat="31.317060" lon="35.354870">
+    <name>Masada Snake Path #152</name>
+    <ele>9.45</ele>
+    <time>2025-08-12T05:12:35Z</time>
+  </wpt>
+  <wpt lat="31.316970" lon="35.354870">
+    <name>Masada Snake Path #153</name>
+    <ele>10.41</ele>
+    <time>2025-08-12T05:12:40Z</time>
+  </wpt>
+  <wpt lat="31.316870" lon="35.354830">
+    <name>Masada Snake Path #154</name>
+    <ele>11.25</ele>
+    <time>2025-08-12T05:12:45Z</time>
+  </wpt>
+  <wpt lat="31.316690" lon="35.354930">
+    <name>Masada Snake Path #155</name>
+    <ele>13.18</ele>
+    <time>2025-08-12T05:12:50Z</time>
+  </wpt>
+  <wpt lat="31.316600" lon="35.354920">
+    <name>Masada Snake Path #156</name>
+    <ele>15.28</ele>
+    <time>2025-08-12T05:12:55Z</time>
+  </wpt>
+  <wpt lat="31.316780" lon="35.354780">
+    <name>Masada Snake Path #157</name>
+    <ele>21.32</ele>
+    <time>2025-08-12T05:13:00Z</time>
+  </wpt>
+  <wpt lat="31.316770" lon="35.354750">
+    <name>Masada Snake Path #158</name>
+    <ele>21.32</ele>
+    <time>2025-08-12T05:13:05Z</time>
+  </wpt>
+  <wpt lat="31.316590" lon="35.354810">
+    <name>Masada Snake Path #159</name>
+    <ele>25.38</ele>
+    <time>2025-08-12T05:13:10Z</time>
+  </wpt>
+  <wpt lat="31.316530" lon="35.354730">
+    <name>Masada Snake Path #160</name>
+    <ele>27.00</ele>
+    <time>2025-08-12T05:13:15Z</time>
+  </wpt>
+  <wpt lat="31.316580" lon="35.354680">
+    <name>Masada Snake Path #161</name>
+    <ele>33.13</ele>
+    <time>2025-08-12T05:13:20Z</time>
+  </wpt>
+  <wpt lat="31.316550" lon="35.354630">
+    <name>Masada Snake Path #162</name>
+    <ele>33.66</ele>
+    <time>2025-08-12T05:13:25Z</time>
+  </wpt>
+  <wpt lat="31.316560" lon="35.354600">
+    <name>Masada Snake Path #163</name>
+    <ele>33.66</ele>
+    <time>2025-08-12T05:13:30Z</time>
+  </wpt>
+  <wpt lat="31.316620" lon="35.354580">
+    <name>Masada Snake Path #164</name>
+    <ele>37.94</ele>
+    <time>2025-08-12T05:13:35Z</time>
+  </wpt>
+  <wpt lat="31.316710" lon="35.354460">
+    <name>Masada Snake Path #165</name>
+    <ele>41.13</ele>
+    <time>2025-08-12T05:13:40Z</time>
+  </wpt>
+  <wpt lat="31.316830" lon="35.354370">
+    <name>Masada Snake Path #166</name>
+    <ele>44.70</ele>
+    <time>2025-08-12T05:13:45Z</time>
+  </wpt>
+  <wpt lat="31.316940" lon="35.354310">
+    <name>Masada Snake Path #167</name>
+    <ele>46.46</ele>
+    <time>2025-08-12T05:13:50Z</time>
+  </wpt>
+  <wpt lat="31.317290" lon="35.354290">
+    <name>Masada Snake Path #168</name>
+    <ele>49.54</ele>
+    <time>2025-08-12T05:13:55Z</time>
+  </wpt>
+  <wpt lat="31.317290" lon="35.354200">
+    <name>Masada Snake Path #169</name>
+    <ele>49.54</ele>
+    <time>2025-08-12T05:14:00Z</time>
+  </wpt>
+  <wpt lat="31.317600" lon="35.354220">
+    <name>Masada Snake Path #170</name>
+    <ele>51.80</ele>
+    <time>2025-08-12T05:14:05Z</time>
+  </wpt>
+  <wpt lat="31.317610" lon="35.353880">
+    <name>Masada Snake Path #171</name>
+    <ele>37.00</ele>
+    <time>2025-08-12T05:14:10Z</time>
+  </wpt>
+  <wpt lat="31.317860" lon="35.353910">
+    <name>Masada Snake Path #172</name>
+    <ele>44.83</ele>
+    <time>2025-08-12T05:14:15Z</time>
+  </wpt>
+  <wpt lat="31.317890" lon="35.353870">
+    <name>Masada Snake Path #173</name>
+    <ele>30.71</ele>
+    <time>2025-08-12T05:14:20Z</time>
+  </wpt>
+  <wpt lat="31.318020" lon="35.353920">
+    <name>Masada Snake Path #174</name>
+    <ele>13.19</ele>
+    <time>2025-08-12T05:14:25Z</time>
+  </wpt>
+  <wpt lat="31.318120" lon="35.354090">
+    <name>Masada Snake Path #175</name>
+    <ele>14.11</ele>
+    <time>2025-08-12T05:14:30Z</time>
+  </wpt>
+  <wpt lat="31.318340" lon="35.354260">
+    <name>Masada Snake Path #176</name>
+    <ele>-3.16</ele>
+    <time>2025-08-12T05:14:35Z</time>
+  </wpt>
+  <wpt lat="31.318120" lon="35.354090">
+    <name>Masada Snake Path #177</name>
+    <ele>14.11</ele>
+    <time>2025-08-12T05:14:40Z</time>
+  </wpt>
+  <wpt lat="31.318020" lon="35.353920">
+    <name>Masada Snake Path #178</name>
+    <ele>13.19</ele>
+    <time>2025-08-12T05:14:45Z</time>
+  </wpt>
+  <wpt lat="31.317890" lon="35.353870">
+    <name>Masada Snake Path #179</name>
+    <ele>30.71</ele>
+    <time>2025-08-12T05:14:50Z</time>
+  </wpt>
+  <wpt lat="31.317860" lon="35.353910">
+    <name>Masada Snake Path #180</name>
+    <ele>44.83</ele>
+    <time>2025-08-12T05:14:55Z</time>
+  </wpt>
+  <wpt lat="31.317610" lon="35.353880">
+    <name>Masada Snake Path #181</name>
+    <ele>37.00</ele>
+    <time>2025-08-12T05:15:00Z</time>
+  </wpt>
+  <wpt lat="31.317600" lon="35.354220">
+    <name>Masada Snake Path #182</name>
+    <ele>51.80</ele>
+    <time>2025-08-12T05:15:05Z</time>
+  </wpt>
+  <wpt lat="31.317290" lon="35.354200">
+    <name>Masada Snake Path #183</name>
+    <ele>49.54</ele>
+    <time>2025-08-12T05:15:10Z</time>
+  </wpt>
+  <wpt lat="31.317290" lon="35.354290">
+    <name>Masada Snake Path #184</name>
+    <ele>49.54</ele>
+    <time>2025-08-12T05:15:15Z</time>
+  </wpt>
+  <wpt lat="31.317070" lon="35.354310">
+    <name>Masada Snake Path #185</name>
+    <ele>47.22</ele>
+    <time>2025-08-12T05:15:20Z</time>
+  </wpt>
+  <wpt lat="31.316980" lon="35.354170">
+    <name>Masada Snake Path #186</name>
+    <ele>48.63</ele>
+    <time>2025-08-12T05:15:25Z</time>
+  </wpt>
+  <wpt lat="31.316970" lon="35.353740">
+    <name>Masada Snake Path #187</name>
+    <ele>49.76</ele>
+    <time>2025-08-12T05:15:30Z</time>
+  </wpt>
+  <wpt lat="31.317000" lon="35.353630">
+    <name>Masada Snake Path #188</name>
+    <ele>49.94</ele>
+    <time>2025-08-12T05:15:35Z</time>
+  </wpt>
+  <wpt lat="31.316910" lon="35.353540">
+    <name>Masada Snake Path #189</name>
+    <ele>48.03</ele>
+    <time>2025-08-12T05:15:40Z</time>
+  </wpt>
+  <wpt lat="31.316610" lon="35.353490">
+    <name>Masada Snake Path #190</name>
+    <ele>44.41</ele>
+    <time>2025-08-12T05:15:45Z</time>
+  </wpt>
+  <wpt lat="31.316500" lon="35.353430">
+    <name>Masada Snake Path #191</name>
+    <ele>43.59</ele>
+    <time>2025-08-12T05:15:50Z</time>
+  </wpt>
+  <wpt lat="31.316460" lon="35.353360">
+    <name>Masada Snake Path #192</name>
+    <ele>42.90</ele>
+    <time>2025-08-12T05:15:55Z</time>
+  </wpt>
+  <wpt lat="31.316460" lon="35.353160">
+    <name>Masada Snake Path #193</name>
+    <ele>41.75</ele>
+    <time>2025-08-12T05:16:00Z</time>
+  </wpt>
+  <wpt lat="31.316340" lon="35.353130">
+    <name>Masada Snake Path #194</name>
+    <ele>41.00</ele>
+    <time>2025-08-12T05:16:05Z</time>
+  </wpt>
+  <wpt lat="31.316460" lon="35.352740">
+    <name>Masada Snake Path #195</name>
+    <ele>25.78</ele>
+    <time>2025-08-12T05:16:10Z</time>
+  </wpt>
+  <wpt lat="31.316380" lon="35.352750">
+    <name>Masada Snake Path #196</name>
+    <ele>25.31</ele>
+    <time>2025-08-12T05:16:15Z</time>
+  </wpt>
+  <wpt lat="31.316220" lon="35.352850">
+    <name>Masada Snake Path #197</name>
+    <ele>24.74</ele>
+    <time>2025-08-12T05:16:20Z</time>
+  </wpt>
+  <wpt lat="31.316180" lon="35.352930">
+    <name>Masada Snake Path #198</name>
+    <ele>24.50</ele>
+    <time>2025-08-12T05:16:25Z</time>
+  </wpt>
+  <wpt lat="31.316080" lon="35.352950">
+    <name>Masada Snake Path #199</name>
+    <ele>24.17</ele>
+    <time>2025-08-12T05:16:30Z</time>
+  </wpt>
+  <wpt lat="31.315760" lon="35.352950">
+    <name>Masada Snake Path #200</name>
+    <ele>30.78</ele>
+    <time>2025-08-12T05:16:35Z</time>
+  </wpt>
+  <wpt lat="31.315760" lon="35.352900">
+    <name>Masada Snake Path #201</name>
+    <ele>30.78</ele>
+    <time>2025-08-12T05:16:40Z</time>
+  </wpt>
+  <wpt lat="31.315420" lon="35.352890">
+    <name>Masada Snake Path #202</name>
+    <ele>36.67</ele>
+    <time>2025-08-12T05:16:45Z</time>
+  </wpt>
+  <wpt lat="31.315400" lon="35.353040">
+    <name>Masada Snake Path #203</name>
+    <ele>37.45</ele>
+    <time>2025-08-12T05:16:50Z</time>
+  </wpt>
+  <wpt lat="31.315430" lon="35.353150">
+    <name>Masada Snake Path #204</name>
+    <ele>42.63</ele>
+    <time>2025-08-12T05:16:55Z</time>
+  </wpt>
+  <wpt lat="31.315390" lon="35.353240">
+    <name>Masada Snake Path #205</name>
+    <ele>42.63</ele>
+    <time>2025-08-12T05:17:00Z</time>
+  </wpt>
+  <wpt lat="31.315260" lon="35.353310">
+    <name>Masada Snake Path #206</name>
+    <ele>44.05</ele>
+    <time>2025-08-12T05:17:05Z</time>
+  </wpt>
+  <wpt lat="31.314960" lon="35.353310">
+    <name>Masada Snake Path #207</name>
+    <ele>48.00</ele>
+    <time>2025-08-12T05:17:10Z</time>
+  </wpt>
+  <wpt lat="31.314830" lon="35.353000">
+    <name>Masada Snake Path #208</name>
+    <ele>42.27</ele>
+    <time>2025-08-12T05:17:15Z</time>
+  </wpt>
+  <wpt lat="31.314820" lon="35.352940">
+    <name>Masada Snake Path #209</name>
+    <ele>39.82</ele>
+    <time>2025-08-12T05:17:20Z</time>
+  </wpt>
+  <wpt lat="31.314800" lon="35.352920">
+    <name>Masada Snake Path #210</name>
+    <ele>39.82</ele>
+    <time>2025-08-12T05:17:25Z</time>
+  </wpt>
+  <wpt lat="31.314770" lon="35.352940">
+    <name>Masada Snake Path #211</name>
+    <ele>38.68</ele>
+    <time>2025-08-12T05:17:30Z</time>
+  </wpt>
+  <wpt lat="31.314750" lon="35.352930">
+    <name>Masada Snake Path #212</name>
+    <ele>37.63</ele>
+    <time>2025-08-12T05:17:35Z</time>
+  </wpt>
+  <wpt lat="31.314740" lon="35.352830">
+    <name>Masada Snake Path #213</name>
+    <ele>35.82</ele>
+    <time>2025-08-12T05:17:40Z</time>
+  </wpt>
+  <wpt lat="31.314660" lon="35.352780">
+    <name>Masada Snake Path #214</name>
+    <ele>34.36</ele>
+    <time>2025-08-12T05:17:45Z</time>
+  </wpt>
+  <wpt lat="31.314690" lon="35.352720">
+    <name>Masada Snake Path #215</name>
+    <ele>33.78</ele>
+    <time>2025-08-12T05:17:50Z</time>
+  </wpt>
+  <wpt lat="31.314680" lon="35.352640">
+    <name>Masada Snake Path #216</name>
+    <ele>33.29</ele>
+    <time>2025-08-12T05:17:55Z</time>
+  </wpt>
+  <wpt lat="31.314640" lon="35.352590">
+    <name>Masada Snake Path #217</name>
+    <ele>32.57</ele>
+    <time>2025-08-12T05:18:00Z</time>
+  </wpt>
+  <wpt lat="31.314630" lon="35.352590">
+    <name>Masada Snake Path #218</name>
+    <ele>32.57</ele>
+    <time>2025-08-12T05:18:05Z</time>
+  </wpt>
+  <wpt lat="31.314180" lon="35.352620">
+    <name>Masada Snake Path #219</name>
+    <ele>28.49</ele>
+    <time>2025-08-12T05:18:10Z</time>
+  </wpt>
+  <wpt lat="31.313500" lon="35.353000">
+    <name>Masada Snake Path #220</name>
+    <ele>19.70</ele>
+    <time>2025-08-12T05:18:15Z</time>
+  </wpt>
+  <wpt lat="31.313310" lon="35.353060">
+    <name>Masada Snake Path #221</name>
+    <ele>17.61</ele>
+    <time>2025-08-12T05:18:20Z</time>
+  </wpt>
+  <wpt lat="31.313160" lon="35.353080">
+    <name>Masada Snake Path #222</name>
+    <ele>14.81</ele>
+    <time>2025-08-12T05:18:25Z</time>
+  </wpt>
+  <wpt lat="31.312970" lon="35.352850">
+    <name>Masada Snake Path #223</name>
+    <ele>7.46</ele>
+    <time>2025-08-12T05:18:30Z</time>
+  </wpt>
+  <wpt lat="31.312830" lon="35.352740">
+    <name>Masada Snake Path #224</name>
+    <ele>3.90</ele>
+    <time>2025-08-12T05:18:35Z</time>
+  </wpt>
+  <wpt lat="31.312620" lon="35.352760">
+    <name>Masada Snake Path #225</name>
+    <ele>-3.00</ele>
+    <time>2025-08-12T05:18:40Z</time>
+  </wpt>
+  <wpt lat="31.312580" lon="35.352600">
+    <name>Masada Snake Path #226</name>
+    <ele>-20.65</ele>
+    <time>2025-08-12T05:18:45Z</time>
+  </wpt>
+  <wpt lat="31.312620" lon="35.352760">
+    <name>Masada Snake Path #227</name>
+    <ele>-3.00</ele>
+    <time>2025-08-12T05:18:50Z</time>
+  </wpt>
+  <wpt lat="31.312830" lon="35.352740">
+    <name>Masada Snake Path #228</name>
+    <ele>1.19</ele>
+    <time>2025-08-12T05:18:55Z</time>
+  </wpt>
+  <wpt lat="31.312970" lon="35.352850">
+    <name>Masada Snake Path #229</name>
+    <ele>7.46</ele>
+    <time>2025-08-12T05:19:00Z</time>
+  </wpt>
+  <wpt lat="31.313160" lon="35.353080">
+    <name>Masada Snake Path #230</name>
+    <ele>11.24</ele>
+    <time>2025-08-12T05:19:05Z</time>
+  </wpt>
+  <wpt lat="31.313310" lon="35.353060">
+    <name>Masada Snake Path #231</name>
+    <ele>14.81</ele>
+    <time>2025-08-12T05:19:10Z</time>
+  </wpt>
+  <wpt lat="31.313500" lon="35.353000">
+    <name>Masada Snake Path #232</name>
+    <ele>19.70</ele>
+    <time>2025-08-12T05:19:15Z</time>
+  </wpt>
+  <wpt lat="31.314180" lon="35.352620">
+    <name>Masada Snake Path #233</name>
+    <ele>28.49</ele>
+    <time>2025-08-12T05:19:20Z</time>
+  </wpt>
+  <wpt lat="31.314630" lon="35.352590">
+    <name>Masada Snake Path #234</name>
+    <ele>32.54</ele>
+    <time>2025-08-12T05:19:25Z</time>
+  </wpt>
+  <wpt lat="31.314640" lon="35.352590">
+    <name>Masada Snake Path #235</name>
+    <ele>32.54</ele>
+    <time>2025-08-12T05:19:30Z</time>
+  </wpt>
+  <wpt lat="31.314680" lon="35.352640">
+    <name>Masada Snake Path #236</name>
+    <ele>32.90</ele>
+    <time>2025-08-12T05:19:35Z</time>
+  </wpt>
+  <wpt lat="31.314690" lon="35.352720">
+    <name>Masada Snake Path #237</name>
+    <ele>33.78</ele>
+    <time>2025-08-12T05:19:40Z</time>
+  </wpt>
+  <wpt lat="31.314660" lon="35.352780">
+    <name>Masada Snake Path #238</name>
+    <ele>34.36</ele>
+    <time>2025-08-12T05:19:45Z</time>
+  </wpt>
+  <wpt lat="31.314740" lon="35.352830">
+    <name>Masada Snake Path #239</name>
+    <ele>35.82</ele>
+    <time>2025-08-12T05:19:50Z</time>
+  </wpt>
+  <wpt lat="31.314750" lon="35.352930">
+    <name>Masada Snake Path #240</name>
+    <ele>37.63</ele>
+    <time>2025-08-12T05:19:55Z</time>
+  </wpt>
+  <wpt lat="31.314770" lon="35.352940">
+    <name>Masada Snake Path #241</name>
+    <ele>38.68</ele>
+    <time>2025-08-12T05:20:00Z</time>
+  </wpt>
+  <wpt lat="31.314800" lon="35.352920">
+    <name>Masada Snake Path #242</name>
+    <ele>38.68</ele>
+    <time>2025-08-12T05:20:05Z</time>
+  </wpt>
+  <wpt lat="31.314820" lon="35.352940">
+    <name>Masada Snake Path #243</name>
+    <ele>39.82</ele>
+    <time>2025-08-12T05:20:10Z</time>
+  </wpt>
+  <wpt lat="31.314830" lon="35.353000">
+    <name>Masada Snake Path #244</name>
+    <ele>42.27</ele>
+    <time>2025-08-12T05:20:15Z</time>
+  </wpt>
+  <wpt lat="31.314960" lon="35.353310">
+    <name>Masada Snake Path #245</name>
+    <ele>48.00</ele>
+    <time>2025-08-12T05:20:20Z</time>
+  </wpt>
+  <wpt lat="31.314940" lon="35.353320">
+    <name>Masada Snake Path #246</name>
+    <ele>48.00</ele>
+    <time>2025-08-12T05:20:25Z</time>
+  </wpt>
+  <wpt lat="31.314840" lon="35.353460">
+    <name>Masada Snake Path #247</name>
+    <ele>47.59</ele>
+    <time>2025-08-12T05:20:30Z</time>
+  </wpt>
+  <wpt lat="31.314740" lon="35.354090">
+    <name>Masada Snake Path #248</name>
+    <ele>44.24</ele>
+    <time>2025-08-12T05:20:35Z</time>
+  </wpt>
+  <wpt lat="31.314600" lon="35.354250">
+    <name>Masada Snake Path #249</name>
+    <ele>43.82</ele>
+    <time>2025-08-12T05:20:40Z</time>
+  </wpt>
+  <wpt lat="31.314470" lon="35.354370">
+    <name>Masada Snake Path #250</name>
+    <ele>41.04</ele>
+    <time>2025-08-12T05:20:45Z</time>
+  </wpt>
+  <wpt lat="31.314380" lon="35.354530">
+    <name>Masada Snake Path #251</name>
+    <ele>39.70</ele>
+    <time>2025-08-12T05:20:50Z</time>
+  </wpt>
+  <wpt lat="31.314380" lon="35.354540">
+    <name>Masada Snake Path #252</name>
+    <ele>39.70</ele>
+    <time>2025-08-12T05:20:55Z</time>
+  </wpt>
+  <wpt lat="31.314620" lon="35.354720">
+    <name>Masada Snake Path #253</name>
+    <ele>37.98</ele>
+    <time>2025-08-12T05:21:00Z</time>
+  </wpt>
+  <wpt lat="31.314880" lon="35.355030">
+    <name>Masada Snake Path #254</name>
+    <ele>34.55</ele>
+    <time>2025-08-12T05:21:05Z</time>
+  </wpt>
+  <wpt lat="31.314980" lon="35.355080">
+    <name>Masada Snake Path #255</name>
+    <ele>33.35</ele>
+    <time>2025-08-12T05:21:10Z</time>
+  </wpt>
+  <wpt lat="31.314990" lon="35.355080">
+    <name>Masada Snake Path #256</name>
+    <ele>33.35</ele>
+    <time>2025-08-12T05:21:15Z</time>
+  </wpt>
+  <wpt lat="31.315190" lon="35.355030">
+    <name>Masada Snake Path #257</name>
+    <ele>32.05</ele>
+    <time>2025-08-12T05:21:20Z</time>
+  </wpt>
+  <wpt lat="31.315360" lon="35.355020">
+    <name>Masada Snake Path #258</name>
+    <ele>31.58</ele>
+    <time>2025-08-12T05:21:25Z</time>
+  </wpt>
+  <wpt lat="31.315670" lon="35.355120">
+    <name>Masada Snake Path #259</name>
+    <ele>31.55</ele>
+    <time>2025-08-12T05:21:30Z</time>
+  </wpt>
+  <wpt lat="31.315790" lon="35.355010">
+    <name>Masada Snake Path #260</name>
+    <ele>31.79</ele>
+    <time>2025-08-12T05:21:35Z</time>
+  </wpt>
+  <wpt lat="31.315770" lon="35.354900">
+    <name>Masada Snake Path #261</name>
+    <ele>31.89</ele>
+    <time>2025-08-12T05:21:40Z</time>
+  </wpt>
+  <wpt lat="31.315850" lon="35.354710">
+    <name>Masada Snake Path #262</name>
+    <ele>32.28</ele>
+    <time>2025-08-12T05:21:45Z</time>
+  </wpt>
+  <wpt lat="31.316030" lon="35.354550">
+    <name>Masada Snake Path #263</name>
+    <ele>34.59</ele>
+    <time>2025-08-12T05:21:50Z</time>
+  </wpt>
+  <wpt lat="31.316080" lon="35.354460">
+    <name>Masada Snake Path #264</name>
+    <ele>35.01</ele>
+    <time>2025-08-12T05:21:55Z</time>
+  </wpt>
+  <wpt lat="31.316090" lon="35.354450">
+    <name>Masada Snake Path #265</name>
+    <ele>35.06</ele>
+    <time>2025-08-12T05:22:00Z</time>
+  </wpt>
+  <wpt lat="31.316250" lon="35.354620">
+    <name>Masada Snake Path #266</name>
+    <ele>30.92</ele>
+    <time>2025-08-12T05:22:05Z</time>
+  </wpt>
+  <wpt lat="31.316380" lon="35.354680">
+    <name>Masada Snake Path #267</name>
+    <ele>28.37</ele>
+    <time>2025-08-12T05:22:10Z</time>
+  </wpt>
+  <wpt lat="31.316500" lon="35.354700">
+    <name>Masada Snake Path #268</name>
+    <ele>27.00</ele>
+    <time>2025-08-12T05:22:15Z</time>
+  </wpt>
+  <wpt lat="31.316590" lon="35.354810">
+    <name>Masada Snake Path #269</name>
+    <ele>27.00</ele>
+    <time>2025-08-12T05:22:20Z</time>
+  </wpt>
+  <wpt lat="31.316770" lon="35.354750">
+    <name>Masada Snake Path #270</name>
+    <ele>23.51</ele>
+    <time>2025-08-12T05:22:25Z</time>
+  </wpt>
+  <wpt lat="31.316780" lon="35.354780">
+    <name>Masada Snake Path #271</name>
+    <ele>22.45</ele>
+    <time>2025-08-12T05:22:30Z</time>
+  </wpt>
+  <wpt lat="31.316600" lon="35.354920">
+    <name>Masada Snake Path #272</name>
+    <ele>16.64</ele>
+    <time>2025-08-12T05:22:35Z</time>
+  </wpt>
+  <wpt lat="31.316690" lon="35.354930">
+    <name>Masada Snake Path #273</name>
+    <ele>14.09</ele>
+    <time>2025-08-12T05:22:40Z</time>
+  </wpt>
+  <wpt lat="31.316870" lon="35.354830">
+    <name>Masada Snake Path #274</name>
+    <ele>11.57</ele>
+    <time>2025-08-12T05:22:45Z</time>
+  </wpt>
+  <wpt lat="31.316970" lon="35.354870">
+    <name>Masada Snake Path #275</name>
+    <ele>10.86</ele>
+    <time>2025-08-12T05:22:50Z</time>
+  </wpt>
+  <wpt lat="31.317060" lon="35.354870">
+    <name>Masada Snake Path #276</name>
+    <ele>10.41</ele>
+    <time>2025-08-12T05:22:55Z</time>
+  </wpt>
+  <wpt lat="31.317100" lon="35.354850">
+    <name>Masada Snake Path #277</name>
+    <ele>9.45</ele>
+    <time>2025-08-12T05:23:00Z</time>
+  </wpt>
+  <wpt lat="31.317120" lon="35.354870">
+    <name>Masada Snake Path #278</name>
+    <ele>8.93</ele>
+    <time>2025-08-12T05:23:05Z</time>
+  </wpt>
+  <wpt lat="31.317140" lon="35.354860">
+    <name>Masada Snake Path #279</name>
+    <ele>8.93</ele>
+    <time>2025-08-12T05:23:10Z</time>
+  </wpt>
+  <wpt lat="31.317190" lon="35.354890">
+    <name>Masada Snake Path #280</name>
+    <ele>8.15</ele>
+    <time>2025-08-12T05:23:15Z</time>
+  </wpt>
+  <wpt lat="31.317190" lon="35.354910">
+    <name>Masada Snake Path #281</name>
+    <ele>7.57</ele>
+    <time>2025-08-12T05:23:20Z</time>
+  </wpt>
+  <wpt lat="31.317110" lon="35.354920">
+    <name>Masada Snake Path #282</name>
+    <ele>6.66</ele>
+    <time>2025-08-12T05:23:25Z</time>
+  </wpt>
+  <wpt lat="31.316920" lon="35.354920">
+    <name>Masada Snake Path #283</name>
+    <ele>1.56</ele>
+    <time>2025-08-12T05:23:30Z</time>
+  </wpt>
+  <wpt lat="31.316900" lon="35.354950">
+    <name>Masada Snake Path #284</name>
+    <ele>1.56</ele>
+    <time>2025-08-12T05:23:35Z</time>
+  </wpt>
+  <wpt lat="31.316910" lon="35.354960">
+    <name>Masada Snake Path #285</name>
+    <ele>0.47</ele>
+    <time>2025-08-12T05:23:40Z</time>
+  </wpt>
+  <wpt lat="31.316980" lon="35.354960">
+    <name>Masada Snake Path #286</name>
+    <ele>-0.79</ele>
+    <time>2025-08-12T05:23:45Z</time>
+  </wpt>
+  <wpt lat="31.316990" lon="35.354990">
+    <name>Masada Snake Path #287</name>
+    <ele>-2.16</ele>
+    <time>2025-08-12T05:23:50Z</time>
+  </wpt>
+  <wpt lat="31.316940" lon="35.355000">
+    <name>Masada Snake Path #288</name>
+    <ele>-3.67</ele>
+    <time>2025-08-12T05:23:55Z</time>
+  </wpt>
+  <wpt lat="31.316920" lon="35.355080">
+    <name>Masada Snake Path #289</name>
+    <ele>-3.67</ele>
+    <time>2025-08-12T05:24:00Z</time>
+  </wpt>
+  <wpt lat="31.316770" lon="35.355260">
+    <name>Masada Snake Path #290</name>
+    <ele>-18.82</ele>
+    <time>2025-08-12T05:24:05Z</time>
+  </wpt>
+  <wpt lat="31.316650" lon="35.355310">
+    <name>Masada Snake Path #291</name>
+    <ele>-18.82</ele>
+    <time>2025-08-12T05:24:10Z</time>
+  </wpt>
+  <wpt lat="31.316570" lon="35.355410">
+    <name>Masada Snake Path #292</name>
+    <ele>-21.95</ele>
+    <time>2025-08-12T05:24:15Z</time>
+  </wpt>
+  <wpt lat="31.316550" lon="35.355410">
+    <name>Masada Snake Path #293</name>
+    <ele>-21.95</ele>
+    <time>2025-08-12T05:24:20Z</time>
+  </wpt>
+  <wpt lat="31.316530" lon="35.355470">
+    <name>Masada Snake Path #294</name>
+    <ele>-26.80</ele>
+    <time>2025-08-12T05:24:25Z</time>
+  </wpt>
+  <wpt lat="31.316540" lon="35.355530">
+    <name>Masada Snake Path #295</name>
+    <ele>-26.80</ele>
+    <time>2025-08-12T05:24:30Z</time>
+  </wpt>
+  <wpt lat="31.316520" lon="35.355580">
+    <name>Masada Snake Path #296</name>
+    <ele>-26.80</ele>
+    <time>2025-08-12T05:24:35Z</time>
+  </wpt>
+  <wpt lat="31.316370" lon="35.355600">
+    <name>Masada Snake Path #297</name>
+    <ele>-32.14</ele>
+    <time>2025-08-12T05:24:40Z</time>
+  </wpt>
+  <wpt lat="31.316340" lon="35.355630">
+    <name>Masada Snake Path #298</name>
+    <ele>-33.18</ele>
+    <time>2025-08-12T05:24:45Z</time>
+  </wpt>
+  <wpt lat="31.316260" lon="35.355630">
+    <name>Masada Snake Path #299</name>
+    <ele>-36.44</ele>
+    <time>2025-08-12T05:24:50Z</time>
+  </wpt>
+  <wpt lat="31.316210" lon="35.355660">
+    <name>Masada Snake Path #300</name>
+    <ele>-36.44</ele>
+    <time>2025-08-12T05:24:55Z</time>
+  </wpt>
+  <wpt lat="31.316220" lon="35.355670">
+    <name>Masada Snake Path #301</name>
+    <ele>-36.44</ele>
+    <time>2025-08-12T05:25:00Z</time>
+  </wpt>
+  <wpt lat="31.316470" lon="35.355650">
+    <name>Masada Snake Path #302</name>
+    <ele>-40.48</ele>
+    <time>2025-08-12T05:25:05Z</time>
+  </wpt>
+  <wpt lat="31.316590" lon="35.355610">
+    <name>Masada Snake Path #303</name>
+    <ele>-42.52</ele>
+    <time>2025-08-12T05:25:10Z</time>
+  </wpt>
+  <wpt lat="31.316630" lon="35.355620">
+    <name>Masada Snake Path #304</name>
+    <ele>-43.18</ele>
+    <time>2025-08-12T05:25:15Z</time>
+  </wpt>
+  <wpt lat="31.316750" lon="35.355530">
+    <name>Masada Snake Path #305</name>
+    <ele>-45.42</ele>
+    <time>2025-08-12T05:25:20Z</time>
+  </wpt>
+  <wpt lat="31.316860" lon="35.355560">
+    <name>Masada Snake Path #306</name>
+    <ele>-48.12</ele>
+    <time>2025-08-12T05:25:25Z</time>
+  </wpt>
+  <wpt lat="31.316900" lon="35.355530">
+    <name>Masada Snake Path #307</name>
+    <ele>-49.30</ele>
+    <time>2025-08-12T05:25:30Z</time>
+  </wpt>
+  <wpt lat="31.316960" lon="35.355510">
+    <name>Masada Snake Path #308</name>
+    <ele>-50.70</ele>
+    <time>2025-08-12T05:25:35Z</time>
+  </wpt>
+  <wpt lat="31.316970" lon="35.355520">
+    <name>Masada Snake Path #309</name>
+    <ele>-50.70</ele>
+    <time>2025-08-12T05:25:40Z</time>
+  </wpt>
+  <wpt lat="31.316900" lon="35.355670">
+    <name>Masada Snake Path #310</name>
+    <ele>-56.12</ele>
+    <time>2025-08-12T05:25:45Z</time>
+  </wpt>
+  <wpt lat="31.316770" lon="35.355700">
+    <name>Masada Snake Path #311</name>
+    <ele>-58.14</ele>
+    <time>2025-08-12T05:25:50Z</time>
+  </wpt>
+  <wpt lat="31.316690" lon="35.355810">
+    <name>Masada Snake Path #312</name>
+    <ele>-60.42</ele>
+    <time>2025-08-12T05:25:55Z</time>
+  </wpt>
+  <wpt lat="31.316660" lon="35.355900">
+    <name>Masada Snake Path #313</name>
+    <ele>-62.50</ele>
+    <time>2025-08-12T05:26:00Z</time>
+  </wpt>
+  <wpt lat="31.316730" lon="35.355930">
+    <name>Masada Snake Path #314</name>
+    <ele>-63.89</ele>
+    <time>2025-08-12T05:26:05Z</time>
+  </wpt>
+  <wpt lat="31.316730" lon="35.356000">
+    <name>Masada Snake Path #315</name>
+    <ele>-68.69</ele>
+    <time>2025-08-12T05:26:10Z</time>
+  </wpt>
+  <wpt lat="31.316690" lon="35.356040">
+    <name>Masada Snake Path #316</name>
+    <ele>-68.69</ele>
+    <time>2025-08-12T05:26:15Z</time>
+  </wpt>
+  <wpt lat="31.316640" lon="35.356090">
+    <name>Masada Snake Path #317</name>
+    <ele>-70.83</ele>
+    <time>2025-08-12T05:26:20Z</time>
+  </wpt>
+  <wpt lat="31.316550" lon="35.356090">
+    <name>Masada Snake Path #318</name>
+    <ele>-72.37</ele>
+    <time>2025-08-12T05:26:25Z</time>
+  </wpt>
+  <wpt lat="31.316480" lon="35.356110">
+    <name>Masada Snake Path #319</name>
+    <ele>-72.63</ele>
+    <time>2025-08-12T05:26:30Z</time>
+  </wpt>
+  <wpt lat="31.316310" lon="35.356100">
+    <name>Masada Snake Path #320</name>
+    <ele>-73.12</ele>
+    <time>2025-08-12T05:26:35Z</time>
+  </wpt>
+  <wpt lat="31.316170" lon="35.356040">
+    <name>Masada Snake Path #321</name>
+    <ele>-73.23</ele>
+    <time>2025-08-12T05:26:40Z</time>
+  </wpt>
+  <wpt lat="31.316100" lon="35.356090">
+    <name>Masada Snake Path #322</name>
+    <ele>-73.30</ele>
+    <time>2025-08-12T05:26:45Z</time>
+  </wpt>
+  <wpt lat="31.316090" lon="35.356150">
+    <name>Masada Snake Path #323</name>
+    <ele>-74.06</ele>
+    <time>2025-08-12T05:26:50Z</time>
+  </wpt>
+  <wpt lat="31.316040" lon="35.356180">
+    <name>Masada Snake Path #324</name>
+    <ele>-74.67</ele>
+    <time>2025-08-12T05:26:55Z</time>
+  </wpt>
+  <wpt lat="31.316020" lon="35.356270">
+    <name>Masada Snake Path #325</name>
+    <ele>-76.92</ele>
+    <time>2025-08-12T05:27:00Z</time>
+  </wpt>
+  <wpt lat="31.315980" lon="35.356290">
+    <name>Masada Snake Path #326</name>
+    <ele>-78.49</ele>
+    <time>2025-08-12T05:27:05Z</time>
+  </wpt>
+  <wpt lat="31.315990" lon="35.356320">
+    <name>Masada Snake Path #327</name>
+    <ele>-78.49</ele>
+    <time>2025-08-12T05:27:10Z</time>
+  </wpt>
+  <wpt lat="31.316080" lon="35.356410">
+    <name>Masada Snake Path #328</name>
+    <ele>-83.89</ele>
+    <time>2025-08-12T05:27:15Z</time>
+  </wpt>
+  <wpt lat="31.316080" lon="35.356460">
+    <name>Masada Snake Path #329</name>
+    <ele>-85.61</ele>
+    <time>2025-08-12T05:27:20Z</time>
+  </wpt>
+  <wpt lat="31.316000" lon="35.356510">
+    <name>Masada Snake Path #330</name>
+    <ele>-88.68</ele>
+    <time>2025-08-12T05:27:25Z</time>
+  </wpt>
+  <wpt lat="31.315940" lon="35.356490">
+    <name>Masada Snake Path #331</name>
+    <ele>-90.04</ele>
+    <time>2025-08-12T05:27:30Z</time>
+  </wpt>
+  <wpt lat="31.315820" lon="35.356510">
+    <name>Masada Snake Path #332</name>
+    <ele>-94.84</ele>
+    <time>2025-08-12T05:27:35Z</time>
+  </wpt>
+  <wpt lat="31.315700" lon="35.356580">
+    <name>Masada Snake Path #333</name>
+    <ele>-97.42</ele>
+    <time>2025-08-12T05:27:40Z</time>
+  </wpt>
+  <wpt lat="31.315640" lon="35.356570">
+    <name>Masada Snake Path #334</name>
+    <ele>-101.19</ele>
+    <time>2025-08-12T05:27:45Z</time>
+  </wpt>
+  <wpt lat="31.315640" lon="35.356600">
+    <name>Masada Snake Path #335</name>
+    <ele>-101.19</ele>
+    <time>2025-08-12T05:27:50Z</time>
+  </wpt>
+  <wpt lat="31.315670" lon="35.356640">
+    <name>Masada Snake Path #336</name>
+    <ele>-103.04</ele>
+    <time>2025-08-12T05:27:55Z</time>
+  </wpt>
+  <wpt lat="31.315840" lon="35.356710">
+    <name>Masada Snake Path #337</name>
+    <ele>-108.85</ele>
+    <time>2025-08-12T05:28:00Z</time>
+  </wpt>
+  <wpt lat="31.315960" lon="35.356840">
+    <name>Masada Snake Path #338</name>
+    <ele>-111.06</ele>
+    <time>2025-08-12T05:28:05Z</time>
+  </wpt>
+  <wpt lat="31.316290" lon="35.356880">
+    <name>Masada Snake Path #339</name>
+    <ele>-119.50</ele>
+    <time>2025-08-12T05:28:10Z</time>
+  </wpt>
+  <wpt lat="31.316320" lon="35.356900">
+    <name>Masada Snake Path #340</name>
+    <ele>-120.97</ele>
+    <time>2025-08-12T05:28:15Z</time>
+  </wpt>
+  <wpt lat="31.316310" lon="35.356970">
+    <name>Masada Snake Path #341</name>
+    <ele>-122.58</ele>
+    <time>2025-08-12T05:28:20Z</time>
+  </wpt>
+  <wpt lat="31.316360" lon="35.356970">
+    <name>Masada Snake Path #342</name>
+    <ele>-127.45</ele>
+    <time>2025-08-12T05:28:25Z</time>
+  </wpt>
+  <wpt lat="31.316370" lon="35.357030">
+    <name>Masada Snake Path #343</name>
+    <ele>-127.45</ele>
+    <time>2025-08-12T05:28:30Z</time>
+  </wpt>
+  <wpt lat="31.316350" lon="35.357100">
+    <name>Masada Snake Path #344</name>
+    <ele>-129.17</ele>
+    <time>2025-08-12T05:28:35Z</time>
+  </wpt>
+  <wpt lat="31.316230" lon="35.357150">
+    <name>Masada Snake Path #345</name>
+    <ele>-133.36</ele>
+    <time>2025-08-12T05:28:40Z</time>
+  </wpt>
+  <wpt lat="31.316160" lon="35.357220">
+    <name>Masada Snake Path #346</name>
+    <ele>-133.36</ele>
+    <time>2025-08-12T05:28:45Z</time>
+  </wpt>
+  <wpt lat="31.315990" lon="35.357260">
+    <name>Masada Snake Path #347</name>
+    <ele>-139.68</ele>
+    <time>2025-08-12T05:28:50Z</time>
+  </wpt>
+  <wpt lat="31.315950" lon="35.357300">
+    <name>Masada Snake Path #348</name>
+    <ele>-144.87</ele>
+    <time>2025-08-12T05:28:55Z</time>
+  </wpt>
+  <wpt lat="31.315860" lon="35.357330">
+    <name>Masada Snake Path #349</name>
+    <ele>-144.87</ele>
+    <time>2025-08-12T05:29:00Z</time>
+  </wpt>
+  <wpt lat="31.315800" lon="35.357390">
+    <name>Masada Snake Path #350</name>
+    <ele>-149.76</ele>
+    <time>2025-08-12T05:29:05Z</time>
+  </wpt>
+  <wpt lat="31.315660" lon="35.357460">
+    <name>Masada Snake Path #351</name>
+    <ele>-152.15</ele>
+    <time>2025-08-12T05:29:10Z</time>
+  </wpt>
+  <wpt lat="31.315360" lon="35.357540">
+    <name>Masada Snake Path #352</name>
+    <ele>-158.39</ele>
+    <time>2025-08-12T05:29:15Z</time>
+  </wpt>
+  <wpt lat="31.315360" lon="35.357590">
+    <name>Masada Snake Path #353</name>
+    <ele>-160.22</ele>
+    <time>2025-08-12T05:29:20Z</time>
+  </wpt>
+  <wpt lat="31.315450" lon="35.357670">
+    <name>Masada Snake Path #354</name>
+    <ele>-160.22</ele>
+    <time>2025-08-12T05:29:25Z</time>
+  </wpt>
+  <wpt lat="31.315530" lon="35.357790">
+    <name>Masada Snake Path #355</name>
+    <ele>-164.51</ele>
+    <time>2025-08-12T05:29:30Z</time>
+  </wpt>
+  <wpt lat="31.315640" lon="35.358060">
+    <name>Masada Snake Path #356</name>
+    <ele>-170.67</ele>
+    <time>2025-08-12T05:29:35Z</time>
+  </wpt>
+  <wpt lat="31.315650" lon="35.358110">
+    <name>Masada Snake Path #357</name>
+    <ele>-170.67</ele>
+    <time>2025-08-12T05:29:40Z</time>
+  </wpt>
+  <wpt lat="31.315620" lon="35.358220">
+    <name>Masada Snake Path #358</name>
+    <ele>-172.60</ele>
+    <time>2025-08-12T05:29:45Z</time>
+  </wpt>
+  <wpt lat="31.315600" lon="35.358290">
+    <name>Masada Snake Path #359</name>
+    <ele>-173.55</ele>
+    <time>2025-08-12T05:29:50Z</time>
+  </wpt>
+  <wpt lat="31.315570" lon="35.358300">
+    <name>Masada Snake Path #360</name>
+    <ele>-174.61</ele>
+    <time>2025-08-12T05:29:55Z</time>
+  </wpt>
+  <wpt lat="31.315560" lon="35.358270">
+    <name>Masada Snake Path #361</name>
+    <ele>-174.61</ele>
+    <time>2025-08-12T05:30:00Z</time>
+  </wpt>
+  <wpt lat="31.315500" lon="35.358240">
+    <name>Masada Snake Path #362</name>
+    <ele>-176.44</ele>
+    <time>2025-08-12T05:30:05Z</time>
+  </wpt>
+  <wpt lat="31.315460" lon="35.358170">
+    <name>Masada Snake Path #363</name>
+    <ele>-177.24</ele>
+    <time>2025-08-12T05:30:10Z</time>
+  </wpt>
+  <wpt lat="31.315350" lon="35.358090">
+    <name>Masada Snake Path #364</name>
+    <ele>-178.57</ele>
+    <time>2025-08-12T05:30:15Z</time>
+  </wpt>
+  <wpt lat="31.315220" lon="35.358070">
+    <name>Masada Snake Path #365</name>
+    <ele>-180.87</ele>
+    <time>2025-08-12T05:30:20Z</time>
+  </wpt>
+  <wpt lat="31.315090" lon="35.358000">
+    <name>Masada Snake Path #366</name>
+    <ele>-182.95</ele>
+    <time>2025-08-12T05:30:25Z</time>
+  </wpt>
+  <wpt lat="31.315030" lon="35.357980">
+    <name>Masada Snake Path #367</name>
+    <ele>-184.37</ele>
+    <time>2025-08-12T05:30:30Z</time>
+  </wpt>
+  <wpt lat="31.315010" lon="35.358060">
+    <name>Masada Snake Path #368</name>
+    <ele>-184.37</ele>
+    <time>2025-08-12T05:30:35Z</time>
+  </wpt>
+  <wpt lat="31.315030" lon="35.358230">
+    <name>Masada Snake Path #369</name>
+    <ele>-187.28</ele>
+    <time>2025-08-12T05:30:40Z</time>
+  </wpt>
+  <wpt lat="31.315000" lon="35.358310">
+    <name>Masada Snake Path #370</name>
+    <ele>-190.75</ele>
+    <time>2025-08-12T05:30:45Z</time>
+  </wpt>
+  <wpt lat="31.314910" lon="35.358400">
+    <name>Masada Snake Path #371</name>
+    <ele>-192.78</ele>
+    <time>2025-08-12T05:30:50Z</time>
+  </wpt>
+  <wpt lat="31.314890" lon="35.358480">
+    <name>Masada Snake Path #372</name>
+    <ele>-195.03</ele>
+    <time>2025-08-12T05:30:55Z</time>
+  </wpt>
+  <wpt lat="31.314900" lon="35.358550">
+    <name>Masada Snake Path #373</name>
+    <ele>-196.09</ele>
+    <time>2025-08-12T05:31:00Z</time>
+  </wpt>
+  <wpt lat="31.315040" lon="35.358640">
+    <name>Masada Snake Path #374</name>
+    <ele>-199.97</ele>
+    <time>2025-08-12T05:31:05Z</time>
+  </wpt>
+  <wpt lat="31.315030" lon="35.358680">
+    <name>Masada Snake Path #375</name>
+    <ele>-199.97</ele>
+    <time>2025-08-12T05:31:10Z</time>
+  </wpt>
+  <wpt lat="31.314900" lon="35.358680">
+    <name>Masada Snake Path #376</name>
+    <ele>-203.33</ele>
+    <time>2025-08-12T05:31:15Z</time>
+  </wpt>
+  <wpt lat="31.314920" lon="35.358780">
+    <name>Masada Snake Path #377</name>
+    <ele>-204.64</ele>
+    <time>2025-08-12T05:31:20Z</time>
+  </wpt>
+  <wpt lat="31.314990" lon="35.358890">
+    <name>Masada Snake Path #378</name>
+    <ele>-210.05</ele>
+    <time>2025-08-12T05:31:25Z</time>
+  </wpt>
+  <wpt lat="31.315030" lon="35.358900">
+    <name>Masada Snake Path #379</name>
+    <ele>-210.05</ele>
+    <time>2025-08-12T05:31:30Z</time>
+  </wpt>
+  <wpt lat="31.315060" lon="35.358960">
+    <name>Masada Snake Path #380</name>
+    <ele>-212.60</ele>
+    <time>2025-08-12T05:31:35Z</time>
+  </wpt>
+  <wpt lat="31.314910" lon="35.359030">
+    <name>Masada Snake Path #381</name>
+    <ele>-218.54</ele>
+    <time>2025-08-12T05:31:40Z</time>
+  </wpt>
+  <wpt lat="31.314780" lon="35.359030">
+    <name>Masada Snake Path #382</name>
+    <ele>-220.90</ele>
+    <time>2025-08-12T05:31:45Z</time>
+  </wpt>
+  <wpt lat="31.314620" lon="35.358980">
+    <name>Masada Snake Path #383</name>
+    <ele>-224.09</ele>
+    <time>2025-08-12T05:31:50Z</time>
+  </wpt>
+  <wpt lat="31.314610" lon="35.359040">
+    <name>Masada Snake Path #384</name>
+    <ele>-224.09</ele>
+    <time>2025-08-12T05:31:55Z</time>
+  </wpt>
+  <wpt lat="31.314760" lon="35.359250">
+    <name>Masada Snake Path #385</name>
+    <ele>-229.83</ele>
+    <time>2025-08-12T05:32:00Z</time>
+  </wpt>
+  <wpt lat="31.314750" lon="35.359300">
+    <name>Masada Snake Path #386</name>
+    <ele>-233.33</ele>
+    <time>2025-08-12T05:32:05Z</time>
+  </wpt>
+  <wpt lat="31.314680" lon="35.359290">
+    <name>Masada Snake Path #387</name>
+    <ele>-233.33</ele>
+    <time>2025-08-12T05:32:10Z</time>
+  </wpt>
+  <wpt lat="31.314580" lon="35.359310">
+    <name>Masada Snake Path #388</name>
+    <ele>-236.74</ele>
+    <time>2025-08-12T05:32:15Z</time>
+  </wpt>
+  <wpt lat="31.314430" lon="35.359310">
+    <name>Masada Snake Path #389</name>
+    <ele>-240.49</ele>
+    <time>2025-08-12T05:32:20Z</time>
+  </wpt>
+  <wpt lat="31.314400" lon="35.359330">
+    <name>Masada Snake Path #390</name>
+    <ele>-240.49</ele>
+    <time>2025-08-12T05:32:25Z</time>
+  </wpt>
+  <wpt lat="31.314400" lon="35.359400">
+    <name>Masada Snake Path #391</name>
+    <ele>-240.49</ele>
+    <time>2025-08-12T05:32:30Z</time>
+  </wpt>
+  <wpt lat="31.314350" lon="35.359490">
+    <name>Masada Snake Path #392</name>
+    <ele>-246.26</ele>
+    <time>2025-08-12T05:32:35Z</time>
+  </wpt>
+  <wpt lat="31.314290" lon="35.359660">
+    <name>Masada Snake Path #393</name>
+    <ele>-249.87</ele>
+    <time>2025-08-12T05:32:40Z</time>
+  </wpt>
+  <wpt lat="31.314250" lon="35.359710">
+    <name>Masada Snake Path #394</name>
+    <ele>-251.66</ele>
+    <time>2025-08-12T05:32:45Z</time>
+  </wpt>
+  <wpt lat="31.314220" lon="35.359710">
+    <name>Masada Snake Path #395</name>
+    <ele>-251.66</ele>
+    <time>2025-08-12T05:32:50Z</time>
+  </wpt>
+  <wpt lat="31.314190" lon="35.359690">
+    <name>Masada Snake Path #396</name>
+    <ele>-251.66</ele>
+    <time>2025-08-12T05:32:55Z</time>
+  </wpt>
+  <wpt lat="31.314150" lon="35.359620">
+    <name>Masada Snake Path #397</name>
+    <ele>-255.60</ele>
+    <time>2025-08-12T05:33:00Z</time>
+  </wpt>
+  <wpt lat="31.314020" lon="35.359480">
+    <name>Masada Snake Path #398</name>
+    <ele>-257.10</ele>
+    <time>2025-08-12T05:33:05Z</time>
+  </wpt>
+  <wpt lat="31.313940" lon="35.359450">
+    <name>Masada Snake Path #399</name>
+    <ele>-258.49</ele>
+    <time>2025-08-12T05:33:10Z</time>
+  </wpt>
+  <wpt lat="31.313780" lon="35.359280">
+    <name>Masada Snake Path #400</name>
+    <ele>-261.32</ele>
+    <time>2025-08-12T05:33:15Z</time>
+  </wpt>
+  <wpt lat="31.313730" lon="35.359150">
+    <name>Masada Snake Path #401</name>
+    <ele>-262.84</ele>
+    <time>2025-08-12T05:33:20Z</time>
+  </wpt>
+  <wpt lat="31.313650" lon="35.359030">
+    <name>Masada Snake Path #402</name>
+    <ele>-263.99</ele>
+    <time>2025-08-12T05:33:25Z</time>
+  </wpt>
+  <wpt lat="31.313550" lon="35.358980">
+    <name>Masada Snake Path #403</name>
+    <ele>-265.37</ele>
+    <time>2025-08-12T05:33:30Z</time>
+  </wpt>
+  <wpt lat="31.313450" lon="35.359000">
+    <name>Masada Snake Path #404</name>
+    <ele>-267.00</ele>
+    <time>2025-08-12T05:33:35Z</time>
+  </wpt>
+  <wpt lat="31.313380" lon="35.359050">
+    <name>Masada Snake Path #405</name>
+    <ele>-269.70</ele>
+    <time>2025-08-12T05:33:40Z</time>
+  </wpt>
+  <wpt lat="31.313330" lon="35.359090">
+    <name>Masada Snake Path #406</name>
+    <ele>-270.61</ele>
+    <time>2025-08-12T05:33:45Z</time>
+  </wpt>
+  <wpt lat="31.313330" lon="35.359260">
+    <name>Masada Snake Path #407</name>
+    <ele>-272.59</ele>
+    <time>2025-08-12T05:33:50Z</time>
+  </wpt>
+  <wpt lat="31.313370" lon="35.359420">
+    <name>Masada Snake Path #408</name>
+    <ele>-273.65</ele>
+    <time>2025-08-12T05:33:55Z</time>
+  </wpt>
+  <wpt lat="31.313390" lon="35.359630">
+    <name>Masada Snake Path #409</name>
+    <ele>-276.88</ele>
+    <time>2025-08-12T05:34:00Z</time>
+  </wpt>
+  <wpt lat="31.313320" lon="35.359670">
+    <name>Masada Snake Path #410</name>
+    <ele>-276.88</ele>
+    <time>2025-08-12T05:34:05Z</time>
+  </wpt>
+  <wpt lat="31.313300" lon="35.359760">
+    <name>Masada Snake Path #411</name>
+    <ele>-277.20</ele>
+    <time>2025-08-12T05:34:10Z</time>
+  </wpt>
+  <wpt lat="31.313340" lon="35.360000">
+    <name>Masada Snake Path #412</name>
+    <ele>-277.59</ele>
+    <time>2025-08-12T05:34:15Z</time>
+  </wpt>
+  <wpt lat="31.313350" lon="35.360300">
+    <name>Masada Snake Path #413</name>
+    <ele>-277.59</ele>
+    <time>2025-08-12T05:34:20Z</time>
+  </wpt>
+  <wpt lat="31.313430" lon="35.360410">
+    <name>Masada Snake Path #414</name>
+    <ele>-277.59</ele>
+    <time>2025-08-12T05:34:25Z</time>
+  </wpt>
+  <wpt lat="31.313480" lon="35.360570">
+    <name>Masada Snake Path #415</name>
+    <ele>-277.92</ele>
+    <time>2025-08-12T05:34:30Z</time>
+  </wpt>
+  <wpt lat="31.313470" lon="35.360720">
+    <name>Masada Snake Path #416</name>
+    <ele>-278.38</ele>
+    <time>2025-08-12T05:34:35Z</time>
+  </wpt>
+  <wpt lat="31.313480" lon="35.360800">
+    <name>Masada Snake Path #417</name>
+    <ele>-278.47</ele>
+    <time>2025-08-12T05:34:40Z</time>
+  </wpt>
+  <wpt lat="31.313450" lon="35.360900">
+    <name>Masada Snake Path #418</name>
+    <ele>-278.59</ele>
+    <time>2025-08-12T05:34:45Z</time>
+  </wpt>
+  <wpt lat="31.313470" lon="35.361040">
+    <name>Masada Snake Path #419</name>
+    <ele>-278.59</ele>
+    <time>2025-08-12T05:34:50Z</time>
+  </wpt>
+  <wpt lat="31.313170" lon="35.361540">
+    <name>Masada Snake Path #420</name>
+    <ele>-278.76</ele>
+    <time>2025-08-12T05:34:55Z</time>
+  </wpt>
+  <wpt lat="31.313110" lon="35.361610">
+    <name>Masada Snake Path #421</name>
+    <ele>-278.76</ele>
+    <time>2025-08-12T05:35:00Z</time>
+  </wpt>
+  <wpt lat="31.312730" lon="35.361610">
+    <name>Masada Snake Path #422</name>
+    <ele>-259.99</ele>
+    <time>2025-08-12T05:35:05Z</time>
+  </wpt>
+  <wpt lat="31.312660" lon="35.361570">
+    <name>Masada Snake Path #423</name>
+    <ele>-259.99</ele>
+    <time>2025-08-12T05:35:10Z</time>
+  </wpt>
+  <wpt lat="31.312540" lon="35.361580">
+    <name>Masada Snake Path #424</name>
+    <ele>-259.99</ele>
+    <time>2025-08-12T05:35:15Z</time>
+  </wpt>
+  <wpt lat="31.312490" lon="35.361650">
+    <name>Masada Snake Path #425</name>
+    <ele>-259.99</ele>
+    <time>2025-08-12T05:35:20Z</time>
+  </wpt>
+  <wpt lat="31.312720" lon="35.361630">
+    <name>Masada Snake Path #426</name>
+    <ele>-260.71</ele>
+    <time>2025-08-12T05:35:25Z</time>
+  </wpt>
+  <wpt lat="31.313080" lon="35.361640">
+    <name>Masada Snake Path #427</name>
+    <ele>-263.15</ele>
+    <time>2025-08-12T05:35:30Z</time>
+  </wpt>
+  <wpt lat="31.313180" lon="35.361730">
+    <name>Masada Snake Path #428</name>
+    <ele>-263.60</ele>
+    <time>2025-08-12T05:35:35Z</time>
+  </wpt>
+  <wpt lat="31.313230" lon="35.361860">
+    <name>Masada Snake Path #429</name>
+    <ele>-265.60</ele>
+    <time>2025-08-12T05:35:40Z</time>
+  </wpt>
+  <wpt lat="31.313310" lon="35.362360">
+    <name>Masada Snake Path #430</name>
+    <ele>-270.09</ele>
+    <time>2025-08-12T05:35:45Z</time>
+  </wpt>
+  <wpt lat="31.313310" lon="35.362380">
+    <name>Masada Snake Path #431</name>
+    <ele>-270.09</ele>
+    <time>2025-08-12T05:35:50Z</time>
+  </wpt>
+  <wpt lat="31.313270" lon="35.362520">
+    <name>Masada Snake Path #432</name>
+    <ele>-271.09</ele>
+    <time>2025-08-12T05:35:55Z</time>
+  </wpt>
+  <wpt lat="31.313150" lon="35.362640">
+    <name>Masada Snake Path #433</name>
+    <ele>-273.09</ele>
+    <time>2025-08-12T05:36:00Z</time>
+  </wpt>
+  <wpt lat="31.312520" lon="35.362860">
+    <name>Masada Snake Path #434</name>
+    <ele>-275.80</ele>
+    <time>2025-08-12T05:36:05Z</time>
+  </wpt>
+  <wpt lat="31.312340" lon="35.363000">
+    <name>Masada Snake Path #435</name>
+    <ele>-278.76</ele>
+    <time>2025-08-12T05:36:10Z</time>
+  </wpt>
+  <wpt lat="31.312380" lon="35.363110">
+    <name>Masada Snake Path #436</name>
+    <ele>-280.47</ele>
+    <time>2025-08-12T05:36:15Z</time>
+  </wpt>
+  <wpt lat="31.312540" lon="35.363300">
+    <name>Masada Snake Path #437</name>
+    <ele>-284.80</ele>
+    <time>2025-08-12T05:36:20Z</time>
+  </wpt>
+  <wpt lat="31.312580" lon="35.363700">
+    <name>Masada Snake Path #438</name>
+    <ele>-291.02</ele>
+    <time>2025-08-12T05:36:25Z</time>
+  </wpt>
+  <wpt lat="31.312510" lon="35.364040">
+    <name>Masada Snake Path #439</name>
+    <ele>-295.57</ele>
+    <time>2025-08-12T05:36:30Z</time>
+  </wpt>
+</gpx>
