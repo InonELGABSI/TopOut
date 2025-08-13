@@ -34,10 +34,16 @@ class SessionTracker(
 
     private var log = Logger.withTag("SessionTracker")
 
+    private val paused = MutableStateFlow(false)
+
+    fun pause() { paused.value = true }
+    fun resume() { paused.value = false }
+
     fun start() {
         log.i { "start() for session $sessionId" }
         collectJob = scope.launch {
             aggregator.aggregateFlow.collect { sample ->
+                if (paused.value) return@collect
                 // Prioritize GPS altitude when available, fallback to barometric
                 val alt = sample.location?.altitude ?: sample.altitude?.altitude
 

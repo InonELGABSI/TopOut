@@ -9,6 +9,16 @@ sealed class LiveSessionState :UiState {
         val trackPoint: TrackPoint,
         val historyTrackPoints: List<TrackPoint> = emptyList()
     ) : LiveSessionState()
+
+    data class Paused(
+        val trackPoint: TrackPoint,
+        val historyTrackPoints: List<TrackPoint> = emptyList()
+    ) : LiveSessionState()
+    data class Resumed(
+        val trackPoint: TrackPoint,
+        val historyTrackPoints: List<TrackPoint> = emptyList()
+    ) : LiveSessionState()
+
     object Stopping : LiveSessionState()
     data class SessionStopped(
         val sessionId: String
