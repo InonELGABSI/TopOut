@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-
 import com.topout.kmp.map.LiveMap
 import com.topout.kmp.features.live_session.LiveSessionState
 import com.topout.kmp.features.live_session.LiveSessionViewModel
@@ -29,6 +28,13 @@ import com.topout.kmp.shared_components.TopRoundedCard
 import com.topout.kmp.shared_components.WaveAnimation
 import com.topout.kmp.utils.extensions.latLngOrNull
 import org.koin.androidx.compose.koinViewModel
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.topout.kmp.shared_components.SessionToast
+import com.topout.kmp.shared_components.SessionToastType
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,28 +46,31 @@ fun LiveSessionScreen(
 ) {
     val uiState = viewModel.uiState.collectAsState().value
 
-    // Toast state management
+    var lastUiState by remember { mutableStateOf<LiveSessionState?>(null) }
+    var toastType by remember { mutableStateOf<SessionToastType?>(null) }
+    var showSessionToast by remember { mutableStateOf(false) }
+
     var showDangerToast by remember { mutableStateOf(false) }
     var currentAlertType by remember { mutableStateOf(AlertType.NONE) }
     var lastToastTimestamp by remember { mutableStateOf(0L) }
 
-    // Monitor danger alerts from track points
     LaunchedEffect(uiState) {
-        if (uiState is LiveSessionState.Loaded && uiState.trackPoint.danger) {
-            val currentTime = System.currentTimeMillis()
-
-            // Only show toast if no toast is currently active (10 second window)
-            if (!showDangerToast && (currentTime - lastToastTimestamp) > 10000) {
-                currentAlertType = uiState.trackPoint.alertType
-                showDangerToast = true
-                lastToastTimestamp = currentTime
+        when {
+            uiState is LiveSessionState.Loaded && lastUiState !is LiveSessionState.Loaded -> {
+                toastType = SessionToastType.SESSION_STARTED
+                showSessionToast = true
+            }
+            uiState is LiveSessionState.SessionStopped && lastUiState !is LiveSessionState.SessionStopped -> {
+                toastType = SessionToastType.SESSION_SAVED
+                showSessionToast = true
             }
         }
+        lastUiState = uiState
     }
 
-    // Handle navigation when session is stopped
     LaunchedEffect(uiState) {
         if (uiState is LiveSessionState.SessionStopped) {
+            kotlinx.coroutines.delay(1500)
             onNavigateToSessionDetails(uiState.sessionId)
             viewModel.resetToInitialState()
         }
@@ -69,7 +78,7 @@ fun LiveSessionScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Main content
-        when (uiState) {
+        when(uiState) {
             is LiveSessionState.Loading -> StartSessionContent(
                 hasLocationPermission = hasLocationPermission,
                 onStartClick = { viewModel.onStartClicked() },
@@ -80,28 +89,74 @@ fun LiveSessionScreen(
             is LiveSessionState.Loaded -> ActiveSessionContent(
                 trackPoint = uiState.trackPoint,
                 historyTrackPoints = uiState.historyTrackPoints,
+                isPaused = false,
+                onPauseClick = { viewModel.onPauseClicked() },
+                onResumeClick = { viewModel.onResumeClicked() },
                 onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
-                onCancelClick = { viewModel.onCancelClicked(uiState.trackPoint.sessionId) }
+                onCancelClick = {
+                    viewModel.onCancelClicked(uiState.trackPoint.sessionId)
+                    toastType = SessionToastType.SESSION_CANCELLED
+                    showSessionToast = true
+                }
+            )
+            is LiveSessionState.Paused -> ActiveSessionContent(
+                trackPoint = uiState.trackPoint,
+                historyTrackPoints = uiState.historyTrackPoints,
+                isPaused = true,
+                onPauseClick = { viewModel.onPauseClicked() },
+                onResumeClick = { viewModel.onResumeClicked() },
+                onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
+                onCancelClick = {
+                    viewModel.onCancelClicked(uiState.trackPoint.sessionId)
+                    toastType = SessionToastType.SESSION_CANCELLED
+                    showSessionToast = true
+                }
+            )
+            is LiveSessionState.Resumed -> ActiveSessionContent(
+                trackPoint = uiState.trackPoint,
+                historyTrackPoints = uiState.historyTrackPoints,
+                isPaused = false,
+                onPauseClick = { viewModel.onPauseClicked() },
+                onResumeClick = { viewModel.onResumeClicked() },
+                onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
+                onCancelClick = {
+                    viewModel.onCancelClicked(uiState.trackPoint.sessionId)
+                    toastType = SessionToastType.SESSION_CANCELLED
+                    showSessionToast = true
+                }
             )
             is LiveSessionState.Stopping -> StoppingSessionContent()
-            is LiveSessionState.SessionStopped -> {
-                // Navigation handled in LaunchedEffect
-            }
+            is LiveSessionState.SessionStopped -> Unit
             is LiveSessionState.Error -> ErrorContent(
                 errorMessage = uiState.errorMessage,
                 onRetryClick = { viewModel.onStartClicked() }
             )
         }
 
-        // Danger Toast - positioned at the bottom with proper spacing
+        // Danger Toast
         DangerToast(
             alertType = currentAlertType,
             isVisible = showDangerToast,
             onDismiss = { showDangerToast = false },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 120.dp) // Above the chip buttons
+                .padding(bottom = 120.dp)
         )
+
+        SessionToast(
+            toastType = toastType,
+            isVisible = showSessionToast && toastType != null,
+            onDismiss = {
+                showSessionToast = false
+                toastType = null
+            },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(WindowInsets.navigationBars.asPaddingValues())
+                .padding(bottom = 12.dp)
+        )
+
+
     }
 }
 
@@ -309,6 +364,9 @@ fun StartSessionContent(
 fun ActiveSessionContent(
     trackPoint: TrackPoint,
     historyTrackPoints: List<TrackPoint>,
+    isPaused: Boolean,
+    onPauseClick: () -> Unit,
+    onResumeClick: () -> Unit,
     onStopClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
@@ -345,14 +403,15 @@ fun ActiveSessionContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 32.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                        .padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Cancel chip button with gradient (light left, dark right)
                     Box(
                         modifier = Modifier
                             .height(48.dp)
-                            .width(160.dp)
+                            .weight(1f)
                             .background(
                                 brush = Brush.horizontalGradient(
                                     colors = listOf(
@@ -391,11 +450,47 @@ fun ActiveSessionContent(
                         }
                     }
 
+                    // Pause/Resume
+                    Box(
+                        modifier = Modifier
+                            .height(48.dp)
+                            .weight(1f)
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = if (!isPaused)
+                                        listOf(Color(0xFF757575), Color(0xFF9E9E9E))   // Pause (אפור)
+                                    else
+                                        listOf(Color(0xFF1976D2), Color(0xFF64B5F6))   // Resume (כחול)
+                                ),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .clickable { if (!isPaused) onPauseClick() else onResumeClick() }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                imageVector = if (!isPaused) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = Color.White
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = if (!isPaused) "Pause" else "Resume",
+                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                color = Color.White
+                            )
+                        }
+                    }
+
                     // Stop & Save chip button with gradient (dark left, light right)
                     Box(
                         modifier = Modifier
                             .height(48.dp)
-                            .width(160.dp)
+                            .weight(1f)
                             .background(
                                 brush = Brush.horizontalGradient(
                                     colors = listOf(
@@ -874,6 +969,3 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
         }
     }
 }
-
-
-

@@ -81,4 +81,8 @@ class LiveSessionManager(
         sensors.stop()
         // aggregator will be GC'd with tracker, nothing to stop here
     }
+
+    fun pause() { tracker?.pause() }
+    fun resume() { tracker?.resume() }
+
 }

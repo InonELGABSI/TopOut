@@ -37,6 +37,8 @@ class LiveSessionViewModel(
     private var currentTrackPoint: TrackPoint? = null
     private var currentHistoryPoints: List<TrackPoint> = emptyList()
 
+    private var isPaused: Boolean = false
+
     init {
         // Load current MSL height on initialization
         loadCurrentMSLHeight()
@@ -57,7 +59,19 @@ class LiveSessionViewModel(
                 val trackPointFlow = liveSessionManager!!.invoke()
                 trackPointFlow.collect { point: TrackPoint ->
                     currentTrackPoint = point
-                    updateUIState()
+                    //updateUIState()
+
+                    if (isPaused) {
+                        _uiState.value = LiveSessionState.Paused(
+                            trackPoint = point,
+                            historyTrackPoints = currentHistoryPoints
+                        )
+                    } else {
+                        _uiState.value = LiveSessionState.Loaded(
+                            trackPoint = point,
+                            historyTrackPoints = currentHistoryPoints
+                        )
+                    }
 
                     // Start history tracking once we have a session ID
                     if (historyTrackPointsJob == null) {
@@ -90,10 +104,11 @@ class LiveSessionViewModel(
 
     private fun updateUIState() {
         currentTrackPoint?.let { trackPoint ->
-            _uiState.value = LiveSessionState.Loaded(
-                trackPoint = trackPoint,
-                historyTrackPoints = currentHistoryPoints
-            )
+            _uiState.value = if (isPaused) {
+                LiveSessionState.Paused(trackPoint, currentHistoryPoints)
+            } else {
+                LiveSessionState.Loaded(trackPoint, currentHistoryPoints)
+            }
         }
     }
 
@@ -138,27 +153,6 @@ class LiveSessionViewModel(
         _uiState.value = LiveSessionState.Loading
     }
 
-    // 4. Helper for fully stopping and cleaning up any running session
-    private fun stopSessionAndCleanup() {
-        // Stop manager and clean up scope/jobs
-        liveSessionManager?.stop()
-        liveSessionManager = null
-
-        trackPointJob?.cancel()
-        trackPointJob = null
-
-        historyTrackPointsJob?.cancel()
-        historyTrackPointsJob = null
-
-        // Properly cancel the scope
-        sessionScope?.coroutineContext?.get(Job)?.cancel()
-        sessionScope = null
-
-        // Reset combined state
-        currentTrackPoint = null
-        currentHistoryPoints = emptyList()
-    }
-
     private fun loadCurrentMSLHeight() {
         scope.launch {
             _mslHeightState.value = MSLHeightState.Loading
@@ -184,8 +178,47 @@ class LiveSessionViewModel(
             }
         }
     }
+    fun onPauseClicked() {
+        liveSessionManager?.pause()
+        isPaused = true
+        val tp = currentTrackPoint ?: return
+        _uiState.value = LiveSessionState.Paused(tp, currentHistoryPoints)
+    }
 
     fun refreshMSLHeight() {
         loadCurrentMSLHeight()
     }
+
+    fun onResumeClicked() {
+        liveSessionManager?.resume()
+        isPaused = false
+        val tp = currentTrackPoint ?: return
+        _uiState.value = LiveSessionState.Loaded(tp, currentHistoryPoints)
+    }
+
+    // 4. Helper for fully stopping and cleaning up any running session
+    private fun stopSessionAndCleanup() {
+        // Stop manager and clean up scope/jobs
+        liveSessionManager?.stop()
+        liveSessionManager = null
+
+        trackPointJob?.cancel()
+        trackPointJob = null
+
+        historyTrackPointsJob?.cancel()
+        historyTrackPointsJob = null
+
+        // Properly cancel the scope
+        sessionScope?.coroutineContext?.get(Job)?.cancel()
+        sessionScope = null
+
+        // Reset combined state
+        currentTrackPoint = null
+        currentHistoryPoints = emptyList()
+        isPaused = false
+    }
+
 }
+
+
+
