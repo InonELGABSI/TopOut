@@ -18,7 +18,14 @@ import kotlinx.coroutines.delay
 enum class SessionToastType {
     SESSION_STARTED,
     SESSION_SAVED,
-    SESSION_CANCELLED
+    SESSION_CANCELLED,
+    SESSION_PAUSED,
+    SESSION_RESUMED,
+    SESSION_TITLE_EDITED,
+    SESSION_DELETED,
+    PROFILE_UPDATED,
+    PREFERENCES_UPDATED,
+    THRESHOLDS_UPDATED
 }
 
 @Composable
@@ -57,6 +64,41 @@ fun SessionToast(
                     Icons.Default.Cancel,
                     "Live session cancelled",
                     Color(0xFFE57373)
+                )
+                SessionToastType.SESSION_PAUSED -> Triple(
+                    Icons.Default.Pause,
+                    "Live session paused",
+                    Color(0xFF9E9E9E) // אפור
+                )
+                SessionToastType.SESSION_RESUMED -> Triple(
+                    Icons.Default.PlayArrow,
+                    "Live session resumed",
+                    Color(0xFF64B5F6) // כחול בהיר
+                )
+                SessionToastType.SESSION_TITLE_EDITED -> Triple(
+                    Icons.Default.Edit,
+                    "Session title edited",
+                    Color(0xFFFFC107) // צהוב
+                )
+                SessionToastType.SESSION_DELETED -> Triple(
+                    Icons.Default.Delete,
+                    "Session deleted",
+                    Color(0xFFE57373) // אדום
+                )
+                SessionToastType.PROFILE_UPDATED -> Triple(
+                    Icons.Default.Person,
+                    "Profile updated",
+                    Color(0xFF4CAF50)
+                )
+                SessionToastType.PREFERENCES_UPDATED -> Triple(
+                    Icons.Default.Settings,
+                    "Preferences updated",
+                    Color(0xFF2196F3)
+                )
+                SessionToastType.THRESHOLDS_UPDATED -> Triple(
+                    Icons.Default.Warning,
+                    "Thresholds updated",
+                    Color(0xFFFFC107)
                 )
             }
             Card(

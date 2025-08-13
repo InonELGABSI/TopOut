@@ -47,8 +47,23 @@ fun SessionDetailsScreen(
     // State for edit title dialog
     var showEditTitleDialog by remember { mutableStateOf(false) }
 
+    // State for session toast
+    var toastType by remember { mutableStateOf<SessionToastType?>(null) }
+    var showSessionToast by remember { mutableStateOf(false) }
+
+    // State for handling delete navigation delay
+    var shouldNavigateAfterDelete by remember { mutableStateOf(false) }
+
     LaunchedEffect(sessionId) {
         viewModel.loadSession(sessionId)
+    }
+
+    // Handle navigation after delete with delay
+    LaunchedEffect(shouldNavigateAfterDelete) {
+        if (shouldNavigateAfterDelete) {
+            kotlinx.coroutines.delay(1000)
+            onNavigateBack()
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -64,6 +79,20 @@ fun SessionDetailsScreen(
                 onRetryClick = { viewModel.loadSession(sessionId) }
             )
         }
+
+        // Session Toast
+        SessionToast(
+            toastType = toastType,
+            isVisible = showSessionToast && toastType != null,
+            onDismiss = {
+                showSessionToast = false
+                toastType = null
+            },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(WindowInsets.navigationBars.asPaddingValues())
+                .padding(bottom = 12.dp)
+        )
     }
 
     // Delete confirmation dialog
@@ -77,7 +106,10 @@ fun SessionDetailsScreen(
         isDestructive = true,
         onConfirm = {
             viewModel.deleteSession(sessionId)
-            onNavigateBack() // Navigate back after deletion
+            showDeleteDialog = false
+            toastType = SessionToastType.SESSION_DELETED
+            showSessionToast = true
+            shouldNavigateAfterDelete = true
         },
         onDismiss = { showDeleteDialog = false }
     )
@@ -89,6 +121,8 @@ fun SessionDetailsScreen(
             onTitleChanged = { newTitle ->
                 viewModel.updateSessionTitle(sessionId, newTitle)
                 showEditTitleDialog = false
+                toastType = SessionToastType.SESSION_TITLE_EDITED
+                showSessionToast = true
             },
             onDismiss = { showEditTitleDialog = false }
         )
@@ -750,4 +784,3 @@ fun EditTitleDialog(
         }
     )
 }
-
