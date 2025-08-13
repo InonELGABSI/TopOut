@@ -79,7 +79,14 @@ val domainModule = module {
     factoryOf(::CancelLocalSession)
     factoryOf(::GetLocalTrackPointsFlow)
     factory { (scope: CoroutineScope) ->
-        LiveSessionManager(get(), get(), get(), scope, get<LocalUserRepository>())
+        LiveSessionManager(
+            sessionsRepo = get(),
+            dao = get(),
+            sensors = get(),
+            scope = scope,
+            localUserRepository = get<LocalUserRepository>(),
+            sessionBackgroundManager = get()
+        )
     }
 
     factoryOf(::LiveSessionUseCases)
@@ -130,4 +137,3 @@ fun createHttpClient(clientEngine: HttpClientEngine, json: Json) = HttpClient(cl
         json(json)
     }
 }
-

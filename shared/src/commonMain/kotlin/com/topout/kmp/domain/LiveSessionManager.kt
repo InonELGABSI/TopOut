@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import co.touchlab.kermit.Logger
 import com.topout.kmp.data.user.UserRepository
+import com.topout.kmp.platform.SessionBackgroundManager
 
 
 class LiveSessionManager(
@@ -17,7 +18,8 @@ class LiveSessionManager(
     private val dao          : TrackPointsDao,
     private val sensors      : SensorDataSource,
     private val scope        : CoroutineScope,
-    private val localUserRepository: UserRepository
+    private val localUserRepository: UserRepository,
+    private val sessionBackgroundManager: SessionBackgroundManager
 ) {
     private val log = Logger.withTag("LiveSessionManager")
     private var tracker: SessionTracker? = null
@@ -27,7 +29,16 @@ class LiveSessionManager(
 
     private suspend fun start(): Flow<TrackPoint> {
         log.i { "start()" }
-        sensors.start(scope)
+
+        // Use background scope for sensors to survive app lifecycle changes
+        val effectiveScope = try {
+            sessionBackgroundManager.getBackgroundScope() ?: scope
+        } catch (_: Exception) {
+            // Fallback to regular scope if background manager not available (e.g., on iOS)
+            scope
+        }
+
+        sensors.start(effectiveScope)
         aggregator?.stop()
 
         // Get current user preferences for threshold-based alerts
@@ -55,7 +66,7 @@ class LiveSessionManager(
                     log.i { "Using user thresholds - Height: ${it.relativeHeightFromStartThr}, Total: ${it.totalHeightFromStartThr}, Speed: ${it.currentAvgHeightSpeedThr}" }
                 } ?: log.i { "Using default thresholds (no user preferences found)" }
 
-                // Fresh aggregator *for each session*
+                // Fresh aggregator for each session - USE BACKGROUND SCOPE
                 val aggregator = SensorAggregator(
                     accelFlow = sensors.accelFlow,
                     altFlow   = sensors.baroFlow,
@@ -63,8 +74,10 @@ class LiveSessionManager(
                     hz = 1000L
                 )
                 aggregator.setSessionId(sessionId)
-                aggregator.start(scope)
-                tracker = SessionTracker(sessionId, aggregator, dao, scope, user).apply { start() }
+                aggregator.start(effectiveScope) // Use background scope here too
+
+                // SessionTracker should also use background scope to survive app lifecycle
+                tracker = SessionTracker(sessionId, aggregator, dao, effectiveScope, user).apply { start() }
                 tracker!!.trackPointFlow
             }
             is Result.Failure -> {

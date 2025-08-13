@@ -35,53 +35,93 @@ actual class SensorDataSource(
 
     @SuppressLint("MissingPermission")
     actual fun start(scope: CoroutineScope) {
-        log.i { "start()" }
+        log.i { "start() with scope: ${scope}" }
         this.scope = scope
 
         // Start accelerometer
         scope.launch {
             while (isActive) {
-                _accelFlow.emit(accelProvider.getAcceleration())
+                try {
+                    _accelFlow.emit(accelProvider.getAcceleration())
+                } catch (e: Exception) {
+                    log.w { "Accelerometer error: ${e.message}" }
+                }
                 delay(20)
             }
         }
+
         // Start barometer
         scope.launch {
             while (isActive) {
-                _baroFlow.emit(baroProvider.getBarometerReading())
+                try {
+                    _baroFlow.emit(baroProvider.getBarometerReading())
+                } catch (e: Exception) {
+                    log.w { "Barometer error: ${e.message}" }
+                }
                 delay(100)
             }
         }
-        // Start location
+
+        // Simplified, robust location tracking for background
+        startLocationTracking(scope)
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun startLocationTracking(scope: CoroutineScope) {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
+        // Aggressive location request for background tracking
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
             .setMinUpdateIntervalMillis(500)
             .setMaxUpdateDelayMillis(2000)
-            .setWaitForAccurateLocation(true)
+            .setWaitForAccurateLocation(false)
+            .setMaxUpdateAgeMillis(10000) // Accept older locations in background
             .build()
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 locationResult.locations.lastOrNull()?.let { location ->
-                    val locationData = location.toModel()
-                    scope.launch { _locFlow.emit(locationData) }
+                    scope.launch {
+                        try {
+                            val locationData = location.toModel()
+                            _locFlow.emit(locationData)
+                            log.d { "Location: ${location.latitude}, ${location.longitude} (${if (location.hasAccuracy()) "±${location.accuracy}m" else "no accuracy"})" }
+                        } catch (e: Exception) {
+                            log.w { "Failed to emit location: ${e.message}" }
+                        }
+                    }
                 }
             }
-        }
-        fusedLocationClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback!!,
-            Looper.getMainLooper()
-        )
 
-        // Extra periodic updates if needed:
+            override fun onLocationAvailability(availability: LocationAvailability) {
+                log.i { "Location availability: ${availability.isLocationAvailable}" }
+            }
+        }
+
+        try {
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback!!,
+                Looper.getMainLooper()
+            )
+            log.i { "Location updates requested successfully" }
+        } catch (e: Exception) {
+            log.e { "Failed to request location updates: ${e.message}" }
+        }
+
+        // Single fallback mechanism - only when FusedLocationProvider fails
         scope.launch {
+            delay(5000) // Wait 5 seconds for FusedLocationProvider to start
             while (isActive) {
                 try {
+                    // Only use fallback if we haven't received location in a while
                     val freshLocation = locProvider.getLocation()
                     _locFlow.emit(freshLocation)
-                } catch (_: Exception) { }
-                delay(2000)
+                    log.d { "Fallback location update: ${freshLocation.lat}, ${freshLocation.lon}" }
+                } catch (e: Exception) {
+                    log.w { "Fallback location failed: ${e.message}" }
+                }
+                delay(5000) // Less frequent fallback
             }
         }
     }
@@ -106,4 +146,3 @@ private fun android.location.Location.toModel() = LocationData(
     speed = speed,
     ts = System.currentTimeMillis()
 )
-
