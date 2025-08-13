@@ -46,7 +46,16 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>This app needs location for altitude and map features.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>TopOut needs location access to track your climbing sessions and provide altitude data.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>TopOut needs continuous location access to track your climbing sessions in the background, even when the app is not actively in use.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>TopOut needs background location access to continue tracking your climbing session when the app is minimized.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>background-processing</string>
+	</array>
 </dict>
 </plist>

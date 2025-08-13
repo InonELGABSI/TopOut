@@ -110,6 +110,22 @@ struct LiveSessionView: View {
                 mapRegion:     $mapRegion,
                 onStopClicked: { showingStopConfirmation    = true },
                 onCancelClicked: { showingDiscardConfirmation = true },
+                onPauseClicked: { viewModel.viewModel.onPauseClicked() },
+                onResumeClicked: { viewModel.viewModel.onResumeClicked() },
+                isPaused: false,
+                theme:         theme
+            )
+
+        case .paused(let state):
+            ActiveSessionContent(
+                trackPoint:    state.trackPoint,
+                trackPoints:   state.historyTrackPoints,
+                mapRegion:     $mapRegion,
+                onStopClicked: { showingStopConfirmation    = true },
+                onCancelClicked: { showingDiscardConfirmation = true },
+                onPauseClicked: { viewModel.viewModel.onPauseClicked() },
+                onResumeClicked: { viewModel.viewModel.onResumeClicked() },
+                isPaused: true,
                 theme:         theme
             )
 

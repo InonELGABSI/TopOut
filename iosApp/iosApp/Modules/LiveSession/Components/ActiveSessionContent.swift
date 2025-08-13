@@ -9,6 +9,9 @@ struct ActiveSessionContent: View {
     @Binding var mapRegion: MKCoordinateRegion
     let onStopClicked:     () -> Void
     let onCancelClicked:   () -> Void
+    let onPauseClicked:    () -> Void
+    let onResumeClicked:   () -> Void
+    let isPaused:          Bool
     let theme:            AppTheme
 
     private let overlap: CGFloat = 18   // live panel rises 18 pt under map
@@ -25,7 +28,7 @@ struct ActiveSessionContent: View {
                 Spacer()
                     .frame(height: UIScreen.main.bounds.height * 0.45) // Start earlier to be behind map
 
-                LiveDataCard(trackPoint: trackPoint, theme: theme)
+                LiveDataCard(trackPoint: trackPoint, theme: theme, isPaused: isPaused)
                     .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: -4)
 
                 Spacer()
@@ -45,9 +48,15 @@ struct ActiveSessionContent: View {
             // Bottom Controls positioned at bottom
             VStack {
                 Spacer()
-                BottomControls(onStopClicked: onStopClicked, onCancelClicked: onCancelClicked)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 40)
+                BottomControls(
+                    onStopClicked: onStopClicked,
+                    onCancelClicked: onCancelClicked,
+                    onPauseClicked: onPauseClicked,
+                    onResumeClicked: onResumeClicked,
+                    isPaused: isPaused
+                )
+                .padding(.horizontal, 16)
+                .padding(.bottom, 40)
             }
         }
     }
@@ -103,10 +112,11 @@ private struct RoundedCornerBackground: View {
 private struct LiveDataCard: View {
     let trackPoint: TrackPoint
     let theme: AppTheme
+    let isPaused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            HeaderRow(timestamp: trackPoint.timestamp, theme: theme)
+            HeaderRow(timestamp: trackPoint.timestamp, isPaused: isPaused, theme: theme)
 
             VStack(spacing: 16) {
                 LocationRow(trackPoint: trackPoint, theme: theme)
@@ -129,18 +139,22 @@ private struct LiveDataCard: View {
                 .frame(maxWidth: .infinity)
                 .position(x: UIScreen.main.bounds.width / 2, y: 0)
         )
+        .opacity(isPaused ? 0.6 : 1.0) // Dim the card when paused
     }
 }
 
 private struct HeaderRow: View {
     let timestamp: Int64
+    let isPaused: Bool
     let theme: AppTheme
 
     var body: some View {
         HStack {
             HStack(spacing: 8) {
-                Circle().fill(Color.red).frame(width: 8, height: 8)
-                Text("Live Data")
+                Circle()
+                    .fill(isPaused ? Color.orange : Color.red)
+                    .frame(width: 8, height: 8)
+                Text(isPaused ? "Session Paused" : "Live Data")
                     .font(.title2).bold()
                     .foregroundColor(theme.onPrimary)
             }
@@ -276,7 +290,10 @@ private struct ValueLabel: View {
 private struct BottomControls: View {
     let onStopClicked:   () -> Void
     let onCancelClicked: () -> Void
-    
+    let onPauseClicked:  () -> Void
+    let onResumeClicked: () -> Void
+    let isPaused:        Bool
+
     var body: some View {
         HStack(spacing: 12) {
             Button(action: onCancelClicked) {
@@ -293,6 +310,28 @@ private struct BottomControls: View {
                         colors: [
                             Color(red: 0.95, green: 0.35, blue: 0.35),
                             Color(red: 0.80, green: 0.18, blue: 0.18)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 28))
+            }
+
+            Button(action: isPaused ? onResumeClicked : onPauseClicked) {
+                HStack(spacing: 12) {
+                    Image(systemName: isPaused ? "play.fill" : "pause.fill")
+                    Text(isPaused ? "Resume" : "Pause")
+                }
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.30, green: 0.70, blue: 0.35),
+                            Color(red: 0.22, green: 0.55, blue: 0.24)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
