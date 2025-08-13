@@ -56,20 +56,20 @@ fun LiveSessionScreen(
 
     LaunchedEffect(uiState) {
         when {
-            uiState is LiveSessionState.Loaded && lastUiState !is LiveSessionState.Loaded -> {
-                toastType = SessionToastType.SESSION_STARTED
-                showSessionToast = true
-            }
-            uiState is LiveSessionState.SessionStopped && lastUiState !is LiveSessionState.SessionStopped -> {
-                toastType = SessionToastType.SESSION_SAVED
-                showSessionToast = true
-            }
             uiState is LiveSessionState.Loaded && lastUiState is LiveSessionState.Paused -> {
                 toastType = SessionToastType.SESSION_RESUMED
                 showSessionToast = true
             }
             uiState is LiveSessionState.Paused && lastUiState is LiveSessionState.Loaded -> {
                 toastType = SessionToastType.SESSION_PAUSED
+                showSessionToast = true
+            }
+            uiState is LiveSessionState.Loaded && lastUiState !is LiveSessionState.Loaded -> {
+                toastType = SessionToastType.SESSION_STARTED
+                showSessionToast = true
+            }
+            uiState is LiveSessionState.SessionStopped && lastUiState !is LiveSessionState.SessionStopped -> {
+                toastType = SessionToastType.SESSION_SAVED
                 showSessionToast = true
             }
         }

@@ -20,7 +20,9 @@ enum class SessionToastType {
     SESSION_SAVED,
     SESSION_CANCELLED,
     SESSION_PAUSED,
-    SESSION_RESUMED
+    SESSION_RESUMED,
+    SESSION_TITLE_EDITED,
+    SESSION_DELETED
 }
 
 @Composable
@@ -69,6 +71,16 @@ fun SessionToast(
                     Icons.Default.PlayArrow,
                     "Live session resumed",
                     Color(0xFF64B5F6) // כחול בהיר
+                )
+                SessionToastType.SESSION_TITLE_EDITED -> Triple(
+                    Icons.Default.Edit,
+                    "Session title edited",
+                    Color(0xFFFFC107) // צהוב
+                )
+                SessionToastType.SESSION_DELETED -> Triple(
+                    Icons.Default.Delete,
+                    "Session deleted",
+                    Color(0xFFE57373) // אדום
                 )
             }
             Card(
