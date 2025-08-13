@@ -11,17 +11,12 @@ struct MapPreview: View {
 
     // MARK: ‑ Private State
     @State private var cameraPosition: MapCameraPosition
-    
+
     // MARK: ‑ Environment
-    @Environment(\.colorScheme) private var systemColorScheme
-    @AppStorage("selectedTheme") private var selectedTheme = ThemePalette.classicRed.rawValue
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
 
     // MARK: ‑ Styling
-    private var colors: TopOutColorScheme {
-        (ThemePalette(rawValue: selectedTheme) ?? .classicRed)
-            .scheme(for: systemColorScheme)
-    }
-
     private static let overlayLineWidth: CGFloat      = 3
     private static let segmentThresholdMeters: Double = 500
 
@@ -55,38 +50,35 @@ struct MapPreview: View {
         ZStack {
             // MARK: Map
             Map(position: $cameraPosition) {
-                Group {                    // <‑‑ fixes generic‑inference error
-                    if let start = routeOverlays.first?.first {
-                        Marker("Start", coordinate: start)
-                            .tint(.green)
-                    }
-                    if let start = routeOverlays.first?.first,
-                       let end   = routeOverlays.last?.last,
-                       !coordinatesEqual(start, end) {
-                        Marker("End", coordinate: end)
-                            .tint(.red)
-                    }
+                // Native MapKit polylines for the route
+                ForEach(routeOverlays.indices, id: \.self) { index in
+                    MapPolyline(coordinates: routeOverlays[index])
+                        .stroke(theme.primary, lineWidth: Self.overlayLineWidth)
+                }
+
+                // Markers
+                if let start = routeOverlays.first?.first {
+                    Marker("Start", coordinate: start)
+                        .tint(.green)
+                }
+                if let start = routeOverlays.first?.first,
+                   let end = routeOverlays.last?.last,
+                   !coordinatesEqual(start, end) {
+                    Marker("End", coordinate: end)
+                        .tint(.red)
                 }
             }
-            .mapStyle(.standard(elevation: .automatic))
+            .mapStyle(.standard(elevation: .flat))
             .mapControls {
                 MapCompass()
                 MapUserLocationButton()
             }
-            .edgesIgnoringSafeArea(.all)
-
-            // MARK: Static track overlay (Canvas‑based)
-            if !routeOverlays.isEmpty {
-                GeometryReader { geo in
-                    ZStack {
-                        ForEach(routeOverlays.indices, id: \.self) { idx in
-                            RouteOverlay(coordinates: routeOverlays[idx])
-                                .stroke(colors.primary, lineWidth: Self.overlayLineWidth)
-                                .frame(width: geo.size.width, height: geo.size.height)
-                        }
-                    }
-                }
-                .allowsHitTesting(false)   // touches go through to the map
+            .onAppear {
+                print("Map has appeared.")
+            }
+            .onChange(of: cameraPosition) { _,newPosition in
+                print("Camera position updated: \(newPosition)")
+                // Log and handle tile loading issues here if needed
             }
         }
     }
@@ -147,38 +139,6 @@ private extension MKCoordinateRegion {
             longitudeDelta: max((maxLon - minLon) * 1.2, 0.01)
         )
         return MKCoordinateRegion(center: center, span: span)
-    }
-}
-
-// MARK: ‑ Route overlay shape drawn in screen‑space
-struct RouteOverlay: Shape {
-    let coordinates: [CLLocationCoordinate2D]
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        guard coordinates.count > 1 else { return path }
-
-        let lats = coordinates.map(\.latitude)
-        let lons = coordinates.map(\.longitude)
-        guard let minLat = lats.min(), let maxLat = lats.max(),
-              let minLon = lons.min(), let maxLon = lons.max() else { return path }
-
-        let latRange = maxLat - minLat
-        let lonRange = maxLon - minLon
-
-        func x(for lon: Double) -> CGFloat {
-            lonRange == 0 ? rect.midX : CGFloat((lon - minLon) / lonRange) * rect.width
-        }
-        func y(for lat: Double) -> CGFloat {
-            latRange == 0 ? rect.midY : (1 - CGFloat((lat - minLat) / latRange)) * rect.height
-        }
-
-        let first = coordinates[0]
-        path.move(to: CGPoint(x: x(for: first.longitude), y: y(for: first.latitude)))
-        for coord in coordinates.dropFirst() {
-            path.addLine(to: CGPoint(x: x(for: coord.longitude), y: y(for: coord.latitude)))
-        }
-        return path
     }
 }
 

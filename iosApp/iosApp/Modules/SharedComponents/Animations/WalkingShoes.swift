@@ -18,17 +18,9 @@ struct LoadingAnimation: View {
     let containerHeight: CGFloat
     let spacing: CGFloat
     
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-    
-    private var currentTheme: ThemePalette {
-        ThemePalette(rawValue: selectedTheme) ?? .classicRed
-    }
-    
-    private var colors: TopOutColorScheme {
-        currentTheme.scheme(for: colorScheme)
-    }
-    
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
+
     init(
         text: String = "Loading...",
         animationAsset: String = "outdoor_boots_animation",
@@ -60,7 +52,7 @@ struct LoadingAnimation: View {
                     // Fallback to system icon
                     Image(systemName: "figure.walk")
                         .font(.system(size: animationSize * 0.3))
-                        .foregroundColor(colors.primary)
+                        .foregroundColor(theme.primary)
                 }
             }
             .frame(width: containerWidth, height: containerHeight)
@@ -69,7 +61,7 @@ struct LoadingAnimation: View {
             
             Text(text)
                 .font(.body)
-                .foregroundColor(colors.onBackground)
+                .foregroundColor(theme.onBackground)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

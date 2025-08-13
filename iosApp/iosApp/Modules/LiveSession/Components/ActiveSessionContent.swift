@@ -1,71 +1,153 @@
-
-//==============================================================
-//  ActiveSessionContent.swift
-//  (unchanged – your implementation)
-//==============================================================
-
 import SwiftUI
 import MapKit
 import Shared
 
 struct ActiveSessionContent: View {
-    let trackPoint: TrackPoint
-    let trackPoints: [TrackPoint]
+    // MARK: – Inputs
+    let trackPoint:        TrackPoint
+    let trackPoints:       [TrackPoint]
     @Binding var mapRegion: MKCoordinateRegion
-    let onStopClicked: () -> Void
-    let onCancelClicked: () -> Void
-    let colors: TopOutColorScheme
+    let onStopClicked:     () -> Void
+    let onCancelClicked:   () -> Void
+    let theme:            AppTheme
+
+    private let overlap: CGFloat = 18   // live panel rises 18 pt under map
     
+    // MARK: – Body
     var body: some View {
-        ZStack {
-            MapView(trackPoints: trackPoints, region: $mapRegion)
-                .ignoresSafeArea(edges: .top)
-                .frame(height: UIScreen.main.bounds.height * 0.6)
-            
+        ZStack(alignment: .top) {
+            // Background
+            theme.background
+                .ignoresSafeArea()
+
+            // Live Data Card positioned first (behind)
             VStack {
-                Spacer(minLength: UIScreen.main.bounds.height * 0.55)
-                LiveDataCard(trackPoint: trackPoint, colors: colors)
+                Spacer()
+                    .frame(height: UIScreen.main.bounds.height * 0.45) // Start earlier to be behind map
+
+                LiveDataCard(trackPoint: trackPoint, theme: theme)
+                    .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: -4)
+
+                Spacer()
+            }
+
+            // Map positioned last (in front)
+            VStack {
+                MapView(trackPoints: trackPoints, region: $mapRegion)
+                    .frame(height: UIScreen.main.bounds.height * 0.50)
+                    .clipShape(.rect(bottomLeadingRadius: 24, bottomTrailingRadius: 24))
+                    .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 8)
+                    .ignoresSafeArea(edges: .top)
+
+                Spacer()
+            }
+
+            // Bottom Controls positioned at bottom
+            VStack {
+                Spacer()
                 BottomControls(onStopClicked: onStopClicked, onCancelClicked: onCancelClicked)
-                    .padding(.bottom, 32)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 40)
             }
         }
     }
 }
 
-// MARK: – Sub-views used inside ActiveSessionContent
+
+
+
+
+
+private struct RoundedCornerBackground: View {
+    let color: Color
+    let topLeft: CGFloat
+    let topRight: CGFloat
+    let bottomLeft: CGFloat
+    let bottomRight: CGFloat
+    
+    var body: some View {
+        GeometryReader { geo in
+            RoundedRectangle(cornerRadius: 0) // ignore, we use path below
+                .fill(color)
+                .overlay(
+                    Path { path in
+                        let w = geo.size.width, h = geo.size.height
+                        path.move(to: CGPoint(x: 0, y: 0))
+                        path.addLine(to: CGPoint(x: w, y: 0))
+                        path.addLine(to: CGPoint(x: w, y: h - bottomRight))
+                        path.addArc(
+                            center: CGPoint(x: w - bottomRight, y: h - bottomRight),
+                            radius: bottomRight,
+                            startAngle: .degrees(0),
+                            endAngle: .degrees(90),
+                            clockwise: false
+                        )
+                        path.addLine(to: CGPoint(x: bottomLeft, y: h))
+                        path.addArc(
+                            center: CGPoint(x: bottomLeft, y: h - bottomLeft),
+                            radius: bottomLeft,
+                            startAngle: .degrees(90),
+                            endAngle: .degrees(180),
+                            clockwise: false
+                        )
+                        path.addLine(to: CGPoint(x: 0, y: 0))
+                    }
+                    .fill(color)
+                )
+        }
+    }
+}
+
+// --- the rest (cards, controls) unchanged ---
 
 private struct LiveDataCard: View {
     let trackPoint: TrackPoint
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HeaderRow(timestamp: trackPoint.timestamp, colors: colors)
-            LocationRow(trackPoint: trackPoint, colors: colors)
-            SpeedAltitudeRow(trackPoint: trackPoint, colors: colors)
+        VStack(alignment: .leading, spacing: 20) {
+            HeaderRow(timestamp: trackPoint.timestamp, theme: theme)
+
+            VStack(spacing: 16) {
+                LocationRow(trackPoint: trackPoint, theme: theme)
+                SpeedAltitudeRow(trackPoint: trackPoint, theme: theme)
+            }
         }
-        .padding(20)
-        .background(colors.surface)
-        .cornerRadius(24, corners: [.topLeft, .topRight])
+        .padding(.top, 60)
+        .padding(.horizontal, 24)
+        .padding(.bottom, 28)
+        .background(
+            RoundedRectangle(cornerRadius: 0)
+                .fill(theme.primary)
+                .clipShape(.rect(bottomLeadingRadius: 32, bottomTrailingRadius: 32))
+        )
+        .overlay(
+            // Subtle top border line
+            Rectangle()
+                .fill(theme.onPrimary.opacity(0.1))
+                .frame(height: 1)
+                .frame(maxWidth: .infinity)
+                .position(x: UIScreen.main.bounds.width / 2, y: 0)
+        )
     }
 }
 
 private struct HeaderRow: View {
     let timestamp: Int64
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         HStack {
             HStack(spacing: 8) {
                 Circle().fill(Color.red).frame(width: 8, height: 8)
                 Text("Live Data")
                     .font(.title2).bold()
-                    .foregroundColor(colors.onSurface)
+                    .foregroundColor(theme.onPrimary)
             }
             Spacer()
             Text(formatTime(timestamp))
                 .font(.subheadline).fontWeight(.medium)
-                .foregroundColor(colors.onSurfaceVariant)
+                .foregroundColor(theme.onPrimary.opacity(0.8))
         }
     }
     
@@ -78,13 +160,13 @@ private struct HeaderRow: View {
 
 private struct LocationRow: View {
     let trackPoint: TrackPoint
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         HStack {
             Label("Location", systemImage: "location.fill")
                 .font(.headline)
-                .foregroundColor(colors.primary)
+                .foregroundColor(theme.onPrimary)
             Spacer()
             DataTriplet(
                 first:   formatted(trackPoint.latitude?.double, suffix: "°"),
@@ -93,7 +175,7 @@ private struct LocationRow: View {
                 firstLab: "Lat",
                 secondLab:"Lon",
                 thirdLab: "Alt",
-                colors: colors
+                theme: theme
             )
         }
     }
@@ -103,8 +185,8 @@ private struct LocationRow: View {
 
 private struct SpeedAltitudeRow: View {
     let trackPoint: TrackPoint
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         HStack(spacing: 16) {
             StatCard(
@@ -115,8 +197,8 @@ private struct SpeedAltitudeRow: View {
                     String(format: "%.1f", trackPoint.vVertical),   "V",
                     String(format: "%.1f", trackPoint.avgVertical), "Avg-V"
                 ),
-                background: colors.secondaryContainer.opacity(0.3),
-                colors: colors
+                background: theme.secondaryContainer.opacity(0.3),
+                theme: theme
             )
             StatCard(
                 title: "Altitude",
@@ -126,8 +208,8 @@ private struct SpeedAltitudeRow: View {
                     "\(Int(trackPoint.loss))", "Loss",
                     "\(Int(trackPoint.relAltitude))", "Rel"
                 ),
-                background: colors.tertiaryContainer.opacity(0.3),
-                colors: colors
+                background: theme.tertiaryContainer.opacity(0.3),
+                theme: theme
             )
         }
     }
@@ -138,24 +220,25 @@ private struct StatCard: View {
     let icon: String
     let triplet: (String,String,String,String,String,String)
     let background: Color
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.system(size: 14)).foregroundColor(colors.primary)
+                    .font(.system(size: 14)).foregroundColor(theme.onPrimary)
                 Text(title)
                     .font(.subheadline).bold()
+                    .foregroundColor(theme.onPrimary)
             }
             DataTriplet(
                 first:  triplet.0, second: triplet.2, third: triplet.4,
                 firstLab: triplet.1, secondLab: triplet.3, thirdLab: triplet.5,
-                colors: colors
+                theme: theme
             )
         }
         .padding(12)
-        .background(background)
+        .background(theme.onPrimary.opacity(0.15))
         .cornerRadius(12)
         .frame(maxWidth: .infinity)
     }
@@ -164,24 +247,26 @@ private struct StatCard: View {
 private struct DataTriplet: View {
     let first: String; let second: String; let third: String
     let firstLab: String; let secondLab: String; let thirdLab: String
-    let colors: TopOutColorScheme
-    
+    let theme: AppTheme
+
     var body: some View {
         HStack {
-            ValueLabel(value: first, label: firstLab, colors: colors)
-            ValueLabel(value: second, label: secondLab, colors: colors)
-            ValueLabel(value: third, label: thirdLab, colors: colors)
+            ValueLabel(value: first, label: firstLab, theme: theme)
+            ValueLabel(value: second, label: secondLab, theme: theme)
+            ValueLabel(value: third, label: thirdLab, theme: theme)
         }
     }
 }
 
 private struct ValueLabel: View {
-    let value: String; let label: String; let colors: TopOutColorScheme
-    
+    let value: String; let label: String; let theme: AppTheme
+
     var body: some View {
         VStack {
             Text(value).font(.caption).bold()
-            Text(label).font(.caption2).foregroundColor(colors.onSurfaceVariant)
+                .foregroundColor(theme.onPrimary)
+            Text(label).font(.caption2)
+                .foregroundColor(theme.onPrimary.opacity(0.7))
         }.frame(maxWidth: .infinity)
     }
 }
@@ -193,47 +278,50 @@ private struct BottomControls: View {
     let onCancelClicked: () -> Void
     
     var body: some View {
-        HStack {
-            ControlButton(
-                label:    "Cancel",
-                icon:     "xmark",
-                gradient: [Color(red: 0.90, green: 0.45, blue: 0.45),
-                           Color(red: 0.80, green: 0.18, blue: 0.18)],
-                corners:  [.topLeft, .bottomLeft],      // ← fixed
-                action:   onCancelClicked
-            )
-            ControlButton(
-                label:    "Stop & Save",
-                icon:     "stop.fill",
-                gradient: [Color(red: 0.22, green: 0.55, blue: 0.24),
-                           Color(red: 0.40, green: 0.73, blue: 0.42)],
-                corners:  [.topRight, .bottomRight],    // ← fixed
-                action:   onStopClicked
-            )
-        }
-    }
-}
-
-
-private struct ControlButton: View {
-    let label: String
-    let icon: String
-    let gradient: [Color]
-    let corners: UIRectCorner
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: icon).font(.system(size: 16))
-                Text(label).bold()
+        HStack(spacing: 12) {
+            Button(action: onCancelClicked) {
+                HStack(spacing: 12) {
+                    Image(systemName: "xmark")
+                    Text("Cancel")
+                }
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.95, green: 0.35, blue: 0.35),
+                            Color(red: 0.80, green: 0.18, blue: 0.18)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 28))
             }
-            .foregroundColor(.white)
-            .frame(height: 48).frame(maxWidth: .infinity)
-            .background(
-                LinearGradient(colors: gradient, startPoint: .leading, endPoint: .trailing)
-            )
-            .cornerRadius(24, corners: corners)
+
+            Button(action: onStopClicked) {
+                HStack(spacing: 12) {
+                    Image(systemName: "stop.fill")
+                    Text("Stop & Save")
+                }
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.30, green: 0.70, blue: 0.35),
+                            Color(red: 0.22, green: 0.55, blue: 0.24)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 28))
+            }
         }
     }
 }

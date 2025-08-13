@@ -11,74 +11,58 @@ struct SettingsView: View {
     @State private var isEditingPreferences = false
     @State private var isEditingThresholds = false
 
-    @Environment(\.colorScheme) private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
-
-    private var colors: TopOutColorScheme {
-        (ThemePalette(rawValue: selectedTheme) ?? .classicRed).scheme(for: colorScheme)
-    }
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
 
     var body: some View {
         ZStack {
-            colors.background.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
 
             switch onEnum(of: viewModel.uiState) {
             case .loading:
-                SettingsLoadingContent(colors: colors)
+                SettingsLoadingContent(theme: theme)
             case .loaded(let state):
                 ScrollView {
-                    VStack(spacing: 0) {
-                        Spacer().frame(height: 20)
-
+                    LazyVStack(spacing: 0, pinnedViews: []) {
                         ProfileCard(
                             user: state.user,
                             isEditing: isEditingProfile,
                             onToggleEdit: { isEditingProfile = $0 },
                             onUpdateUser: { user in viewModel.viewModel.updateUser(user: user) },
-                            colors: colors
+                            theme: theme
                         )
-                        .zIndex(4)
-                        .padding(.horizontal)
+                        .zIndex(1)
+                        .padding(.top, 8)
 
                         PreferencesCard(
                             user: state.user,
                             isEditing: isEditingPreferences,
                             onToggleEdit: { isEditingPreferences = $0 },
                             onUpdateUser: { user in viewModel.viewModel.updateUser(user: user) },
-                            colors: colors
+                            theme: theme
                         )
-                        .zIndex(3)
-                        .padding(.horizontal)
-                        .offset(y: -20)
+                        .zIndex(2)
 
                         ThresholdsCard(
                             user: state.user,
                             isEditing: isEditingThresholds,
                             onToggleEdit: { isEditingThresholds = $0 },
                             onUpdateUser: { user in viewModel.viewModel.updateUser(user: user) },
-                            colors: colors
+                            theme: theme
                         )
-                        .zIndex(2)
-                        .padding(.horizontal)
-                        .offset(y: -40)
+                        .zIndex(3)
 
-                        ThemeCard(colors: colors)
-                            .zIndex(1)
-                            .padding(.horizontal)
-                            .offset(y: -60)
-
-                        Spacer().frame(height: 80)
+                        ThemeCard(theme: theme, themeManager: themeManager)
+                        .zIndex(4)
                     }
                 }
             case .error(let state):
-                SettingsErrorContent(errorMessage: state.errorMessage, colors: colors)
-                
+                SettingsErrorContent(errorMessage: state.errorMessage, theme: theme)
+
             @unknown default:
                 EmptyView()
-            
             }
         }
-        .navigationTitle("Settings")
         .onAppear { viewModel.startObserving() }
     }
 }
@@ -90,56 +74,67 @@ struct ProfileCard: View {
     let isEditing: Bool
     let onToggleEdit: (Bool) -> Void
     let onUpdateUser: (User) -> Void
-    let colors: TopOutColorScheme
+    let theme: AppTheme
 
     @State private var editableUser: EditableUser
 
-    init(user: User, isEditing: Bool, onToggleEdit: @escaping (Bool) -> Void, onUpdateUser: @escaping (User) -> Void, colors: TopOutColorScheme) {
+    init(user: User, isEditing: Bool, onToggleEdit: @escaping (Bool) -> Void, onUpdateUser: @escaping (User) -> Void, theme: AppTheme) {
         self.user = user
         self.isEditing = isEditing
         self.onToggleEdit = onToggleEdit
         self.onUpdateUser = onUpdateUser
-        self.colors = colors
+        self.theme = theme
         _editableUser = State(initialValue: EditableUser(user: user))
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            ZStack {
-                HStack(spacing: 8) {
-                    Image(systemName: "person.fill")
-                        .foregroundColor(colors.primary)
-                    Text("Profile")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(colors.onSurface)
-                }
+            HStack(spacing: 8) {
+                // Leading: Icon + Title
+                Image(systemName: "person.fill")
+                    .foregroundColor(theme.primary)
+                Text("Profile")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(theme.onSurface)
+                Spacer() // Pushes the button to the right
+
+                // Trailing: Edit button (shown only when not editing)
                 if !isEditing {
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            // Reset before editing!
-                            editableUser = EditableUser(user: user)
-                            onToggleEdit(true)
-                        }) {
-                            Circle()
-                                .fill(colors.primary)
-                                .frame(width: 40, height: 40)
-                                .overlay(
-                                    Image(systemName: "pencil")
-                                        .foregroundColor(colors.onPrimary)
+                    Button(action: {
+                        editableUser = EditableUser(user: user)
+                        onToggleEdit(true)
+                    }) {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        theme.primary,
+                                        theme.primary.opacity(0.8)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
                                 )
-                        }
+                            )
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(theme.onPrimary)
+                            )
+                            .shadow(color: theme.primary.opacity(0.3), radius: 4, x: 0, y: 2)
                     }
                 }
             }
+
+
             Group {
                 EditableField(
                     label: "Name",
                     value: $editableUser.name,
                     isEditing: isEditing,
                     icon: "person.fill",
-                    colors: colors
+                    theme: theme
                 )
                 EditableField(
                     label: "Email",
@@ -147,28 +142,29 @@ struct ProfileCard: View {
                     isEditing: isEditing,
                     icon: "envelope.fill",
                     keyboardType: .emailAddress,
-                    colors: colors
+                    theme: theme
                 )
                 EditableField(
                     label: "Image URL",
                     value: $editableUser.imgUrl,
                     isEditing: isEditing,
                     icon: "photo.fill",
-                    colors: colors
+                    theme: theme
                 )
                 ReadOnlyField(
                     label: "User ID",
                     value: editableUser.id,
                     icon: "key.fill",
-                    colors: colors
+                    theme: theme
                 )
                 ReadOnlyField(
                     label: "Created At",
                     value: formatDate(editableUser.createdAt),
                     icon: "calendar",
-                    colors: colors
+                    theme: theme
                 )
             }
+
             if isEditing {
                 HStack(spacing: 8) {
                     Button(action: {
@@ -178,8 +174,8 @@ struct ProfileCard: View {
                         Text("Cancel")
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(colors.surfaceVariant)
-                            .foregroundColor(colors.onSurfaceVariant)
+                            .background(theme.surfaceVariant)
+                            .foregroundColor(theme.onSurfaceVariant)
                             .cornerRadius(8)
                     }
                     Button(action: {
@@ -189,79 +185,104 @@ struct ProfileCard: View {
                         Text("Save")
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(colors.primary)
-                            .foregroundColor(colors.onPrimary)
+                            .background(theme.primary)
+                            .foregroundColor(theme.onPrimary)
                             .cornerRadius(8)
                     }
                 }
             }
         }
         .padding(20)
-        .background(colors.surface)
-        .cornerRadius(16)
+        .background(
+            theme.surface
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 24,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 24
+                    )
+                )
+        )
+        .topShadow(blur: 12, distance: 6)          // first soft penumbra
+        .topShadow(color: .black.opacity(0.08),
+                   blur: 24,
+                   distance: 12)                    // second larger bloom
+
     }
 }
-
 
 struct PreferencesCard: View {
     let user: User
     let isEditing: Bool
     let onToggleEdit: (Bool) -> Void
     let onUpdateUser: (User) -> Void
-    let colors: TopOutColorScheme
+    let theme: AppTheme
 
     @State private var editableUser: EditableUser
 
-    init(user: User, isEditing: Bool, onToggleEdit: @escaping (Bool) -> Void, onUpdateUser: @escaping (User) -> Void, colors: TopOutColorScheme) {
+    init(user: User, isEditing: Bool, onToggleEdit: @escaping (Bool) -> Void, onUpdateUser: @escaping (User) -> Void, theme: AppTheme) {
         self.user = user
         self.isEditing = isEditing
         self.onToggleEdit = onToggleEdit
         self.onUpdateUser = onUpdateUser
-        self.colors = colors
+        self.theme = theme
         _editableUser = State(initialValue: EditableUser(user: user))
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            ZStack {
-                HStack(spacing: 8) {
-                    Image(systemName: "gearshape.fill")
-                        .foregroundColor(colors.primary)
-                    Text("Preferences")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(colors.onSurface)
-                }
+            HStack(spacing: 8) {
+                // Leading: Icon + Title
+                Image(systemName: "gearshape.fill")
+                    .foregroundColor(theme.primary)
+                Text("Preferences")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(theme.onSurface)
+                Spacer() // Pushes the button to the right
+
+                // Trailing: Edit button (shown only when not editing)
                 if !isEditing {
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            editableUser = EditableUser(user: user)
-                            onToggleEdit(true)
-                        }) {
-                            Circle()
-                                .fill(colors.primary)
-                                .frame(width: 40, height: 40)
-                                .overlay(
-                                    Image(systemName: "pencil")
-                                        .foregroundColor(colors.onPrimary)
+                    Button(action: {
+                        editableUser = EditableUser(user: user)
+                        onToggleEdit(true)
+                    }) {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        theme.primary,
+                                        theme.primary.opacity(0.8)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
                                 )
-                        }
+                            )
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(theme.onPrimary)
+                            )
+                            .shadow(color: theme.primary.opacity(0.3), radius: 4, x: 0, y: 2)
                     }
                 }
             }
+
             UnitPreferenceSelector(
                 currentUnit: editableUser.unitPreference,
                 onUnitChange: { unit in editableUser.unitPreference = unit },
                 isEditing: isEditing,
-                colors: colors
+                theme: theme
             )
             NotificationToggle(
                 enabled: editableUser.enabledNotifications,
                 onToggle: { enabled in editableUser.enabledNotifications = enabled },
                 isEditing: isEditing,
-                colors: colors
+                theme: theme
             )
+
             if isEditing {
                 HStack(spacing: 8) {
                     Button(action: {
@@ -271,8 +292,8 @@ struct PreferencesCard: View {
                         Text("Cancel")
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(colors.surfaceVariant)
-                            .foregroundColor(colors.onSurfaceVariant)
+                            .background(theme.surfaceVariant)
+                            .foregroundColor(theme.onSurfaceVariant)
                             .cornerRadius(8)
                     }
                     Button(action: {
@@ -282,16 +303,30 @@ struct PreferencesCard: View {
                         Text("Save")
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(colors.primary)
-                            .foregroundColor(colors.onPrimary)
+                            .background(theme.primary)
+                            .foregroundColor(theme.onPrimary)
                             .cornerRadius(8)
                     }
                 }
             }
         }
         .padding(20)
-        .background(colors.surfaceContainer)
-        .cornerRadius(16)
+        .background(
+            theme.surface
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 24,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 24
+                    )
+                )
+        )
+        .topShadow(blur: 12, distance: 6)          // first soft penumbra
+        .topShadow(color: .black.opacity(0.08),
+                   blur: 24,
+                   distance: 12)                    // second larger bloom
+
     }
 }
 
@@ -300,69 +335,81 @@ struct ThresholdsCard: View {
     let isEditing: Bool
     let onToggleEdit: (Bool) -> Void
     let onUpdateUser: (User) -> Void
-    let colors: TopOutColorScheme
+    let theme: AppTheme
 
     @State private var editableUser: EditableUser
 
-    init(user: User, isEditing: Bool, onToggleEdit: @escaping (Bool) -> Void, onUpdateUser: @escaping (User) -> Void, colors: TopOutColorScheme) {
+    init(user: User, isEditing: Bool, onToggleEdit: @escaping (Bool) -> Void, onUpdateUser: @escaping (User) -> Void, theme: AppTheme) {
         self.user = user
         self.isEditing = isEditing
         self.onToggleEdit = onToggleEdit
         self.onUpdateUser = onUpdateUser
-        self.colors = colors
+        self.theme = theme
         _editableUser = State(initialValue: EditableUser(user: user))
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            ZStack {
-                HStack(spacing: 8) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(colors.primary)
-                    Text("Alert Thresholds")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(colors.onSurface)
-                }
+            HStack(spacing: 8) {
+                // Leading: Icon + Title
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(theme.primary)
+                Text("Alert Thresholds")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(theme.onSurface)
+                Spacer() // Pushes the button to the right
+
+                // Trailing: Edit button (shown only when not editing)
                 if !isEditing {
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            editableUser = EditableUser(user: user)
-                            onToggleEdit(true)
-                        }) {
-                            Circle()
-                                .fill(colors.primary)
-                                .frame(width: 40, height: 40)
-                                .overlay(
-                                    Image(systemName: "pencil")
-                                        .foregroundColor(colors.onPrimary)
+                    Button(action: {
+                        editableUser = EditableUser(user: user)
+                        onToggleEdit(true)
+                    }) {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        theme.primary,
+                                        theme.primary.opacity(0.8)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
                                 )
-                        }
+                            )
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(theme.onPrimary)
+                            )
+                            .shadow(color: theme.primary.opacity(0.3), radius: 4, x: 0, y: 2)
                     }
                 }
             }
+
             ThresholdField(
                 label: "Relative Height Threshold",
                 value: $editableUser.relativeHeightFromStartThr,
                 isEditing: isEditing,
                 unit: editableUser.unitPreference,
-                colors: colors
+                theme: theme
             )
             ThresholdField(
                 label: "Total Height Threshold",
                 value: $editableUser.totalHeightFromStartThr,
                 isEditing: isEditing,
                 unit: editableUser.unitPreference,
-                colors: colors
+                theme: theme
             )
             ThresholdField(
                 label: "Average Speed Threshold",
                 value: $editableUser.currentAvgHeightSpeedThr,
                 isEditing: isEditing,
                 unit: "\(editableUser.unitPreference)/min",
-                colors: colors
+                theme: theme
             )
+
             if isEditing {
                 HStack(spacing: 8) {
                     Button(action: {
@@ -372,8 +419,8 @@ struct ThresholdsCard: View {
                         Text("Cancel")
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(colors.surfaceVariant)
-                            .foregroundColor(colors.onSurfaceVariant)
+                            .background(theme.surfaceVariant)
+                            .foregroundColor(theme.onSurfaceVariant)
                             .cornerRadius(8)
                     }
                     Button(action: {
@@ -383,63 +430,98 @@ struct ThresholdsCard: View {
                         Text("Save")
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(colors.primary)
-                            .foregroundColor(colors.onPrimary)
+                            .background(theme.primary)
+                            .foregroundColor(theme.onPrimary)
                             .cornerRadius(8)
                     }
                 }
             }
         }
         .padding(20)
-        .background(colors.surface)
-        .cornerRadius(16)
+        .background(
+            theme.surface
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 24,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 24
+                    )
+                )
+        )
+        .topShadow(blur: 12, distance: 6)          // first soft penumbra
+        .topShadow(color: .black.opacity(0.08),
+                   blur: 24,
+                   distance: 12)                    // second larger bloom
+
     }
 }
 
-
 struct ThemeCard: View {
-    @AppStorage("selectedTheme") private var selectedTheme: String = ThemePalette.classicRed.rawValue
+    let theme: AppTheme
+    let themeManager: AppThemeManager
     @Environment(\.colorScheme) private var colorScheme
-    @State private var isDarkMode: Bool = false
-
-    let colors: TopOutColorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            // — Header row —
             HStack {
-                HStack(spacing: 8) {
-                    Image(systemName: "paintpalette.fill")
-                        .foregroundColor(colors.primary)
-                    Text("Theme")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(colors.onSurface)
-                }
+                Label("Theme", systemImage: "paintpalette.fill")
+                    .foregroundColor(theme.primary)
+                    .labelStyle(.titleAndIcon)
+                    .font(.title2.bold())
+                    .foregroundColor(theme.onSurface)
+
                 Spacer()
-                // Optional: Toggle for dark mode (if you want)
+
+                // Dark mode toggle with Lottie animation
+                LottieToggleButton(
+                    isToggled: colorScheme == .dark,
+                    onToggle: { isDark in
+                        // Toggle system appearance
+                        UIApplication.shared.connectedScenes
+                            .compactMap { $0 as? UIWindowScene }
+                            .first?.windows.first?
+                            .overrideUserInterfaceStyle = isDark ? .dark : .light
+                    },
+                    height: 80
+                )
+                .frame(width: 80, height: 80)
             }
+
             Text("Color Palette")
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(colors.onSurfaceVariant)
+                .font(.subheadline.weight(.medium))
+                .foregroundColor(theme.onSurfaceVariant)
 
             VStack(spacing: 12) {
-                ForEach(ThemePalette.allCases, id: \.self) { palette in
+                ForEach(AppTheme.allCases, id: \.self) { appTheme in
                     ThemeOptionItem(
-                        themePalette: palette,
-                        isSelected: selectedTheme == palette.rawValue,
-                        name: palette.displayName,
-                        colors: colors,
-                        onSelect: { selected in
-                            selectedTheme = selected.rawValue
-                        }
+                        appTheme: appTheme,
+                        isSelected: themeManager.selectedTheme == appTheme.rawValue,
+                        name: appTheme.displayName,
+                        theme: theme,
+                        onSelect: { themeManager.setTheme($0) }
                     )
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
-        .background(colors.surface)
-        .cornerRadius(16, corners: [.bottomLeft, .bottomRight])
+        .background(
+            theme.surface
+                .clipShape(
+                    .rect(
+                        topLeadingRadius: 24,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 24
+                    )
+                )
+        )
+        .topShadow(blur: 12, distance: 6)
+        .topShadow(color: .black.opacity(0.08),
+                   blur: 24,
+                   distance: 12)
     }
 }
 
@@ -451,22 +533,22 @@ struct EditableField: View {
     let isEditing: Bool
     let icon: String
     var keyboardType: UIKeyboardType = .default
-    let colors: TopOutColorScheme
+    let theme: AppTheme
 
     var body: some View {
         if isEditing {
             VStack(alignment: .leading, spacing: 4) {
                 Text(label)
                     .font(.caption)
-                    .foregroundColor(colors.onSurfaceVariant)
+                    .foregroundColor(theme.onSurfaceVariant)
                 HStack {
                     Image(systemName: icon)
-                        .foregroundColor(colors.primary)
+                        .foregroundColor(theme.primary)
                     TextField(label, text: $value)
                         .keyboardType(keyboardType)
                 }
                 .padding()
-                .background(colors.surfaceVariant.opacity(0.3))
+                .background(theme.surfaceVariant.opacity(0.3))
                 .cornerRadius(8)
             }
         } else {
@@ -474,7 +556,7 @@ struct EditableField: View {
                 label: label,
                 value: value.isEmpty ? "Not set" : value,
                 icon: icon,
-                colors: colors
+                theme: theme
             )
         }
     }
@@ -485,19 +567,19 @@ struct ReadOnlyField: View {
     let label: String
     let value: String
     let icon: String
-    let colors: TopOutColorScheme
+    let theme: AppTheme
 
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .foregroundColor(colors.onSurfaceVariant)
+                .foregroundColor(theme.onSurfaceVariant)
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
                     .font(.caption)
-                    .foregroundColor(colors.onSurfaceVariant)
+                    .foregroundColor(theme.onSurfaceVariant)
                 Text(value)
                     .font(.body)
-                    .foregroundColor(colors.onSurface)
+                    .foregroundColor(theme.onSurface)
             }
         }
     }
@@ -507,7 +589,7 @@ struct UnitPreferenceSelector: View {
     let currentUnit: String
     let onUnitChange: (String) -> Void
     let isEditing: Bool
-    let colors: TopOutColorScheme
+    let theme: AppTheme
     @State private var showingPicker = false
 
     var body: some View {
@@ -515,21 +597,21 @@ struct UnitPreferenceSelector: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Unit Preference")
                     .font(.caption)
-                    .foregroundColor(colors.onSurfaceVariant)
+                    .foregroundColor(theme.onSurfaceVariant)
                 Button(action: {
                     showingPicker = true
                 }) {
                     HStack {
                         Image(systemName: "ruler")
-                            .foregroundColor(colors.primary)
+                            .foregroundColor(theme.primary)
                         Text(currentUnit.capitalized)
-                            .foregroundColor(colors.onSurface)
+                            .foregroundColor(theme.onSurface)
                         Spacer()
                         Image(systemName: "chevron.down")
-                            .foregroundColor(colors.onSurfaceVariant)
+                            .foregroundColor(theme.onSurfaceVariant)
                     }
                     .padding()
-                    .background(colors.surfaceVariant.opacity(0.3))
+                    .background(theme.surfaceVariant.opacity(0.3))
                     .cornerRadius(8)
                 }
                 .actionSheet(isPresented: $showingPicker) {
@@ -548,7 +630,7 @@ struct UnitPreferenceSelector: View {
                 label: "Unit Preference",
                 value: currentUnit.capitalized,
                 icon: "ruler",
-                colors: colors
+                theme: theme
             )
         }
     }
@@ -558,14 +640,14 @@ struct NotificationToggle: View {
     let enabled: Bool
     let onToggle: (Bool) -> Void
     let isEditing: Bool
-    let colors: TopOutColorScheme
+    let theme: AppTheme
 
     var body: some View {
         HStack {
             Image(systemName: "bell.fill")
-                .foregroundColor(colors.onSurfaceVariant)
+                .foregroundColor(theme.onSurfaceVariant)
             Text("Notifications")
-                .foregroundColor(colors.onSurface)
+                .foregroundColor(theme.onSurface)
             Spacer()
             Toggle("", isOn: Binding(
                 get: { enabled },
@@ -582,17 +664,17 @@ struct ThresholdField: View {
     @Binding var value: Double // non-optional!
     let isEditing: Bool
     let unit: String
-    let colors: TopOutColorScheme
+    let theme: AppTheme
 
     var body: some View {
         if isEditing {
             VStack(alignment: .leading, spacing: 4) {
                 Text("\(label) (\(unit))")
                     .font(.caption)
-                    .foregroundColor(colors.onSurfaceVariant)
+                    .foregroundColor(theme.onSurfaceVariant)
                 HStack {
                     Image(systemName: "speedometer")
-                        .foregroundColor(colors.primary)
+                        .foregroundColor(theme.primary)
                     TextField(label, text: Binding(
                         get: { value == 0.0 ? "" : String(value) },
                         set: { value = Double($0) ?? 0.0 }
@@ -600,7 +682,7 @@ struct ThresholdField: View {
                     .keyboardType(.decimalPad)
                 }
                 .padding()
-                .background(colors.surfaceVariant.opacity(0.3))
+                .background(theme.surfaceVariant.opacity(0.3))
                 .cornerRadius(8)
             }
         } else {
@@ -608,7 +690,7 @@ struct ThresholdField: View {
                 label: "\(label) (\(unit))",
                 value: value == 0.0 ? "Not set" : String(value),
                 icon: "speedometer",
-                colors: colors
+                theme: theme
             )
         }
     }
@@ -616,60 +698,60 @@ struct ThresholdField: View {
 
 
 struct ThemeOptionItem: View {
-    let themePalette: ThemePalette
+    let appTheme: AppTheme
     let isSelected: Bool
     let name: String
-    let colors: TopOutColorScheme
-    let onSelect: (ThemePalette) -> Void
+    let theme: AppTheme
+    let onSelect: (AppTheme) -> Void
 
     var body: some View {
-        Button(action: { onSelect(themePalette) }) {
+        Button(action: { onSelect(appTheme) }) {
             HStack {
-                ColorPalettePreview(palette: themePalette, colors: colors)
+                ColorPalettePreview(appTheme: appTheme, theme: theme)
                     .frame(width: 60, height: 30)
                 VStack(alignment: .leading) {
                     Text(name)
                         .font(.body)
                         .fontWeight(.medium)
-                        .foregroundColor(colors.onSurface)
+                        .foregroundColor(theme.onSurface)
                     Text("Light & Dark compatible")
                         .font(.caption)
-                        .foregroundColor(colors.onSurfaceVariant)
+                        .foregroundColor(theme.onSurfaceVariant)
                 }
                 Spacer()
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(colors.primary)
+                        .foregroundColor(theme.primary)
                 }
             }
             .padding()
-            .background(colors.surface)
+            .background(theme.surface)
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? colors.primary : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? theme.primary : Color.clear, lineWidth: 2)
             )
         }
     }
 }
 
 struct ColorPalettePreview: View {
-    let palette: ThemePalette
-    let colors: TopOutColorScheme
+    let appTheme: AppTheme
+    let theme: AppTheme
 
     var body: some View {
         HStack(spacing: 2) {
             RoundedRectangle(cornerRadius: 4)
-                .fill(colors.primary)
+                .fill(appTheme.primary)
                 .frame(maxWidth: .infinity)
             RoundedRectangle(cornerRadius: 4)
-                .fill(colors.secondary)
+                .fill(appTheme.secondary)
                 .frame(maxWidth: .infinity)
             RoundedRectangle(cornerRadius: 4)
-                .fill(colors.surfaceVariant)
+                .fill(appTheme.surfaceVariant)
                 .frame(maxWidth: .infinity)
             RoundedRectangle(cornerRadius: 4)
-                .fill(colors.primaryContainer)
+                .fill(appTheme.primaryContainer)
                 .frame(maxWidth: .infinity)
         }
         .frame(height: 30)
@@ -684,7 +766,7 @@ struct ColorPalettePreview: View {
 // MARK: - Loading & Error Components
 
 struct SettingsLoadingContent: View {
-    let colors: TopOutColorScheme
+    let theme: AppTheme
 
     var body: some View {
         VStack {
@@ -693,7 +775,7 @@ struct SettingsLoadingContent: View {
                 .scaleEffect(1.5)
             Text("Loading settings...")
                 .font(.headline)
-                .foregroundColor(colors.onSurface)
+                .foregroundColor(theme.onSurface)
                 .padding(.top, 16)
             Spacer()
         }
@@ -702,22 +784,22 @@ struct SettingsLoadingContent: View {
 
 struct SettingsErrorContent: View {
     let errorMessage: String
-    let colors: TopOutColorScheme
+    let theme: AppTheme
 
     var body: some View {
         VStack(spacing: 16) {
             Spacer()
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 64))
-                .foregroundColor(colors.error)
+                .foregroundColor(theme.error)
             Text("Settings Error")
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(colors.error)
+                .foregroundColor(theme.error)
                 .multilineTextAlignment(.center)
             Text(errorMessage)
                 .font(.body)
-                .foregroundColor(colors.onSurfaceVariant)
+                .foregroundColor(theme.onSurfaceVariant)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
             Spacer()
@@ -787,4 +869,3 @@ struct EditableUser {
         )
     }
 }
-

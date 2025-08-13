@@ -61,7 +61,7 @@ struct LottieToggleButtonContent: UIViewRepresentable {
         let containerView = UIView()
         
         // Try to load the Lottie animation from bundle
-        guard let animation = LottieAnimation.named("Dark Mode Button") else {
+        guard let animation = LottieAnimation.named("Dark_Mode_Button") else {
             // Fallback to a simple toggle button if Lottie animation is not found
             return createFallbackButton(context: context)
         }
@@ -71,11 +71,8 @@ struct LottieToggleButtonContent: UIViewRepresentable {
         animationView.animationSpeed = 1.0
         animationView.contentMode = .scaleAspectFit
         
-        // Calculate aspect ratio
-        let aspectRatio = animation.bounds.width / animation.bounds.height
-        let width = height * aspectRatio
-        
-        containerView.frame = CGRect(x: 0, y: 0, width: width, height: height)
+        // Use a square container to maintain aspect ratio
+        containerView.frame = CGRect(x: 0, y: 0, width: height, height: height)
         animationView.frame = containerView.bounds
         
         containerView.addSubview(animationView)
@@ -95,19 +92,24 @@ struct LottieToggleButtonContent: UIViewRepresentable {
     
     func updateUIView(_ uiView: UIView, context: Context) {
         guard let animationView = context.coordinator.animationView else { return }
-        
-        // Animate to target progress with easing
-        let animation = CABasicAnimation(keyPath: "currentProgress")
-        animation.fromValue = animationView.currentProgress
-        animation.toValue = targetProgress
-        animation.duration = 0.6
-        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        animation.fillMode = .forwards
-        animation.isRemovedOnCompletion = false
-        
-        animationView.layer.add(animation, forKey: "progressAnimation")
-        animationView.currentProgress = targetProgress
+
+        context.coordinator.isToggled = isToggled
+
+        let from = animationView.currentProgress
+        let to = targetProgress
+
+        animationView.animationSpeed = 1.0
+
+        // If you want to instantly snap when already at target:
+        if abs(to - from) < 0.001 {
+            animationView.currentProgress = to
+        } else {
+            animationView.play(fromProgress: from, toProgress: to, loopMode: .playOnce, completion: nil)
+        }
     }
+
+
+
     
     func makeCoordinator() -> Coordinator {
         Coordinator(onToggle: onToggle, isToggled: isToggled)
@@ -133,19 +135,20 @@ struct LottieToggleButtonContent: UIViewRepresentable {
     }
     
     class Coordinator: NSObject {
+        var isToggled: Bool        // change from `let` to `var`
         let onToggle: (Bool) -> Void
-        let isToggled: Bool
         var animationView: LottieAnimationView?
         
         init(onToggle: @escaping (Bool) -> Void, isToggled: Bool) {
-            self.onToggle = onToggle
+            self.onToggle  = onToggle
             self.isToggled = isToggled
         }
         
         @objc func handleTap() {
-            onToggle(!isToggled)
+            onToggle(!isToggled)   // will now flip correctly
         }
     }
+
 }
 
 // SwiftUI wrapper with proper sizing

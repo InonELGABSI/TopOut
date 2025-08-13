@@ -35,7 +35,7 @@ actual class BarometerProvider {
     actual suspend fun getBarometerReading(): AltitudeData {
         // Fake/simulate in Simulator
         if (isSimulator()) {
-            log.w { "Simulating barometer data in Simulator" }
+            //log.w { "Simulating barometer data in Simulator" }
             return AltitudeData(
                 altitude = 42.0,
                 pressure = 1013.25f,
@@ -46,9 +46,9 @@ actual class BarometerProvider {
         // ...your existing code below unchanged...
         return withTimeout(3000) {
             suspendCancellableCoroutine { cont ->
-                log.d { "getBarometerReading()" }
+                //log.d { "getBarometerReading()" }
                 if (!CMAltimeter.isRelativeAltitudeAvailable()) {
-                    log.e { "Barometer not available on this device" }
+                    //log.e { "Barometer not available on this device" }
                     cont.resumeWithException(
                         IllegalStateException("Barometer not available on this device")
                     )
@@ -67,7 +67,7 @@ actual class BarometerProvider {
                         }
                         data != null -> {
                             altimeter.stopRelativeAltitudeUpdates()
-                            log.d { "Received barometer data" }
+                            //log.d { "Received barometer data" }
                             val altitudeM = data.relativeAltitude?.doubleValue ?: 0.0
                             val pressureHpa = (data.pressure?.doubleValue ?: 0.0) * 10.0
                             cont.resume(

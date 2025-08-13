@@ -1,7 +1,3 @@
-//==============================================================
-//  LiveSessionView.swift
-//==============================================================
-
 import SwiftUI
 import Shared
 import MapKit
@@ -19,20 +15,22 @@ struct LiveSessionView: View {
     @State private var currentAlertType = AlertType.none
     @State private var lastToastTimestamp: Int64 = 0
     @State private var hasLocationPermission   = false
-    
-    @Environment(\.colorScheme)         private var colorScheme
-    @AppStorage("selectedTheme") private var selectedTheme = ThemePalette.classicRed.rawValue
+    @State private var hasNavigatedToDetails = false
+    @State private var animationTrigger = 0  // Add animation trigger state
+
+    @EnvironmentObject private var themeManager: AppThemeManager
+    @Environment(\.appTheme) private var theme
     @EnvironmentObject var networkMonitor: NetworkMonitor
     
-    private var colors: TopOutColorScheme {
-        (ThemePalette(rawValue: selectedTheme) ?? .classicRed).scheme(for: colorScheme)
-    }
+    // ⬅️ ADDED for navigation to SessionDetails
+    @State private var navigateToDetails = false
+    @State private var stoppedSessionId: String? = nil
     
     // MARK: – Body
     
     var body: some View {
         ZStack {
-            colors.background.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
             sessionContent          // big switch broken out
             dangerToastView         // toast broken out
         }
@@ -47,6 +45,22 @@ struct LiveSessionView: View {
                 Text("Are you sure you want to cancel this session? All tracking data will be permanently deleted and cannot be recovered.")
             }
         )
+        .ignoresSafeArea(edges: .top)
+        .navigationBarHidden(true)
+        
+        .navigationDestination(isPresented: $navigateToDetails) {
+            if let sessionId = stoppedSessionId {
+                SessionDetailsView(sessionId: sessionId)
+                    .navigationTitle("Session Details")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .onDisappear {
+                        viewModel.viewModel.resetToInitialState() // clear ViewModel state
+                        stoppedSessionId = nil
+                        hasNavigatedToDetails = false              // allow navigation next time
+                    }
+            }
+        }
+
     }
     
     // MARK: – Computed Views
@@ -55,23 +69,39 @@ struct LiveSessionView: View {
     private var sessionContent: some View {
         switch onEnum(of: viewModel.uiState) {
         case .loading:
-            VStack(spacing: 32) {
-                MountainAnimationView(
-                    animationAsset: "Travel_Mountain", // your asset name
-                    speed: 1.2,
-                    animationSize: 220,
-                    iterations: 0 // 0 means infinite loop
-                )
+            VStack(spacing: 0) {
+                // Mountain animation section
+                VStack {
+                    MountainAnimationView(
+                        animationAsset: "Travel_Mountain",
+                        speed: 1.2,
+                        animationSize: 220,
+                        iterations: 1
+                    )
+                    .id("mountain_animation_\(animationTrigger)") // Restart animation with stable but refreshable ID
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.top, 60) // Generous top spacing after safe area
+                .padding(.bottom, 40) // Space before content
+                .onAppear {
+                    // Trigger animation restart every time we enter the loading state
+                    animationTrigger += 1
+                }
+
+                // Content section
                 StartSessionContent(
                     hasLocationPermission: hasLocationPermission,
                     onStartClick:          { viewModel.viewModel.onStartClicked() },
                     onRequestLocationPermission: { requestLocationPermission() },
                     mslHeightState:        viewModel.viewModel.mslHeightState.value,
-                    colors:                colors
+                    theme:                 theme
                 )
+
+                // Push content up, button stays at natural position
+                Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+            .safeAreaInset(edge: .top) { Color.clear.frame(height: 0) }
 
         case .loaded(let state):
             ActiveSessionContent(
@@ -80,27 +110,35 @@ struct LiveSessionView: View {
                 mapRegion:     $mapRegion,
                 onStopClicked: { showingStopConfirmation    = true },
                 onCancelClicked: { showingDiscardConfirmation = true },
-                colors:        colors
+                theme:         theme
             )
+
         case .stopping:
-            // Show a loading/spinner or message
-            ProgressView("Stopping session…")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // ⬅️ CHANGED: Show loading spinner while stopping
+            VStack {
+                ProgressView("Stopping session…")
+                    .progressViewStyle(CircularProgressViewStyle())
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
         case .sessionStopped(let state):
-            // Show a summary, or just an empty screen
-            Text("Session stopped (ID: \(state.sessionId))")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Color.clear
+                .onAppear {
+                    if !hasNavigatedToDetails {
+                        stoppedSessionId = state.sessionId
+                        navigateToDetails = true
+                        hasNavigatedToDetails = true
+                    }
+                }
+
         case .error(let state):
             ErrorContent(
                 errorMessage: state.errorMessage,
                 onRetryClick: { viewModel.viewModel.onStartClicked() },
-                colors:       colors
+                theme:        theme
             )
         }
     }
-
-
-
     
     @ViewBuilder private var dangerToastView: some View {
         if showDangerToast {
@@ -109,7 +147,7 @@ struct LiveSessionView: View {
                 DangerToast(
                     message:  getAlertMessage(alertType: currentAlertType),
                     isVisible: showDangerToast,
-                    color:    colors.error,
+                    color:    theme.error,
                     onDismiss:{ showDangerToast = false }
                 )
                 .padding(.horizontal)
@@ -128,9 +166,6 @@ struct LiveSessionView: View {
         
         Task {
             for await state in viewModel.viewModel.uiState {
-                if state is LiveSessionState.SessionStopped {
-                    viewModel.viewModel.resetToInitialState()
-                }
                 if let loaded = state as? LiveSessionState.Loaded,
                    loaded.trackPoint.danger {
                     let now = Int64(Date().timeIntervalSince1970 * 1000)
