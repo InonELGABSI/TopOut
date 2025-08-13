@@ -31,6 +31,8 @@ import com.topout.kmp.features.settings.SettingsViewModel
 import com.topout.kmp.models.User
 import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import com.topout.kmp.shared_components.BottomRoundedCard
+import com.topout.kmp.shared_components.SessionToast
+import com.topout.kmp.shared_components.SessionToastType
 import com.topout.kmp.LocalThemeState
 import com.topout.kmp.LocalThemeUpdater
 import com.topout.kmp.shared_components.LottieToggleButton
@@ -45,6 +47,10 @@ fun SettingsScreen(
 ) {
     val uiState = viewModel.uiState.collectAsState().value
 
+    // State for session toast
+    var toastType by remember { mutableStateOf<SessionToastType?>(null) }
+    var showSessionToast by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         // TODO: viewModel.fetchUserSettings()
     }
@@ -54,8 +60,29 @@ fun SettingsScreen(
             when (uiState) {
                 is SettingsState.Loading -> SettingsLoadingContent()
                 is SettingsState.Error -> SettingsErrorContent(uiState.errorMessage)
-                is SettingsState.Loaded -> StackedSettingsCards(uiState.user, viewModel = viewModel)
+                is SettingsState.Loaded -> StackedSettingsCards(
+                    uiState.user,
+                    viewModel = viewModel,
+                    onShowToast = { type ->
+                        toastType = type
+                        showSessionToast = true
+                    }
+                )
             }
+
+            // Session Toast
+            SessionToast(
+                toastType = toastType,
+                isVisible = showSessionToast && toastType != null,
+                onDismiss = {
+                    showSessionToast = false
+                    toastType = null
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(WindowInsets.navigationBars.asPaddingValues())
+                    .padding(bottom = 12.dp)
+            )
         }
     }
 }
@@ -65,7 +92,8 @@ fun StackedSettingsCards(
     user: User,
     modifier: Modifier = Modifier,
     overlap: Dp = 20.dp,
-    viewModel: SettingsViewModel = koinViewModel()
+    viewModel: SettingsViewModel = koinViewModel(),
+    onShowToast: (SessionToastType) -> Unit
 ) {
     val palette = listOf(
         MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -106,21 +134,24 @@ fun StackedSettingsCards(
                             onUserChange = { editableUser = it },
                             isEditing = isEditingProfile,
                             onToggleEdit = { isEditingProfile = it },
-                            viewModel = viewModel
+                            viewModel = viewModel,
+                            onShowToast = onShowToast
                         )
                         "Preferences" -> PreferencesCardContent(
                             user = editableUser,
                             onUserChange = { editableUser = it },
                             isEditing = isEditingPreferences,
                             onToggleEdit = { isEditingPreferences = it },
-                            viewModel = viewModel
+                            viewModel = viewModel,
+                            onShowToast = onShowToast
                         )
                         "Alert Thresholds" -> ThresholdsCardContent(
                             user = editableUser,
                             onUserChange = { editableUser = it },
                             isEditing = isEditingThresholds,
                             onToggleEdit = { isEditingThresholds = it },
-                            viewModel = viewModel
+                            viewModel = viewModel,
+                            onShowToast = onShowToast
                         )
                         "Theme" -> ThemeCardContent()
                     }
@@ -178,7 +209,8 @@ fun ProfileCardContent(
     onUserChange: (User) -> Unit,
     isEditing: Boolean,
     onToggleEdit: (Boolean) -> Unit,
-    viewModel: SettingsViewModel
+    viewModel: SettingsViewModel,
+    onShowToast: (SessionToastType) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -260,6 +292,7 @@ fun ProfileCardContent(
                         onClick = {
                             viewModel.updateUser(user)
                             onToggleEdit(false)
+                            onShowToast(SessionToastType.PROFILE_UPDATED)
                         },
                         modifier = Modifier.weight(1f)
                     ) {
@@ -295,7 +328,8 @@ fun PreferencesCardContent(
     onUserChange: (User) -> Unit,
     isEditing: Boolean,
     onToggleEdit: (Boolean) -> Unit,
-    viewModel: SettingsViewModel
+    viewModel: SettingsViewModel,
+    onShowToast: (SessionToastType) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -352,6 +386,7 @@ fun PreferencesCardContent(
                         onClick = {
                             viewModel.updateUser(user)
                             onToggleEdit(false)
+                            onShowToast(SessionToastType.PREFERENCES_UPDATED)
                         },
                         modifier = Modifier.weight(1f)
                     ) {
@@ -387,7 +422,8 @@ fun ThresholdsCardContent(
     onUserChange: (User) -> Unit,
     isEditing: Boolean,
     onToggleEdit: (Boolean) -> Unit,
-    viewModel: SettingsViewModel
+    viewModel: SettingsViewModel,
+    onShowToast: (SessionToastType) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -456,6 +492,7 @@ fun ThresholdsCardContent(
                         onClick = {
                             viewModel.updateUser(user)
                             onToggleEdit(false)
+                            onShowToast(SessionToastType.THRESHOLDS_UPDATED) // Show success toast
                         },
                         modifier = Modifier.weight(1f)
                     ) {
@@ -914,4 +951,3 @@ private fun formatDate(timestamp: Long): String {
 private fun String.capitalize(): String {
     return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 }
-
