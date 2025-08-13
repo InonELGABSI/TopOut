@@ -10,6 +10,7 @@ import com.topout.kmp.features.live_session.LiveSessionViewModel
 import com.topout.kmp.features.session_details.SessionDetailsViewModel
 import com.topout.kmp.features.sessions.SessionsViewModel
 import com.topout.kmp.features.settings.SettingsViewModel
+import com.topout.kmp.platform.SessionBackgroundManager
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.darwin.Darwin
 import kotlinx.coroutines.CoroutineScope
@@ -28,14 +29,22 @@ actual val platformModule = module {
     // iosMain/di/platformModule.kt
     single<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
 
-    // Sensors - Platform-specific SensorDataSource
-    single { SensorDataSource(get(),get(),get()) }
+    // Platform-specific session background manager (no-op on iOS)
+    single<SessionBackgroundManager> { SessionBackgroundManager() }
 
-    // ViewModels - Add these to match Android platform module
+    // Sensors - Platform-specific SensorDataSource
+    single<SensorDataSource> { SensorDataSource(
+        accelProvider = get(),
+        baroProvider = get(),
+        locProvider = get()
+    )}
+
+    // ViewModels
     single { SessionsViewModel(get()) }
     single { SessionDetailsViewModel(get()) }
     single { SettingsViewModel(get()) }
     single { LiveSessionViewModel(get()) }
 
+    // Database
     single<SqlDriver> { DatabaseDriverFactory().createDriver() }
 }

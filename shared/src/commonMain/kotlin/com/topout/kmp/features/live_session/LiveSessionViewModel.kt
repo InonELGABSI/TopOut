@@ -2,6 +2,7 @@ package com.topout.kmp.features.live_session
 import com.topout.kmp.domain.LiveSessionManager
 import com.topout.kmp.features.BaseViewModel
 import com.topout.kmp.models.TrackPoint
+import com.topout.kmp.platform.SessionBackgroundManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -14,8 +15,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-
-class LiveSessionViewModel(
+open class LiveSessionViewModel(
     private val useCases: LiveSessionUseCases,
 ) : BaseViewModel<LiveSessionState>(),KoinComponent {
 
@@ -39,19 +39,30 @@ class LiveSessionViewModel(
 
     private var isPaused: Boolean = false
 
+    // Platform-specific session background manager
+    private val sessionBackgroundManager: SessionBackgroundManager by inject()
+
     init {
         // Load current MSL height on initialization
         loadCurrentMSLHeight()
     }
 
-    fun onStartClicked() {
+    open fun onStartClicked() {
+        // Start background session management
+        sessionBackgroundManager.startBackgroundSession()
+
         // 2. Always stop/clean old session before starting new
         stopSessionAndCleanup()
 
         _uiState.value = LiveSessionState.Loading
 
-        // 3. Create a fresh scope and manager for this session!
-        sessionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        // 3. Use background scope for session if available, otherwise create UI scope
+        sessionScope = try {
+            sessionBackgroundManager.getBackgroundScope() ?: CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        } catch (_: Exception) {
+            CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        }
+
         liveSessionManager = inject<LiveSessionManager> { parametersOf(sessionScope) }.value
 
         trackPointJob = sessionScope!!.launch {
@@ -59,7 +70,6 @@ class LiveSessionViewModel(
                 val trackPointFlow = liveSessionManager!!.invoke()
                 trackPointFlow.collect { point: TrackPoint ->
                     currentTrackPoint = point
-                    //updateUIState()
 
                     if (isPaused) {
                         _uiState.value = LiveSessionState.Paused(
@@ -112,7 +122,10 @@ class LiveSessionViewModel(
         }
     }
 
-    fun onStopClicked(sessionId: String) {
+    open fun onStopClicked(sessionId: String) {
+        // Stop background session management
+        sessionBackgroundManager.stopBackgroundSession()
+
         // Always cancel jobs and manager
         stopSessionAndCleanup()
 
@@ -130,7 +143,10 @@ class LiveSessionViewModel(
         }
     }
 
-    fun onCancelClicked(sessionId: String) {
+    open fun onCancelClicked(sessionId: String) {
+        // Stop background session management
+        sessionBackgroundManager.stopBackgroundSession()
+
         // Always cancel jobs and manager first
         stopSessionAndCleanup()
 
@@ -178,7 +194,7 @@ class LiveSessionViewModel(
             }
         }
     }
-    fun onPauseClicked() {
+    open fun onPauseClicked() {
         liveSessionManager?.pause()
         isPaused = true
         val tp = currentTrackPoint ?: return
@@ -189,7 +205,7 @@ class LiveSessionViewModel(
         loadCurrentMSLHeight()
     }
 
-    fun onResumeClicked() {
+    open fun onResumeClicked() {
         liveSessionManager?.resume()
         isPaused = false
         val tp = currentTrackPoint ?: return
@@ -219,6 +235,3 @@ class LiveSessionViewModel(
     }
 
 }
-
-
-
