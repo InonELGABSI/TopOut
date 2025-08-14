@@ -9,7 +9,7 @@ struct MapView: UIViewRepresentable {
     @Binding var region: MKCoordinateRegion
 
     /// Show an "End" annotation at the tail of the track.
-    var showEndAnnotation: Bool = true
+    var showEndAnnotation: Bool = false
 
     /// Auto-center camera on the last track point when not interacting.
     var followLastPoint: Bool = true
@@ -25,9 +25,9 @@ struct MapView: UIViewRepresentable {
 
         mapView.delegate = context.coordinator
         mapView.showsUserLocation = true
-        mapView.userTrackingMode  = .none // start free; custom focus will soft-follow.
+        mapView.userTrackingMode  = .none // custom soft-follow
 
-        // Optional: keep zoom reasonable (prevents "lost in space")
+        // Keep zoom reasonable
         if #available(iOS 13.0, *) {
             if let zoomRange = MKMapView.CameraZoomRange(minCenterCoordinateDistance: 50,
                                                          maxCenterCoordinateDistance: 50_000) {
@@ -145,6 +145,11 @@ struct MapView: UIViewRepresentable {
                                         scale.bottomAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.bottomAnchor, constant: -36),
                                     ])
 
+        // 🔹 Try to center immediately if the system already has a cached user fix
+        DispatchQueue.main.async {
+            context.coordinator.tryInitialCenterIfPossible(animated: false)
+        }
+
         return mapView
     }
 
@@ -244,7 +249,7 @@ struct MapView: UIViewRepresentable {
             }
         }
 
-        // ❌ Removed: no forcing .follow tracking mode here.
+        // No forcing .follow tracking mode
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -268,7 +273,6 @@ struct MapView: UIViewRepresentable {
         // Focus button
         weak var focusButton: UIButton?
         var isUserFocusEnabled: Bool = false { didSet { updateFocusUI() } }
-        var focusHasAdjustedZoom = false // retained but unused in soft-follow (safe to keep)
 
         // Zoom buttons
         weak var zoomInButton: UIButton?
@@ -276,8 +280,15 @@ struct MapView: UIViewRepresentable {
         var minZoomDistance: CLLocationDistance = 50
         var maxZoomDistance: CLLocationDistance = 50_000
 
-        // Last user zoom distance to preserve during soft-follow
+        // “Locked” distance while focus is ON (updated by user's zoom actions)
         var lastUserZoomDistance: CLLocationDistance?
+
+        // Apply the initial near-max zoom only once per focus activation
+        private var appliedInitialZoomThisFocus = false
+
+        // 🔹 One-time initial centering on first user fix
+        private var hasCenteredToUserOnFirstFix = false
+        private let initialUserCenterDistance: CLLocationDistance = 1_000 // 1km default
 
         init(_ parent: MapView) {
             self.parent = parent
@@ -290,43 +301,51 @@ struct MapView: UIViewRepresentable {
         }
         deinit { NotificationCenter.default.removeObserver(self) }
 
-        // Pause passive follow if the user pans/zooms (delegate-driven)
+        // Capture user zoom changes; pause passive track follow when not focused
         func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
             if !isProgrammaticChange {
-                // Always remember the current zoom; reused while in focus mode.
+                // Always remember current distance: keeps user's zoom when focus is ON
                 lastUserZoomDistance = mapView.camera.centerCoordinateDistance
             }
             if !isProgrammaticChange && !isUserFocusEnabled {
                 suppressAutoCenterUntil = Date().addingTimeInterval(6) // grace window
-                mapView.setUserTrackingMode(.none, animated: true)
             }
         }
 
-        // Keep SwiftUI binding in sync with the map's visible region
+        // Keep SwiftUI binding in sync; maintain constant follow when focus is ON
         func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
             let newRegion = mapView.region
-            if regionsAreEqual(newRegion, parent.region) { return }
-            DispatchQueue.main.async { [weak self] in
-                guard let self else { return }
-                if !self.regionsAreEqual(newRegion, self.parent.region) {
-                    self.parent.region = newRegion
+            if !regionsAreEqual(newRegion, parent.region) {
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    if !self.regionsAreEqual(newRegion, self.parent.region) {
+                        self.parent.region = newRegion
+                    }
                 }
+            }
+
+            // If user panned/zoomed while focus is ON, snap center back to the user
+            // but keep the user's chosen zoom (lastUserZoomDistance).
+            if !isProgrammaticChange && isUserFocusEnabled {
+                recenterOnUser(distance: lastUserZoomDistance, animated: true)
             }
         }
 
-        // ✅ Soft-follow: recenter on user updates, preserving zoom distance.
+        // Constant follow + initial centering
         func mapView(_ mapView: MKMapView, didUpdate userLocation: MKUserLocation) {
-            guard isUserFocusEnabled,
-                  CLLocationCoordinate2DIsValid(userLocation.coordinate) else { return }
+            guard CLLocationCoordinate2DIsValid(userLocation.coordinate) else { return }
 
-            let cam = mapView.camera.copy() as! MKMapCamera
-            cam.centerCoordinate = userLocation.coordinate
-            if let locked = lastUserZoomDistance {
-                cam.centerCoordinateDistance = locked
+            // 🔹 First live fix: center once to the user (even if focus is OFF)
+            if !hasCenteredToUserOnFirstFix {
+                tryInitialCenterIfPossible(animated: false)
+                // Avoid immediate passive track re-centering fighting this
+                suppressAutoCenterUntil = Date().addingTimeInterval(2)
             }
-            isProgrammaticChange = true
-            mapView.setCamera(cam, animated: true)
-            DispatchQueue.main.async { [weak self] in self?.isProgrammaticChange = false }
+
+            // If focus is ON, keep following (preserving zoom)
+            if isUserFocusEnabled {
+                recenterOnUser(distance: lastUserZoomDistance, animated: true)
+            }
         }
 
         // Polyline renderer
@@ -378,30 +397,71 @@ struct MapView: UIViewRepresentable {
                 abs(a.span.longitudeDelta - b.span.longitudeDelta) < spanLonEps
         }
 
-        // MARK: - Focus toggle (soft-follow)
+        // MARK: - Focus toggle (constant follow + single near-max zoom)
         @objc func didTapFocus() {
             isUserFocusEnabled.toggle()
             guard let mapView else { return }
 
             if isUserFocusEnabled {
-                // If no locked zoom yet, capture current distance.
-                if lastUserZoomDistance == nil {
+                // Apply near-max zoom ONCE when focus is enabled.
+                if !appliedInitialZoomThisFocus {
+                    let nearMax = minZoomDistance * 3.0   // e.g. 3× min distance
+                    lastUserZoomDistance = max(minZoomDistance,
+                                               min(maxZoomDistance, nearMax))
+                    appliedInitialZoomThisFocus = true
+                } else if lastUserZoomDistance == nil {
+                    // If for some reason we don't have a distance, capture current.
                     lastUserZoomDistance = mapView.camera.centerCoordinateDistance
                 }
-                if let coord = mapView.userLocation.location?.coordinate,
-                   CLLocationCoordinate2DIsValid(coord) {
-                    let cam = mapView.camera.copy() as! MKMapCamera
-                    cam.centerCoordinate = coord
-                    if let locked = lastUserZoomDistance {
-                        cam.centerCoordinateDistance = locked
-                    }
-                    isProgrammaticChange = true
-                    mapView.setCamera(cam, animated: true)
-                    DispatchQueue.main.async { [weak self] in self?.isProgrammaticChange = false }
-                }
+                recenterOnUser(distance: lastUserZoomDistance, animated: true)
             } else {
-                // Leaving focus: nothing special.
+                // Turning focus OFF resets the one-time-zoom flag for next activation.
+                appliedInitialZoomThisFocus = false
             }
+        }
+
+        /// One-time initial center on current user if available.
+        func tryInitialCenterIfPossible(animated: Bool) {
+            guard let mapView else { return }
+            guard !hasCenteredToUserOnFirstFix,
+                  let coord = mapView.userLocation.location?.coordinate,
+                  CLLocationCoordinate2DIsValid(coord) else { return }
+
+            let cam = mapView.camera.copy() as! MKMapCamera
+            cam.centerCoordinate = coord
+            // Use a reasonable default zoom for first load.
+            let dist = max(minZoomDistance, min(maxZoomDistance, initialUserCenterDistance))
+            cam.centerCoordinateDistance = dist
+            cam.pitch = 0
+            cam.heading = 0
+
+            isProgrammaticChange = true
+            mapView.setCamera(cam, animated: animated)
+            hasCenteredToUserOnFirstFix = true
+
+            // Sync SwiftUI binding (async to avoid "modifying state during view update")
+            DispatchQueue.main.async { [weak self] in
+                guard let self, let mv = self.mapView else { return }
+                self.parent.region = mv.region
+                self.isProgrammaticChange = false
+            }
+        }
+
+        private func recenterOnUser(distance: CLLocationDistance? = nil, animated: Bool) {
+            guard let mapView,
+                  let coord = mapView.userLocation.location?.coordinate,
+                  CLLocationCoordinate2DIsValid(coord) else { return }
+            let cam = mapView.camera.copy() as! MKMapCamera
+            cam.centerCoordinate = coord
+            if let dist = distance ?? lastUserZoomDistance {
+                cam.centerCoordinateDistance = max(minZoomDistance, min(maxZoomDistance, dist))
+            }
+            // Normalize pitch & heading so the user dot stays clear (optional)
+            cam.pitch = 0
+            cam.heading = 0
+            isProgrammaticChange = true
+            mapView.setCamera(cam, animated: animated)
+            DispatchQueue.main.async { [weak self] in self?.isProgrammaticChange = false }
         }
 
         // MARK: - Zoom Handling
@@ -421,7 +481,7 @@ struct MapView: UIViewRepresentable {
             mapView.setCamera(camera, animated: true)
             DispatchQueue.main.async { [weak self] in self?.isProgrammaticChange = false }
 
-            // Remember this as the “locked” zoom for focus mode.
+            // Remember this as the “locked” zoom while focus is ON.
             lastUserZoomDistance = target
 
             // Keep SwiftUI region binding roughly in sync after animation
@@ -466,6 +526,9 @@ struct MapView: UIViewRepresentable {
                 DispatchQueue.main.async { [weak self] in self?.isProgrammaticChange = false }
             }
             updateFocusUI()
+
+            // If we resumed and never centered (e.g., permission granted while backgrounded), try now
+            tryInitialCenterIfPossible(animated: false)
         }
     }
 }
