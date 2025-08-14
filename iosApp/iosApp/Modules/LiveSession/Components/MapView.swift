@@ -161,8 +161,8 @@ struct MapView: UIViewRepresentable {
                         .distance(from: CLLocation(latitude: region.center.latitude, longitude: region.center.longitude))
 
                     if dist > 5 {
-                        // Use the *current* span (kept in sync), so zoom is preserved
-                        let newRegion = MKCoordinateRegion(center: last, span: region.span)
+                        // Use the map's *current* span, so user zoom is preserved
+                        let newRegion = MKCoordinateRegion(center: last, span: mapView.region.span)
                         region = newRegion
                         mapView.setRegion(newRegion, animated: true) // only center changes; span stays
                     }
@@ -203,6 +203,7 @@ struct MapView: UIViewRepresentable {
 
         func centerOnLastTrackPoint() {
             guard let mapView, let last = lastCoordinate else { return }
+            mapView.setUserTrackingMode(.follow, animated: true)
             let newRegion = MKCoordinateRegion(center: last, span: mapView.region.span)
             mapView.setRegion(newRegion, animated: true)
         }
