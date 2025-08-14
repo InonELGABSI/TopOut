@@ -1,4 +1,4 @@
-package com.topout.kmp.platform
+package com.topout.kmp.domain
 
 import kotlinx.coroutines.CoroutineScope
 

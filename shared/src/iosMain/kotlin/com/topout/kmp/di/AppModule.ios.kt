@@ -2,6 +2,7 @@ package com.topout.kmp.di
 
 import app.cash.sqldelight.db.SqlDriver
 import com.topout.kmp.data.dao.DatabaseDriverFactory
+import com.topout.kmp.data.sensors.AppStateMonitor
 import com.topout.kmp.utils.providers.BarometerProvider
 import com.topout.kmp.utils.providers.LocationProvider
 import com.topout.kmp.utils.providers.AccelerometerProvider
@@ -10,7 +11,7 @@ import com.topout.kmp.features.live_session.LiveSessionViewModel
 import com.topout.kmp.features.session_details.SessionDetailsViewModel
 import com.topout.kmp.features.sessions.SessionsViewModel
 import com.topout.kmp.features.settings.SettingsViewModel
-import com.topout.kmp.platform.SessionBackgroundManager
+import com.topout.kmp.domain.SessionBackgroundManager
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.darwin.Darwin
 import kotlinx.coroutines.CoroutineScope
@@ -36,8 +37,11 @@ actual val platformModule = module {
     single<SensorDataSource> { SensorDataSource(
         accelProvider = get(),
         baroProvider = get(),
-        locProvider = get()
+        locProvider = get(),
+        appStateMonitor = get<AppStateMonitor>()
     )}
+
+    single { AppStateMonitor().apply { startMonitoring() } }
 
     // ViewModels
     single { SessionsViewModel(get()) }

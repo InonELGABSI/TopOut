@@ -8,7 +8,7 @@ import com.topout.kmp.features.live_session.LiveSessionViewModel
 import com.topout.kmp.features.session_details.SessionDetailsViewModel
 import com.topout.kmp.features.sessions.SessionsViewModel
 import com.topout.kmp.features.settings.SettingsViewModel
-import com.topout.kmp.platform.SessionBackgroundManager
+import com.topout.kmp.domain.SessionBackgroundManager
 import com.topout.kmp.utils.providers.AccelerometerProvider
 import com.topout.kmp.utils.providers.BarometerProvider
 import com.topout.kmp.utils.providers.LocationProvider

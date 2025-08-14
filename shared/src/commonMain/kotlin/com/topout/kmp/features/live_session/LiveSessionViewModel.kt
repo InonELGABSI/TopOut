@@ -2,7 +2,7 @@ package com.topout.kmp.features.live_session
 import com.topout.kmp.domain.LiveSessionManager
 import com.topout.kmp.features.BaseViewModel
 import com.topout.kmp.models.TrackPoint
-import com.topout.kmp.platform.SessionBackgroundManager
+import com.topout.kmp.domain.SessionBackgroundManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

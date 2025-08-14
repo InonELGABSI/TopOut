@@ -1,27 +1,77 @@
-package com.topout.kmp.platform
+package com.topout.kmp.domain
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import co.touchlab.kermit.Logger
+import platform.Foundation.NSNotification
+import platform.Foundation.NSNotificationCenter
+import platform.UIKit.*
+import platform.darwin.NSObjectProtocol
 
 actual class SessionBackgroundManager {
     private val log = Logger.withTag("SessionBackgroundManager")
     private var backgroundScope: CoroutineScope? = null
 
+    private var bgTaskId: UIBackgroundTaskIdentifier = UIBackgroundTaskInvalid
+    private var didEnterBgObs: NSObjectProtocol? = null
+    private var didBecomeActiveObs: NSObjectProtocol? = null
+
     actual fun startBackgroundSession() {
+        // Idempotent (avoid duplicating observers or scopes)
+        if (backgroundScope != null) {
+            log.d { "Background session already started" }
+            return
+        }
         log.i { "Starting background session" }
-        // Create a background scope that can survive app lifecycle changes
+
+        // Durable, UI-independent scope
         backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+        val center = NSNotificationCenter.defaultCenter
+        didEnterBgObs = center.addObserverForName(
+            name = UIApplicationDidEnterBackgroundNotification,
+            `object` = null,
+            queue = null
+        ) { _: NSNotification? ->
+            beginBackgroundWindow()
+        }
+
+        didBecomeActiveObs = center.addObserverForName(
+            name = UIApplicationDidBecomeActiveNotification,
+            `object` = null,
+            queue = null
+        ) { _: NSNotification? ->
+            endBackgroundWindow()
+        }
     }
 
     actual fun stopBackgroundSession() {
         log.i { "Stopping background session" }
-        backgroundScope?.coroutineContext?.get(kotlinx.coroutines.Job)?.cancel()
+        backgroundScope?.cancel()
         backgroundScope = null
+        endBackgroundWindow()
+
+        val center = NSNotificationCenter.defaultCenter
+        didEnterBgObs?.let { center.removeObserver(it); didEnterBgObs = null }
+        didBecomeActiveObs?.let { center.removeObserver(it); didBecomeActiveObs = null }
     }
 
-    actual fun getBackgroundScope(): CoroutineScope? {
-        return backgroundScope
+    private fun beginBackgroundWindow() {
+        if (bgTaskId != UIBackgroundTaskInvalid) return
+        // Defensive short background window for flush/transition work.
+        bgTaskId = UIApplication.sharedApplication.beginBackgroundTaskWithName("session-location") {
+            log.w { "Background task expired by system" }
+            endBackgroundWindow()
+        }
+        log.d { "Background window started (id=$bgTaskId)" }
     }
+
+    private fun endBackgroundWindow() {
+        if (bgTaskId != UIBackgroundTaskInvalid) {
+            UIApplication.sharedApplication.endBackgroundTask(bgTaskId)
+            log.d { "Background window ended (id=$bgTaskId)" }
+            bgTaskId = UIBackgroundTaskInvalid
+        }
+    }
+
+    actual fun getBackgroundScope(): CoroutineScope? = backgroundScope
 }

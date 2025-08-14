@@ -2,263 +2,257 @@ import SwiftUI
 import MapKit
 import Shared
 
+/// SwiftUI wrapper around MKMapView optimized for live tracks.
 struct MapView: UIViewRepresentable {
     let trackPoints: [TrackPoint]
     @Binding var region: MKCoordinateRegion
 
-    // Add this if you want to show the End annotation
-    let showEndAnnotation: Bool = false
-    // Optional: Only auto-center if this is true
+    /// Show an "End" annotation at the tail of the track.
+    var showEndAnnotation: Bool = true
+
+    /// Auto-center camera on the last track point when not interacting.
     var followLastPoint: Bool = true
 
     @EnvironmentObject private var themeManager: AppThemeManager
     @Environment(\.appTheme) private var theme
 
+    // MARK: - UIViewRepresentable
+
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
-        context.coordinator.mapView = mapView // keep a weak ref for actions
+        context.coordinator.mapView = mapView
 
         mapView.delegate = context.coordinator
         mapView.showsUserLocation = true
-        mapView.userTrackingMode  = .follow   // starts in follow; we’ll disable on gesture.  // Apple docs: userTrackingMode .follow recenters the map.
+        mapView.userTrackingMode  = .follow  // start in follow; turn off on user pan/zoom.
 
-        // --- Built-in Apple controls (best practice) ---
-        mapView.showsCompass = false // we’ll place our own MKCompassButton.
+        // Optional: keep zoom reasonable (prevents "lost in space")
+        // Adjust max/min to your product needs.
+        if #available(iOS 13.0, *) {
+            mapView.setCameraZoomRange(MKMapView.CameraZoomRange(maxCenterCoordinateDistance: 50_000), animated: false)
+        }
 
-        // Compass (adaptive visibility = appears when not north-up)
+        // Built-in Apple controls (compass, tracking, scale)
+        mapView.showsCompass = false // We'll place our own compass button.
+
         let compass = MKCompassButton(mapView: mapView)
         compass.translatesAutoresizingMaskIntoConstraints = false
         compass.compassVisibility = .adaptive
         mapView.addSubview(compass)
 
-        // Focus / user tracking
         let tracking = MKUserTrackingButton(mapView: mapView)
         tracking.translatesAutoresizingMaskIntoConstraints = false
         tracking.layer.cornerRadius = 10
         tracking.clipsToBounds = true
+        mapView.addSubview(tracking)
 
-        // Scale (legend)
         let scale = MKScaleView(mapView: mapView)
         scale.translatesAutoresizingMaskIntoConstraints = false
         scale.legendAlignment = .trailing
-
-        mapView.addSubview(tracking)
         mapView.addSubview(scale)
 
-        // --- Custom zoom (+/–) for iPhone (iOS has no built-in zoom stepper) ---
-        let blur = UIVisualEffectView(effect: UIBlurEffect(style: .systemMaterial))
-        blur.translatesAutoresizingMaskIntoConstraints = false
-        blur.layer.cornerRadius = 12
-        blur.clipsToBounds = true
-
-        let plus = UIButton(type: .system)
-        plus.setImage(UIImage(systemName: "plus"), for: .normal)
-        plus.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        plus.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        plus.addAction(UIAction { _ in context.coordinator.adjustZoom(factor: 0.5) }, for: .touchUpInside) // zoom in
-
-        let minus = UIButton(type: .system)
-        minus.setImage(UIImage(systemName: "minus"), for: .normal)
-        minus.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        minus.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        minus.addAction(UIAction { _ in context.coordinator.adjustZoom(factor: 2.0) }, for: .touchUpInside) // zoom out
-
-        // Optional: focus last trackpoint (route tail)
-        let focusTail = UIButton(type: .system)
-        focusTail.setImage(UIImage(systemName: "scope"), for: .normal)
-        focusTail.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        focusTail.heightAnchor.constraint(equalToConstant: 44).isActive = true
-        focusTail.addAction(UIAction { _ in
-            context.coordinator.clearCooldown()
-            context.coordinator.centerOnLastTrackPoint()
-        }, for: .touchUpInside)
-
-        let vstack = UIStackView(arrangedSubviews: [plus, minus, focusTail])
-        vstack.axis = .vertical
-        vstack.spacing = 0
-        vstack.translatesAutoresizingMaskIntoConstraints = false
-
-        blur.contentView.addSubview(vstack)
-        mapView.addSubview(blur)
-
-        // Layout (respect safe area; pad away from legal link)
+        // Layout with safe area
         NSLayoutConstraint.activate([
             // Compass top-right
             compass.topAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.topAnchor, constant: 12),
             compass.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -12),
 
-            // Tracking under compass
+            // Tracking below compass
             tracking.topAnchor.constraint(equalTo: compass.bottomAnchor, constant: 12),
             tracking.trailingAnchor.constraint(equalTo: compass.trailingAnchor),
 
-            // Scale bottom-left (lifted above legal links)
+            // Scale bottom-left
             scale.leadingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.leadingAnchor, constant: 12),
             scale.bottomAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.bottomAnchor, constant: -36),
-
-            // Zoom stack bottom-right
-            blur.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -12),
-            blur.bottomAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-
-            vstack.topAnchor.constraint(equalTo: blur.contentView.topAnchor),
-            vstack.leadingAnchor.constraint(equalTo: blur.contentView.leadingAnchor),
-            vstack.trailingAnchor.constraint(equalTo: blur.contentView.trailingAnchor),
-            vstack.bottomAnchor.constraint(equalTo: blur.contentView.bottomAnchor)
         ])
-
-        // --- Pause auto-follow while user interacts (prevents zoom “snap back”) ---
-        // Add targets to built-in gesture recognizers to detect user pans/zooms.
-        (mapView.gestureRecognizers ?? []).forEach {
-            $0.addTarget(context.coordinator, action: #selector(Coordinator.handleMapGesture(_:)))
-        }
 
         return mapView
     }
 
     func updateUIView(_ mapView: MKMapView, context: Context) {
-        // Remove overlays and annotations except user location
-        mapView.removeOverlays(mapView.overlays)
-        mapView.removeAnnotations(mapView.annotations.filter { !($0 is MKUserLocation) })
-
-        // Create polyline and annotations if there are enough points
-        guard trackPoints.count > 1 else { return }
-        var coordinates: [CLLocationCoordinate2D] = []
-        for point in trackPoints {
-            if let latitude = point.latitude?.double,
-               let longitude = point.longitude?.double {
-                coordinates.append(CLLocationCoordinate2D(latitude: latitude, longitude: longitude))
+        // Build coordinates once
+        var coords: [CLLocationCoordinate2D] = []
+        coords.reserveCapacity(trackPoints.count)
+        for tp in trackPoints {
+            if let lat = tp.latitude?.double, let lon = tp.longitude?.double {
+                coords.append(CLLocationCoordinate2D(latitude: lat, longitude: lon))
             }
         }
 
-        if !coordinates.isEmpty {
-            let polyline = MKPolyline(coordinates: coordinates, count: coordinates.count)
-            mapView.addOverlay(polyline)
+        // Keep a single polyline; replace only when point count or last point changes
+        if coords.count > 1 {
+            let lastChanged =
+                context.coordinator.polyline == nil ||
+                context.coordinator.polyline!.pointCount != coords.count ||
+                context.coordinator.lastCoordinate?.latitude  != coords.last!.latitude ||
+                context.coordinator.lastCoordinate?.longitude != coords.last!.longitude
 
-            // Start marker
-            if let first = coordinates.first {
-                let startAnnotation = MKPointAnnotation()
-                startAnnotation.coordinate = first
-                startAnnotation.title = "Start"
-                mapView.addAnnotation(startAnnotation)
-            }
-
-            // End marker (optional)
-            if showEndAnnotation, let last = coordinates.last {
-                let endAnnotation = MKPointAnnotation()
-                endAnnotation.coordinate = last
-                endAnnotation.title = "End"
-                mapView.addAnnotation(endAnnotation)
-            }
-
-            // Always keep last coordinate for the "focus tail" button and location updates
-            // This ensures location updates happen regardless of whether the End marker is shown
-            if let last = coordinates.last {
-                context.coordinator.lastCoordinate = last
-
-                // Only recenter if follow is enabled and the cooldown has passed
-                if followLastPoint && Date() >= context.coordinator.suppressAutoCenterUntil {
-                    // distance threshold so we don't spam small moves
-                    let dist = CLLocation(latitude: last.latitude, longitude: last.longitude)
-                        .distance(from: CLLocation(latitude: region.center.latitude, longitude: region.center.longitude))
-
-                    if dist > 5 {
-                        // Use the map's *current* span, so user zoom is preserved
-                        let newRegion = MKCoordinateRegion(center: last, span: mapView.region.span)
-                        region = newRegion
-                        mapView.setRegion(newRegion, animated: true) // only center changes; span stays
-                    }
+            if lastChanged {
+                // Remove old polyline, add new (use geodesic if your tracks span long distances)
+                if let old = context.coordinator.polyline {
+                    mapView.removeOverlay(old)
                 }
+                let newPolyline = MKPolyline(coordinates: coords, count: coords.count)
+                context.coordinator.polyline = newPolyline
+                mapView.addOverlay(newPolyline)
+
+                // Start annotation (create once)
+                if context.coordinator.startAnnotation == nil, let first = coords.first {
+                    let ann = MKPointAnnotation()
+                    ann.coordinate = first
+                    ann.title = "Start"
+                    ann.accessibilityLabel = "Track start"
+                    context.coordinator.startAnnotation = ann
+                    mapView.addAnnotation(ann)
+                }
+
+                // End annotation (update or add/remove based on flag)
+                if showEndAnnotation, let last = coords.last {
+                    if let end = context.coordinator.endAnnotation {
+                        end.coordinate = last
+                    } else {
+                        let end = MKPointAnnotation()
+                        end.coordinate = last
+                        end.title = "End"
+                        end.accessibilityLabel = "Track end"
+                        context.coordinator.endAnnotation = end
+                        mapView.addAnnotation(end)
+                    }
+                } else if !showEndAnnotation, let end = context.coordinator.endAnnotation {
+                    mapView.removeAnnotation(end)
+                    context.coordinator.endAnnotation = nil
+                }
+
+                context.coordinator.lastCoordinate = coords.last
+            }
+        } else {
+            // Track empty/short: clean up overlays (but leave user location)
+            if let pl = context.coordinator.polyline {
+                mapView.removeOverlay(pl)
+                context.coordinator.polyline = nil
+            }
+            if let s = context.coordinator.startAnnotation {
+                mapView.removeAnnotation(s)
+                context.coordinator.startAnnotation = nil
+            }
+            if let e = context.coordinator.endAnnotation {
+                mapView.removeAnnotation(e)
+                context.coordinator.endAnnotation = nil
+            }
+            return
+        }
+
+        // Auto-center if following, not within cooldown, and we actually moved
+        if followLastPoint,
+           let last = context.coordinator.lastCoordinate,
+           Date() >= context.coordinator.suppressAutoCenterUntil
+        {
+            let center = region.center
+            let dist = CLLocation(latitude: last.latitude, longitude: last.longitude)
+                .distance(from: CLLocation(latitude: center.latitude, longitude: center.longitude))
+            if dist > 5 { // threshold to avoid jitter
+                // Preserve current zoom (span)
+                let newRegion = MKCoordinateRegion(center: last, span: mapView.region.span)
+                region = newRegion
+                context.coordinator.isProgrammaticChange = true
+                mapView.setRegion(newRegion, animated: true)
+                DispatchQueue.main.async { context.coordinator.isProgrammaticChange = false }
             }
         }
     }
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    // MARK: - Coordinator
 
     class Coordinator: NSObject, MKMapViewDelegate {
         var parent: MapView
         weak var mapView: MKMapView?
+
+        // Stateful overlays/annotations
+        var polyline: MKPolyline?
+        var startAnnotation: MKPointAnnotation?
+        var endAnnotation: MKPointAnnotation?
         var lastCoordinate: CLLocationCoordinate2D?
 
-        // Cooldown window to suppress auto-centering after gestures
+        // Follow control
         var suppressAutoCenterUntil: Date = .distantPast
+        var isProgrammaticChange = false
 
         init(_ parent: MapView) {
             self.parent = parent
         }
 
-        // Keep the SwiftUI binding in sync with any user pan/zoom
+        // Pause follow if the user pans/zooms (delegate-driven, not by poking recognizers)
+        func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
+            if !isProgrammaticChange {
+                suppressAutoCenterUntil = Date().addingTimeInterval(6) // grace window
+                mapView.setUserTrackingMode(.none, animated: true)
+            }
+        }
+
+        // Keep SwiftUI binding in sync with the map's visible region
         func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-            parent.region = mapView.region
-        }
-
-        // Zoom helpers (iPhone has no native zoom stepper)
-        func adjustZoom(factor: Double) {
-            guard let mapView else { return }
-            var r = mapView.region
-            r.span.latitudeDelta  = max(1e-6, r.span.latitudeDelta  * factor)
-            r.span.longitudeDelta = max(1e-6, r.span.longitudeDelta * factor)
-            mapView.setRegion(r, animated: true)
-        }
-
-        func centerOnLastTrackPoint() {
-            guard let mapView, let last = lastCoordinate else { return }
-            mapView.setUserTrackingMode(.follow, animated: true)
-            let newRegion = MKCoordinateRegion(center: last, span: mapView.region.span)
-            mapView.setRegion(newRegion, animated: true)
-        }
-
-        func clearCooldown() {
-            suppressAutoCenterUntil = .distantPast
-        }
-
-        // Detect any pan/zoom and pause following for a short time
-        @objc func handleMapGesture(_ gr: UIGestureRecognizer) {
-            switch gr.state {
-            case .began:
-                suppressAutoCenterUntil = Date().addingTimeInterval(6) // 6s grace
-                mapView?.setUserTrackingMode(.none, animated: true)    // stop Apple’s follow mode
-            case .ended, .cancelled, .failed:
-                suppressAutoCenterUntil = Date().addingTimeInterval(6)
-            default: break
-            }
-        }
-
-        // Renderers / annotations unchanged
-        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-            if let polyline = overlay as? MKPolyline {
-                let renderer = MKPolylineRenderer(polyline: polyline)
-                renderer.strokeColor = UIColor(parent.theme.primary)
-                renderer.lineWidth = 4
-                return renderer
-            }
-            return MKOverlayRenderer(overlay: overlay)
-        }
-
-        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
-            if annotation is MKUserLocation { return nil }
-            let identifier = "CustomPin"
-            var annotationView = mapView.dequeueReusableAnnotationView(withIdentifier: identifier)
-            if annotationView == nil {
-                annotationView = MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: identifier)
-                annotationView?.canShowCallout = true
-            } else {
-                annotationView?.annotation = annotation
-            }
-            if let markerView = annotationView as? MKMarkerAnnotationView {
-                switch annotation.title ?? "" {
-                case "Start":
-                    markerView.markerTintColor = .systemGreen
-                    markerView.glyphImage = UIImage(systemName: "flag.fill")
-                case "End":
-                    markerView.markerTintColor = .systemRed
-                    markerView.glyphImage = UIImage(systemName: "flag.checkered")
-                default:
-                    markerView.markerTintColor = .systemBlue
-                    markerView.glyphImage = UIImage(systemName: "circle.fill")
+            // Avoid modifying SwiftUI state synchronously during view updates to silence runtime warning.
+            let newRegion = mapView.region
+            // Skip if effectively unchanged to avoid feedback loop.
+            if regionsAreEqual(newRegion, parent.region) { return }
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                // Double-check in case things changed again before dispatch executed.
+                if !self.regionsAreEqual(newRegion, self.parent.region) {
+                    self.parent.region = newRegion
                 }
             }
-            return annotationView
+        }
+
+        // Polyline renderer
+        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            guard let pl = overlay as? MKPolyline else {
+                return MKOverlayRenderer(overlay: overlay)
+            }
+            let r = MKPolylineRenderer(polyline: pl)
+            r.strokeColor = UIColor(parent.theme.primary)
+            r.lineWidth = 4
+            r.lineJoin = .round
+            r.lineCap  = .round
+            return r
+        }
+
+        // Annotations (Start/End markers)
+        func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+            if annotation is MKUserLocation { return nil }
+            let id = "TrackPin"
+            let view = (mapView.dequeueReusableAnnotationView(withIdentifier: id) as? MKMarkerAnnotationView)
+                ?? MKMarkerAnnotationView(annotation: annotation, reuseIdentifier: id)
+            view.canShowCallout = true
+
+            switch annotation.title ?? "" {
+            case "Start":
+                view.markerTintColor = .systemGreen
+                view.glyphImage = UIImage(systemName: "flag.fill")
+            case "End":
+                view.markerTintColor = .systemRed
+                view.glyphImage = UIImage(systemName: "flag.checkered")
+            default:
+                view.markerTintColor = .systemBlue
+                view.glyphImage = UIImage(systemName: "circle.fill")
+            }
+
+            view.annotation = annotation
+            return view
+        }
+
+        // Helper: approximate region equality with tolerance to prevent jitter loops
+        private func regionsAreEqual(_ a: MKCoordinateRegion, _ b: MKCoordinateRegion) -> Bool {
+            let latEps  = 0.00001
+            let lonEps  = 0.00001
+            let spanLatEps = 0.0005
+            let spanLonEps = 0.0005
+            return abs(a.center.latitude  - b.center.latitude)  < latEps &&
+                   abs(a.center.longitude - b.center.longitude) < lonEps &&
+                   abs(a.span.latitudeDelta  - b.span.latitudeDelta)  < spanLatEps &&
+                   abs(a.span.longitudeDelta - b.span.longitudeDelta) < spanLonEps
         }
     }
 }

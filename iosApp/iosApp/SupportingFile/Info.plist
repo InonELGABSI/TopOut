@@ -52,7 +52,16 @@
 	<string>TopOut needs continuous location access to track your climbing sessions in the background, even when the app is not actively in use.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>TopOut needs background location access to continue tracking your climbing session when the app is minimized.</string>
-	<key>UIBackgroundModes</key>
+    <key>NSLocationTemporaryUsageDescriptionDictionary</key>
+    <dict>
+        <key>PrecisePurpose</key>
+        <string>TopOut needs your precise location to accurately track climbing routes and elevation.</string>
+    </dict>
+    <!-- Motion (accelerometer / barometer) access explanation -->
+    <key>NSMotionUsageDescription</key>
+    <string>TopOut uses motion and barometer data to compute elevation gain and movement metrics during climbing sessions.</string>
+
+    <key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
 		<string>background-processing</string>
@@ -61,5 +70,14 @@
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
+
+    <!-- Optional future keys template:
+         NSUserTrackingUsageDescription
+         NSBluetoothAlwaysUsageDescription
+         NSCameraUsageDescription
+         NSPhotoLibraryAddUsageDescription
+         NSMicrophoneUsageDescription
+         NSHealthShareUsageDescription / NSHealthUpdateUsageDescription
+         Add only when related features are implemented. -->
 </dict>
 </plist>
