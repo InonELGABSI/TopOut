@@ -13,6 +13,8 @@ import platform.darwin.NSObject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import co.touchlab.kermit.Logger
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 /**
  * Koin-safe wrapper for location functionality that delegates to CoreLocationDelegate
@@ -21,7 +23,19 @@ actual class LocationProvider {
     private val delegate = CoreLocationDelegate()
 
     actual suspend fun getLocation(): LocationData {
-        return delegate.getLocation()
+        return delegate.getSingleLocation()
+    }
+
+    fun locationFlow(): Flow<LocationData> {
+        return delegate.locationFlow()
+    }
+
+    fun startUpdatingLocation() {
+        delegate.startUpdatingLocation()
+    }
+
+    fun stopUpdatingLocation() {
+        delegate.stopUpdatingLocation()
     }
 }
 
@@ -32,16 +46,25 @@ actual class LocationProvider {
 private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtocol {
 
     private val manager = CLLocationManager().apply {
-        desiredAccuracy = kCLLocationAccuracyBest      // ≤10 m when hardware allows (matches Android PRIORITY_HIGH_ACCURACY)
-        distanceFilter  = kCLDistanceFilterNone
+        desiredAccuracy = kCLLocationAccuracyBest
+        distanceFilter = 5.0 // Update every 5 meters to conserve battery
+        allowsBackgroundLocationUpdates = true
+        pausesLocationUpdatesAutomatically = false
     }
 
     private val log = Logger.withTag("LocationProvider")
-    private var cont: kotlinx.coroutines.CancellableContinuation<LocationData>? = null
-    private var hasRequestedFreshLocation = false
+    private var singleLocationCont: kotlinx.coroutines.CancellableContinuation<LocationData>? = null
+
+    private val _locationFlow = MutableSharedFlow<LocationData>(replay = 1)
+
+    init {
+        manager.delegate = this
+    }
+
+    fun locationFlow(): Flow<LocationData> = _locationFlow
 
     @OptIn(ExperimentalForeignApi::class)
-    suspend fun getLocation(): LocationData {
+    suspend fun getSingleLocation(): LocationData {
         // Check if location services are enabled
         if (!CLLocationManager.locationServicesEnabled()) {
             throw IllegalStateException("Location services disabled")
@@ -50,8 +73,7 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
         // Get location with a 5-second timeout (iOS best practice to prevent hangs)
         return withTimeout(5_000) {
             suspendCancellableCoroutine { continuation ->
-                cont = continuation
-                hasRequestedFreshLocation = false
+                singleLocationCont = continuation
 
                 // Set up delegate to receive location updates
                 manager.delegate = this@CoreLocationDelegate
@@ -60,7 +82,6 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
                 when (CLLocationManager.authorizationStatus()) {
                     kCLAuthorizationStatusNotDetermined -> {
                         manager.requestWhenInUseAuthorization()
-                        // Will call requestLocation() in locationManagerDidChangeAuthorization
                     }
                     kCLAuthorizationStatusDenied,
                     kCLAuthorizationStatusRestricted -> {
@@ -70,26 +91,32 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
                     }
                     else -> {
                         // Already authorized
-                        requestFreshLocation()
+                        manager.requestLocation()
                     }
                 }
 
                 // Clean up resources when coroutine is cancelled
                 continuation.invokeOnCancellation {
                     log.d { "Location request cancelled" }
-                    manager.stopUpdatingLocation()
-                    manager.delegate = null
-                    cont = null
+                    singleLocationCont = null
                 }
             }
         }
     }
 
-    private fun requestFreshLocation() {
-        hasRequestedFreshLocation = true
-        // iOS best practice: use requestLocation() for one-time location requests
-        // instead of startUpdatingLocation() + stopUpdatingLocation()
-        manager.requestLocation()
+    fun startUpdatingLocation() {
+        log.i { "Starting continuous location updates" }
+        when (CLLocationManager.authorizationStatus()) {
+            kCLAuthorizationStatusNotDetermined -> manager.requestAlwaysAuthorization()
+            kCLAuthorizationStatusAuthorizedWhenInUse -> manager.requestAlwaysAuthorization()
+            kCLAuthorizationStatusAuthorizedAlways -> manager.startUpdatingLocation()
+            else -> log.e { "Location permission not granted for background updates." }
+        }
+    }
+
+    fun stopUpdatingLocation() {
+        log.i { "Stopping continuous location updates" }
+        manager.stopUpdatingLocation()
     }
 
     /* ────── CLLocationManagerDelegate Methods ────── */
@@ -118,8 +145,11 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
         )
 
         // Complete the coroutine and clean up
-        cont?.resume(locationData)
-        cleanup()
+        singleLocationCont?.resume(locationData)
+        singleLocationCont = null
+
+        // Emit to flow for continuous listeners
+        _locationFlow.tryEmit(locationData)
     }
 
     @OptIn(ExperimentalForeignApi::class)
@@ -130,53 +160,50 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
         log.e { "Location error: ${didFailWithError.localizedDescription}" }
 
         // iOS best practice: try to use cached location as fallback
-        if (hasRequestedFreshLocation) {
-            manager.location?.let { cachedLocation ->
-                val (lat, lon) = cachedLocation.coordinate.useContents {
-                    latitude to longitude
-                }
-
-                val locationData = LocationData(
-                    lat = lat,
-                    lon = lon,
-                    altitude = if (cachedLocation.verticalAccuracy >= 0) cachedLocation.altitude else 0.0,
-                    speed = if (cachedLocation.horizontalAccuracy >= 0) cachedLocation.speed.toFloat() else 0f,
-                    ts = (NSDate().timeIntervalSince1970 * 1000).toLong()
-                )
-
-                log.i { "Using cached location as fallback" }
-                cont?.resume(locationData)
-                cleanup()
-                return
+        manager.location?.let { cachedLocation ->
+            val (lat, lon) = cachedLocation.coordinate.useContents {
+                latitude to longitude
             }
+
+            val locationData = LocationData(
+                lat = lat,
+                lon = lon,
+                altitude = if (cachedLocation.verticalAccuracy >= 0) cachedLocation.altitude else 0.0,
+                speed = if (cachedLocation.horizontalAccuracy >= 0) cachedLocation.speed.toFloat() else 0f,
+                ts = (NSDate().timeIntervalSince1970 * 1000).toLong()
+            )
+
+            log.i { "Using cached location as fallback" }
+            singleLocationCont?.resume(locationData)
+            singleLocationCont = null
+            return
         }
 
+
         // No fallback available
-        cont?.resumeWithException(IllegalStateException("No location available"))
-        cleanup()
+        singleLocationCont?.resumeWithException(IllegalStateException("No location available"))
+        singleLocationCont = null
     }
 
     // iOS 14+ authorization callback
     override fun locationManagerDidChangeAuthorization(manager: CLLocationManager) {
-        if (cont == null) return
-
         when (manager.authorizationStatus) {
             kCLAuthorizationStatusAuthorizedWhenInUse,
             kCLAuthorizationStatusAuthorizedAlways -> {
-                requestFreshLocation()
+                if (singleLocationCont?.isActive == true) {
+                    manager.requestLocation()
+                }
+                // For continuous updates, we might need to start them if authorized now.
+                if (CLLocationManager.authorizationStatus() == kCLAuthorizationStatusAuthorizedAlways) {
+                    manager.startUpdatingLocation()
+                }
             }
             kCLAuthorizationStatusDenied,
             kCLAuthorizationStatusRestricted -> {
-                cont?.resumeWithException(IllegalStateException("Location permission not granted"))
-                cleanup()
+                singleLocationCont?.resumeWithException(IllegalStateException("Location permission not granted"))
+                singleLocationCont = null
             }
             else -> { /* Not determined yet */ }
         }
-    }
-
-    // iOS best practice: clean up resources in one place
-    private fun cleanup() {
-        manager.delegate = null
-        cont = null
     }
 }

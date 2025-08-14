@@ -35,7 +35,7 @@ actual class SensorDataSource(
     actual val locFlow  : Flow<LocationData> get() = _locFlow
 
     private var scope: CoroutineScope? = null
-    private var locationDelegate: BackgroundLocationDelegate? = null
+    private var locationJob: Job? = null
 
     actual fun start(scope: CoroutineScope) {
         log.i { "start() with scope: ${scope}" }
@@ -70,132 +70,20 @@ actual class SensorDataSource(
     }
 
     private fun startLocationTracking(scope: CoroutineScope) {
-        locationDelegate = BackgroundLocationDelegate { locationData ->
-            scope.launch {
-                try {
-                    _locFlow.emit(locationData)
-                    log.d { "Background location: ${locationData.lat}, ${locationData.lon}" }
-                } catch (e: Exception) {
-                    log.w { "Failed to emit location: ${e.message}" }
-                }
+        locationJob = scope.launch {
+            locProvider.locationFlow().collect { locationData ->
+                _locFlow.emit(locationData)
             }
         }
-
-        locationDelegate?.startBackgroundLocationUpdates()
-
-        // Fallback mechanism similar to Android
-        scope.launch {
-            delay(5000) // Wait 5 seconds for CoreLocation to start
-            while (isActive) {
-                try {
-                    // Only use fallback if we haven't received location in a while
-                    val freshLocation = locProvider.getLocation()
-                    _locFlow.emit(freshLocation)
-                    log.d { "Fallback location update: ${freshLocation.lat}, ${freshLocation.lon}" }
-                } catch (e: Exception) {
-                    log.w { "Fallback location failed: ${e.message}" }
-                }
-                delay(5000) // Less frequent fallback
-            }
-        }
+        locProvider.startUpdatingLocation()
     }
 
     actual fun stop() {
         log.i { "stop()" }
+        locationJob?.cancel()
+        locationJob = null
+        locProvider.stopUpdatingLocation()
         scope?.cancel()
         scope = null
-        locationDelegate?.stopLocationUpdates()
-        locationDelegate = null
-    }
-}
-
-/**
- * Background location delegate for continuous location updates
- */
-private class BackgroundLocationDelegate(
-    private val onLocationUpdate: (LocationData) -> Unit
-) : NSObject(), CLLocationManagerDelegateProtocol {
-
-    private val log = Logger.withTag("BackgroundLocationDelegate")
-    private val manager = CLLocationManager().apply {
-        desiredAccuracy = kCLLocationAccuracyBest
-        distanceFilter = 5.0 // Update every 5 meters to conserve battery
-        // Enable background location updates
-        allowsBackgroundLocationUpdates = true
-        pausesLocationUpdatesAutomatically = false
-    }
-
-    init {
-        manager.delegate = this
-    }
-
-    fun startBackgroundLocationUpdates() {
-        log.i { "Starting background location updates" }
-
-        when (CLLocationManager.authorizationStatus()) {
-            kCLAuthorizationStatusNotDetermined -> {
-                manager.requestAlwaysAuthorization()
-            }
-            kCLAuthorizationStatusDenied,
-            kCLAuthorizationStatusRestricted -> {
-                log.e { "Location permission denied" }
-            }
-            kCLAuthorizationStatusAuthorizedWhenInUse -> {
-                // Request always authorization for background
-                manager.requestAlwaysAuthorization()
-            }
-            kCLAuthorizationStatusAuthorizedAlways -> {
-                manager.startUpdatingLocation()
-            }
-        }
-    }
-
-    fun stopLocationUpdates() {
-        log.i { "Stopping location updates" }
-        manager.stopUpdatingLocation()
-        manager.delegate = null
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    override fun locationManager(
-        manager: CLLocationManager,
-        didUpdateLocations: List<*>
-    ) {
-        val location = didUpdateLocations.lastOrNull() as? CLLocation ?: return
-
-        val (lat, lon) = location.coordinate.useContents {
-            latitude to longitude
-        }
-
-        val locationData = LocationData(
-            lat = lat,
-            lon = lon,
-            altitude = if (location.verticalAccuracy >= 0) location.altitude else 0.0,
-            speed = if (location.horizontalAccuracy >= 0) location.speed.toFloat() else 0f,
-            ts = (NSDate().timeIntervalSince1970 * 1000).toLong()
-        )
-
-        onLocationUpdate(locationData)
-    }
-
-    override fun locationManager(
-        manager: CLLocationManager,
-        didFailWithError: NSError
-    ) {
-        log.e { "Background location error: ${didFailWithError.localizedDescription}" }
-    }
-
-    override fun locationManagerDidChangeAuthorization(manager: CLLocationManager) {
-        log.i { "Authorization changed: ${CLLocationManager.authorizationStatus()}" }
-
-        when (CLLocationManager.authorizationStatus()) {
-            kCLAuthorizationStatusAuthorizedAlways,
-            kCLAuthorizationStatusAuthorizedWhenInUse -> {
-                manager.startUpdatingLocation()
-            }
-            else -> {
-                log.w { "Location authorization not granted for background updates" }
-            }
-        }
     }
 }
