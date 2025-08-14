@@ -13,6 +13,7 @@ struct ActiveSessionContent: View {
     let onResumeClicked:   () -> Void
     let isPaused:          Bool
     let theme:            AppTheme
+    @State private var isFollowingLast = true   // NEW: controls auto-follow
 
     private let overlap: CGFloat = 18   // live panel rises 18 pt under map
     
