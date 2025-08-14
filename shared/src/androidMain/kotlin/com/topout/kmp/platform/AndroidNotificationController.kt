@@ -1,0 +1,104 @@
+package com.topout.kmp.platform
+
+import android.annotation.SuppressLint
+import android.content.Context
+import com.topout.kmp.models.AlertType
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+
+/**
+ * Android-specific actual implementation of NotificationController
+ */
+actual class NotificationController(private val context: Context) {
+
+    companion object {
+        private const val GENERAL_CHANNEL_ID = "topout_general_channel"
+    }
+
+    actual fun sendAlertNotification(alertType: AlertType, title: String, message: String): Boolean {
+        // Check permissions first
+        if (!areNotificationsEnabled()) {
+            return false
+        }
+
+        return try {
+            sendPushNotification(
+                context = context,
+                title = title,
+                message = message,
+                notificationId = alertType.hashCode()
+            )
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    actual fun sendNotification(title: String, message: String): Boolean {
+        // Check permissions first
+        if (!areNotificationsEnabled()) {
+            return false
+        }
+
+        return try {
+            sendPushNotification(
+                context = context,
+                title = title,
+                message = message
+            )
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    actual fun areNotificationsEnabled(): Boolean {
+        // For Android 13+ (API 33+), check POST_NOTIFICATIONS permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return ActivityCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+
+        // For older versions, check if notifications are enabled in NotificationManager
+        return NotificationManagerCompat.from(context).areNotificationsEnabled()
+    }
+
+    actual suspend fun requestNotificationPermission(): Boolean {
+        // On Android, permissions are requested through the Activity
+        // This is handled in MainActivity, so we just return current status
+        return areNotificationsEnabled()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun sendPushNotification(
+        context: Context,
+        title: String,
+        message: String,
+        notificationId: Int = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
+    ) {
+        // Double-check permission before sending notification (API 33+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val permissionGranted = ActivityCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (!permissionGranted) {
+                return
+            }
+        }
+
+        val builder = NotificationCompat.Builder(context, GENERAL_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info) // Use system icon as fallback
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+        NotificationManagerCompat.from(context).notify(notificationId, builder.build())
+    }
+}

@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import co.touchlab.kermit.Logger
 import com.topout.kmp.data.user.UserRepository
+import com.topout.kmp.platform.NotificationController
 import com.topout.kmp.platform.SessionBackgroundManager
 
 
@@ -19,7 +20,8 @@ class LiveSessionManager(
     private val sensors      : SensorDataSource,
     private val scope        : CoroutineScope,
     private val localUserRepository: UserRepository,
-    private val sessionBackgroundManager: SessionBackgroundManager
+    private val sessionBackgroundManager: SessionBackgroundManager,
+    private val notificationController: NotificationController? = null
 ) {
     private val log = Logger.withTag("LiveSessionManager")
     private var tracker: SessionTracker? = null
@@ -64,6 +66,7 @@ class LiveSessionManager(
                 // Log user thresholds for debugging
                 user?.let {
                     log.i { "Using user thresholds - Height: ${it.relativeHeightFromStartThr}, Total: ${it.totalHeightFromStartThr}, Speed: ${it.currentAvgHeightSpeedThr}" }
+                    log.i { "Notifications enabled: ${it.enabledNotifications}" }
                 } ?: log.i { "Using default thresholds (no user preferences found)" }
 
                 // Fresh aggregator for each session - USE BACKGROUND SCOPE
@@ -75,9 +78,18 @@ class LiveSessionManager(
                 )
                 aggregator.setSessionId(sessionId)
                 aggregator.start(effectiveScope) // Use background scope here too
+                this.aggregator = aggregator
 
                 // SessionTracker should also use background scope to survive app lifecycle
-                tracker = SessionTracker(sessionId, aggregator, dao, effectiveScope, user).apply { start() }
+                tracker = SessionTracker(
+                    sessionId = sessionId,
+                    aggregator = aggregator,
+                    dao = dao,
+                    scope = effectiveScope,
+                    user = user,
+                    notificationController = notificationController
+                ).apply { start() }
+
                 tracker!!.trackPointFlow
             }
             is Result.Failure -> {
@@ -89,10 +101,9 @@ class LiveSessionManager(
     fun stop() {
         tracker?.stop()
         tracker = null
-        aggregator?.stop()   // <-- cleanup!
+        aggregator?.stop()
         aggregator = null
         sensors.stop()
-        // aggregator will be GC'd with tracker, nothing to stop here
     }
 
     fun pause() { tracker?.pause() }

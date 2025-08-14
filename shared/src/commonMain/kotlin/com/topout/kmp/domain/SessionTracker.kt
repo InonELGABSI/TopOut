@@ -6,6 +6,7 @@ import com.topout.kmp.models.AlertType
 import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.models.User
 import com.topout.kmp.data.sensors.SensorAggregator
+import com.topout.kmp.platform.NotificationController
 import com.topout.kmp.utils.RateCalculator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -18,7 +19,8 @@ class SessionTracker(
     private val aggregator: SensorAggregator,
     private val dao: TrackPointsDao,
     private val scope: CoroutineScope,
-    private val user: User? = null // Add user preferences
+    private val user: User? = null, // Add user preferences
+    private val notificationController: NotificationController? = null
 ) {
     private val startAltitude = MutableStateFlow<Double?>(null)
     private var lastAlt: Double? = null
@@ -35,6 +37,9 @@ class SessionTracker(
     private var log = Logger.withTag("SessionTracker")
 
     private val paused = MutableStateFlow(false)
+
+    // Track which alert types have already been notified for this session
+    private val notifiedAlertTypes = mutableSetOf<AlertType>()
 
     fun pause() { paused.value = true }
     fun resume() { paused.value = false }
@@ -81,25 +86,30 @@ class SessionTracker(
                 val totalHeightThreshold = user?.totalHeightFromStartThr ?: 0.0
                 val avgSpeedThreshold = user?.currentAvgHeightSpeedThr ?: 600.0
 
-                // Enhanced danger detection using user thresholds
-                val danger = checkDangerConditions(
-                    vVert = vVert,
-                    relAltitude = relAltitude,
-                    totalHeight = alt ?: 0.0,
-                    avgVert = avgVert,
-                    relativeHeightThreshold = relativeHeightThreshold,
-                    totalHeightThreshold = totalHeightThreshold,
-                    avgSpeedThreshold = avgSpeedThreshold
-                )
+                // Check all applicable alert types for this track point
+                val triggeredAlerts = mutableListOf<AlertType>()
 
-                val alertType = determineAlertType(
-                    relAltitude = relAltitude,
-                    totalHeight = alt ?: 0.0,
-                    avgVert = avgVert,
-                    relativeHeightThreshold = relativeHeightThreshold,
-                    totalHeightThreshold = totalHeightThreshold,
-                    avgSpeedThreshold = avgSpeedThreshold
-                )
+                // Check average vertical speed threshold
+                if (kotlin.math.abs(avgVert) > avgSpeedThreshold) {
+                    triggeredAlerts.add(AlertType.RAPID_ASCENT)
+                    log.i { "Speed threshold exceeded: avgVert=${avgVert}, threshold=${avgSpeedThreshold}" }
+                }
+
+                // Check relative altitude threshold (if user has set it)
+                if (relativeHeightThreshold > 0.0 && kotlin.math.abs(relAltitude) > relativeHeightThreshold) {
+                    triggeredAlerts.add(AlertType.RELATIVE_HEIGHT_EXCEEDED)
+                    log.i { "Relative height threshold exceeded: relAltitude=${relAltitude}, threshold=${relativeHeightThreshold}" }
+                }
+
+                // Check total height threshold (if user has set it)
+                if (totalHeightThreshold > 0.0 && gain > totalHeightThreshold) {
+                    triggeredAlerts.add(AlertType.TOTAL_HEIGHT_EXCEEDED)
+                    log.i { "Total height threshold exceeded: totalHeight=${gain}, threshold=${totalHeightThreshold}" }
+                }
+
+                // Determine if any danger exists and primary alert type for metrics
+                val danger = triggeredAlerts.isNotEmpty()
+                val primaryAlertType = triggeredAlerts.firstOrNull() ?: AlertType.NONE
 
                 val newMetrics = Metrics(
                     vVertical = vVert,
@@ -110,7 +120,7 @@ class SessionTracker(
                     relAltitude = relAltitude,
                     avgVertical = avgVert,
                     danger = danger,
-                    alertType = alertType
+                    alertType = primaryAlertType
                 )
 
                 // Build and persist TrackPoint
@@ -131,7 +141,7 @@ class SessionTracker(
                     relAltitude = relAltitude,
                     avgVertical = avgVert,
                     danger = danger,
-                    alertType = alertType
+                    alertType = primaryAlertType
                 )
                 dao.insertTrackPoint(
                     sessionId = trackPoint.sessionId,
@@ -145,53 +155,83 @@ class SessionTracker(
                     metrics = newMetrics
                 )
 
+                // Send notifications for ALL triggered alerts that haven't been sent yet
+                triggeredAlerts.forEach { alertType ->
+                    if (!notifiedAlertTypes.contains(alertType)) {
+                        sendNotificationIfNeeded(alertType, relAltitude, gain, avgVert)
+                    }
+                }
+
                 _trackPointFlow.emit(trackPoint)
             }
         }
     }
 
-    private fun checkDangerConditions(
-        vVert: Double,
+    private fun sendNotificationIfNeeded(
+        alertType: AlertType,
         relAltitude: Double,
         totalHeight: Double,
-        avgVert: Double,
-        relativeHeightThreshold: Double,
-        totalHeightThreshold: Double,
-        avgSpeedThreshold: Double
-    ): Boolean {
-        return when {
-            // Check vertical speed threshold
-            kotlin.math.abs(vVert) > avgSpeedThreshold -> true
-            // Check relative altitude threshold (if user has set it)
-            relativeHeightThreshold > 0.0 && kotlin.math.abs(relAltitude) > relativeHeightThreshold -> true
-            // Check total height threshold (if user has set it)
-            totalHeightThreshold > 0.0 && totalHeight > totalHeightThreshold -> true
-            else -> false
+        avgVert: Double
+    ) {
+        // Only send notifications if:
+        // 1. We haven't sent one for this session yet
+        // 2. The user has enabled notifications
+        // 3. We have a notification controller
+        // 4. The alert type is not NONE
+        if (notifiedAlertTypes.contains(alertType) || alertType == AlertType.NONE) {
+            return
+        }
+
+        val notificationsEnabled = user?.enabledNotifications ?: false
+        if (!notificationsEnabled || notificationController == null) {
+            return
+        }
+
+        // Check system notification permissions
+        if (!notificationController.areNotificationsEnabled()) {
+            return
+        }
+
+        // Generate notification content based on the alert type
+        val (title, message) = generateNotificationContent(alertType, relAltitude, totalHeight, avgVert)
+
+        // Send the notification
+        val sent = notificationController.sendAlertNotification(alertType, title, message)
+        if (sent) {
+            notifiedAlertTypes.add(alertType)
+            log.i { "Notification sent for session $sessionId with alert type $alertType" }
         }
     }
 
-    private fun determineAlertType(
+    private fun generateNotificationContent(
+        alertType: AlertType,
         relAltitude: Double,
         totalHeight: Double,
-        avgVert: Double,
-        relativeHeightThreshold: Double,
-        totalHeightThreshold: Double,
-        avgSpeedThreshold: Double
-    ): AlertType {
-        return when {
-            // Priority 1: Rapid vertical speed alerts (most critical)
-            avgVert > avgSpeedThreshold -> AlertType.RAPID_ASCENT
-            avgVert < -avgSpeedThreshold -> AlertType.RAPID_DESCENT
-
-            // Priority 2: Relative height from start threshold
-            relativeHeightThreshold > 0.0 && kotlin.math.abs(relAltitude) > relativeHeightThreshold ->
-                AlertType.RELATIVE_HEIGHT_EXCEEDED
-
-            // Priority 3: Total height threshold
-            totalHeightThreshold > 0.0 && totalHeight > totalHeightThreshold ->
-                AlertType.TOTAL_HEIGHT_EXCEEDED
-
-            else -> AlertType.NONE
+        avgVert: Double
+    ): Pair<String, String> {
+        return when (alertType) {
+            AlertType.RAPID_ASCENT -> {
+                // This now represents the Average Speed threshold (both ascent/descent)
+                val direction = if (avgVert > 0) "climbing" else "descending"
+                val speed = kotlin.math.abs(avgVert.toInt())
+                Pair(
+                    "Speed Alert",
+                    "You're $direction at $speed m/min, which exceeds your average speed threshold."
+                )
+            }
+            AlertType.RELATIVE_HEIGHT_EXCEEDED -> {
+                Pair(
+                    "Height Alert",
+                    "You've reached ${relAltitude.toInt()} m above your starting point, exceeding your relative height threshold."
+                )
+            }
+            AlertType.TOTAL_HEIGHT_EXCEEDED -> {
+                Pair(
+                    "Total Climb Alert",
+                    "You've climbed a total of ${totalHeight.toInt()} m during this session, exceeding your total height threshold."
+                )
+            }
+            else -> Pair("Climbing Alert", "A threshold has been exceeded in your climbing session.")
         }
     }
 
@@ -199,5 +239,7 @@ class SessionTracker(
         log.i { "stop() for session $sessionId" }
         collectJob?.cancel()
         collectJob = null
+        // Reset notification sent status when stopping
+        notifiedAlertTypes.clear()
     }
 }
