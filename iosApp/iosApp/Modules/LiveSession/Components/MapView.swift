@@ -1,6 +1,7 @@
 import SwiftUI
 import MapKit
 import Shared
+import UIKit
 
 /// SwiftUI wrapper around MKMapView optimized for live tracks.
 struct MapView: UIViewRepresentable {
@@ -181,7 +182,14 @@ struct MapView: UIViewRepresentable {
 
         init(_ parent: MapView) {
             self.parent = parent
+            super.init()
+            // Observe app lifecycle to restore map interactivity after backgrounding.
+            NotificationCenter.default.addObserver(self,
+                                                   selector: #selector(appDidBecomeActive),
+                                                   name: UIApplication.didBecomeActiveNotification,
+                                                   object: nil)
         }
+        deinit { NotificationCenter.default.removeObserver(self) }
 
         // Pause follow if the user pans/zooms (delegate-driven, not by poking recognizers)
         func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
@@ -253,6 +261,26 @@ struct MapView: UIViewRepresentable {
                    abs(a.center.longitude - b.center.longitude) < lonEps &&
                    abs(a.span.latitudeDelta  - b.span.latitudeDelta)  < spanLatEps &&
                    abs(a.span.longitudeDelta - b.span.longitudeDelta) < spanLonEps
+        }
+
+        @objc private func appDidBecomeActive() {
+            guard let mapView else { return }
+            // Re-enable gesture recognizers (some iOS versions exhibit a dormant state after resume).
+            mapView.isUserInteractionEnabled = true
+            mapView.isScrollEnabled = true
+            mapView.isZoomEnabled = true
+            mapView.isRotateEnabled = true
+            mapView.isPitchEnabled = true
+            mapView.gestureRecognizers?.forEach { $0.isEnabled = true }
+            // Ensure delegate still set (defensive) & overlays present.
+            if mapView.delegate == nil { mapView.delegate = self }
+            // Re-apply region silently if map got desynced.
+            let desired = parent.region
+            if !regionsAreEqual(mapView.region, desired) {
+                isProgrammaticChange = true
+                mapView.setRegion(desired, animated: false)
+                DispatchQueue.main.async { [weak self] in self?.isProgrammaticChange = false }
+            }
         }
     }
 }
