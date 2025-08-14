@@ -7,7 +7,7 @@ struct MapView: UIViewRepresentable {
     @Binding var region: MKCoordinateRegion
 
     // Add this if you want to show the End annotation
-    let showEndAnnotation: Bool = true
+    let showEndAnnotation: Bool = false
     // Optional: Only auto-center if this is true
     var followLastPoint: Bool = true
 
@@ -149,23 +149,23 @@ struct MapView: UIViewRepresentable {
                 mapView.addAnnotation(endAnnotation)
             }
 
-            // Keep last coordinate for the "focus tail" button
-            context.coordinator.lastCoordinate = coordinates.last
+            // Always keep last coordinate for the "focus tail" button and location updates
+            // This ensures location updates happen regardless of whether the End marker is shown
+            if let last = coordinates.last {
+                context.coordinator.lastCoordinate = last
 
-            // Only recenter if follow is enabled and the cooldown has passed
-            if followLastPoint,
-               let last = coordinates.last,
-               Date() >= context.coordinator.suppressAutoCenterUntil {
+                // Only recenter if follow is enabled and the cooldown has passed
+                if followLastPoint && Date() >= context.coordinator.suppressAutoCenterUntil {
+                    // distance threshold so we don't spam small moves
+                    let dist = CLLocation(latitude: last.latitude, longitude: last.longitude)
+                        .distance(from: CLLocation(latitude: region.center.latitude, longitude: region.center.longitude))
 
-                // distance threshold so we don’t spam small moves
-                let dist = CLLocation(latitude: last.latitude, longitude: last.longitude)
-                    .distance(from: CLLocation(latitude: region.center.latitude, longitude: region.center.longitude))
-
-                if dist > 5 {
-                    // Use the *current* span (kept in sync), so zoom is preserved
-                    let newRegion = MKCoordinateRegion(center: last, span: region.span)
-                    region = newRegion
-                    mapView.setRegion(newRegion, animated: true) // only center changes; span stays
+                    if dist > 5 {
+                        // Use the *current* span (kept in sync), so zoom is preserved
+                        let newRegion = MKCoordinateRegion(center: last, span: region.span)
+                        region = newRegion
+                        mapView.setRegion(newRegion, animated: true) // only center changes; span stays
+                    }
                 }
             }
         }
