@@ -24,11 +24,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import com.topout.kmp.ui.theme.ThemePalette
 import com.topout.kmp.ui.theme.TopOutTheme
 import com.topout.kmp.features.settings.SettingsState
 import com.topout.kmp.features.settings.SettingsViewModel
 import com.topout.kmp.models.User
+import com.topout.kmp.platform.NotificationController
 import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import com.topout.kmp.shared_components.BottomRoundedCard
 import com.topout.kmp.shared_components.SessionToast
@@ -37,6 +39,7 @@ import com.topout.kmp.LocalThemeState
 import com.topout.kmp.LocalThemeUpdater
 import com.topout.kmp.shared_components.LottieToggleButton
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -885,6 +888,8 @@ fun NotificationToggle(
     onToggle: (Boolean) -> Unit,
     isEditing: Boolean
 ) {
+    val notificationController = koinInject<NotificationController>()
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -904,7 +909,16 @@ fun NotificationToggle(
 
         Switch(
             checked = enabled,
-            onCheckedChange = onToggle,
+            onCheckedChange = { newValue ->
+                onToggle(newValue)
+                // Send welcome notification when enabling notifications
+                if (newValue && !enabled) {
+                    notificationController.sendNotification(
+                        title = "TopOut Notifications",
+                        message = "You are now receiving push notifications from TopOut"
+                    )
+                }
+            },
             enabled = isEditing
         )
     }
