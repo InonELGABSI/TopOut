@@ -21,6 +21,7 @@ import platform.Foundation.NSNotificationCenter
 import platform.UIKit.*
 import platform.darwin.NSObjectProtocol
 import platform.Foundation.NSDate
+import platform.Foundation.NSProcessInfo
 
 actual class LocationProvider {
     private val delegate = CoreLocationDelegate()
@@ -67,9 +68,21 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
     // Proactive stale refresh threshold
     private val staleMs = 10_000L
 
+    // Simulation handling
+    private val isSimulator = NSProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != null
+    private var simulationJump = 0
+    private val baseSimulationAltitude = 100.0
+
     init {
         manager.delegate = this
         log.i { "Init CoreLocationDelegate. Deferring status query until authorization callback" }
+
+        // Log simulation status
+        if (isSimulator) {
+            log.i { "Simulator detected: Altitude simulation enabled (base=${baseSimulationAltitude}m, increment=10m)" }
+        } else {
+            log.d { "Real device detected: Using actual GPS altitude data" }
+        }
 
         val center = NSNotificationCenter.defaultCenter
         didBecomeActiveObs = center.addObserverForName(
@@ -101,6 +114,11 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
             log.i { "Active tracking session ended" }
             updateBackgroundIndicator()
             adjustAccuracy(foreground = !isInBackground)
+            // Reset simulation jump counter for next session
+            if (isSimulator) {
+                simulationJump = 0
+                log.d { "Reset simulation jump counter for next session" }
+            }
         }
     }
 
@@ -265,12 +283,22 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
         val loc = (didUpdateLocations.lastOrNull() as? CLLocation) ?: return
         val (lat, lon) = loc.coordinate.useContents { latitude to longitude }
         val speedMps = if (loc.speed >= 0) loc.speed.toFloat() else 0f
-        val altitudeM = if (loc.verticalAccuracy >= 0) loc.altitude else 0.0
+
+        // Apply simulation altitude logic if running in simulator
+        val altitudeM = if (isSimulator) {
+            val simulatedAltitude = baseSimulationAltitude + (simulationJump * 10)
+            simulationJump++
+            log.d { "Simulator detected: Using simulated altitude=${simulatedAltitude}m (jump=${simulationJump-1})" }
+            simulatedAltitude
+        } else {
+            if (loc.verticalAccuracy >= 0) loc.altitude else 0.0
+        }
+
         val tsMs = (loc.timestamp.timeIntervalSince1970 * 1000).toLong()
         val hAcc = loc.horizontalAccuracy
         val ageMs = nowMs() - tsMs
         if (ageMs > 15_000) log.w { "Stale fix age=${ageMs}ms hAcc=$hAcc" }
-        log.i { "Location update lat=$lat lon=$lon hAcc=$hAcc speed=$speedMps ts=$tsMs src=${if (singleLocationCont!=null) "single" else "stream"}" }
+        log.i { "Location update lat=$lat lon=$lon hAcc=$hAcc speed=$speedMps altitude=$altitudeM ts=$tsMs src=${if (singleLocationCont!=null) "single" else "stream"}${if (isSimulator) " [SIM]" else ""}" }
         val locationData = LocationData(lat, lon, altitudeM, speedMps, tsMs)
         singleLocationCont?.let { cont -> cont.resume(locationData); singleLocationCont = null }
         retryCount = 0
@@ -318,9 +346,19 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
         manager.location?.let { cached ->
             val (lat, lon) = cached.coordinate.useContents { latitude to longitude }
             val speedMps = if (cached.speed >= 0) cached.speed.toFloat() else 0f
-            val altitudeM = if (cached.verticalAccuracy >= 0) cached.altitude else 0.0
+
+            // Apply simulation altitude logic for cached location too
+            val altitudeM = if (isSimulator) {
+                val simulatedAltitude = baseSimulationAltitude + (simulationJump * 10)
+                simulationJump++
+                log.d { "Simulator detected (cached): Using simulated altitude=${simulatedAltitude}m (jump=${simulationJump-1})" }
+                simulatedAltitude
+            } else {
+                if (cached.verticalAccuracy >= 0) cached.altitude else 0.0
+            }
+
             val tsMs = (cached.timestamp.timeIntervalSince1970 * 1000).toLong()
-            log.i { "Using cached fallback lat=$lat lon=$lon" }
+            log.i { "Using cached fallback lat=$lat lon=$lon altitude=$altitudeM${if (isSimulator) " [SIM]" else ""}" }
             singleLocationCont?.resume(LocationData(lat, lon, altitudeM, speedMps, tsMs))
             singleLocationCont = null
             return

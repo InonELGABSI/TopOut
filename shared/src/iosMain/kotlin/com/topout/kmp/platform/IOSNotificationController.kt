@@ -17,11 +17,26 @@ actual class NotificationController() {
 
     private val notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
 
+    // Cache of current authorization status (updated asynchronously)
+    private var authorizationGranted: Boolean = false
+
+    init {
+        refreshAuthorizationStatus()
+    }
+
+    private fun refreshAuthorizationStatus() {
+        notificationCenter.getNotificationSettingsWithCompletionHandler { settings ->
+            authorizationGranted = settings?.authorizationStatus == UNAuthorizationStatusAuthorized ||
+                settings?.authorizationStatus == UNAuthorizationStatusProvisional ||
+                settings?.authorizationStatus == UNAuthorizationStatusEphemeral
+        }
+    }
+
     actual fun sendAlertNotification(alertType: AlertType, title: String, message: String): Boolean {
         return sendNotificationInternal(
             title = title,
             message = message,
-            identifier = "alert_${alertType.name}_${getCurrentTimestamp()}"
+            identifier = "alert_${'$'}{alertType.name}_${'$'}{getCurrentTimestamp()}"
         )
     }
 
@@ -29,14 +44,13 @@ actual class NotificationController() {
         return sendNotificationInternal(
             title = title,
             message = message,
-            identifier = "general_${getCurrentTimestamp()}"
+            identifier = "general_${'$'}{getCurrentTimestamp()}"
         )
     }
 
     actual fun areNotificationsEnabled(): Boolean {
-        // This is a synchronous check - on iOS we need to be more careful
-        // For now, return true and let the actual notification request handle permission
-        return true
+        // Return cached value (async updated). Matches synchronous expect signature.
+        return authorizationGranted
     }
 
     actual suspend fun requestNotificationPermission(): Boolean = suspendCancellableCoroutine { continuation ->
@@ -45,6 +59,7 @@ actual class NotificationController() {
         notificationCenter.requestAuthorizationWithOptions(
             options = options.toULong()
         ) { granted, error ->
+            refreshAuthorizationStatus()
             dispatch_async(dispatch_get_main_queue()) {
                 if (continuation.isActive) {
                     continuation.resume(granted && error == null)
@@ -62,6 +77,8 @@ actual class NotificationController() {
         message: String,
         identifier: String
     ): Boolean {
+        // Guard: do not schedule if not authorized (avoid spamming request queue)
+        if (!areNotificationsEnabled()) return false
         return try {
             // Create notification content
             val content = UNMutableNotificationContent().apply {
@@ -86,13 +103,13 @@ actual class NotificationController() {
             // Add to notification center
             notificationCenter.addNotificationRequest(request) { error ->
                 if (error != null) {
-                    println("Failed to schedule notification: ${error.localizedDescription}")
+                    println("Failed to schedule notification: ${'$'}{error.localizedDescription}")
                 }
             }
 
             true
         } catch (e: Exception) {
-            println("Error sending iOS notification: ${e.message}")
+            println("Error sending iOS notification: ${'$'}{e.message}")
             false
         }
     }
