@@ -25,12 +25,19 @@ struct MapView: UIViewRepresentable {
 
         mapView.delegate = context.coordinator
         mapView.showsUserLocation = true
-        mapView.userTrackingMode  = .follow  // start in follow; turn off on user pan/zoom.
+        mapView.userTrackingMode  = .none // start free; custom focus will soft-follow.
 
         // Optional: keep zoom reasonable (prevents "lost in space")
-        // Adjust max/min to your product needs.
         if #available(iOS 13.0, *) {
-            mapView.setCameraZoomRange(MKMapView.CameraZoomRange(maxCenterCoordinateDistance: 50_000), animated: false)
+            if let zoomRange = MKMapView.CameraZoomRange(minCenterCoordinateDistance: 50,
+                                                         maxCenterCoordinateDistance: 50_000) {
+                mapView.setCameraZoomRange(zoomRange, animated: false)
+                context.coordinator.minZoomDistance = zoomRange.minCenterCoordinateDistance
+                context.coordinator.maxZoomDistance = zoomRange.maxCenterCoordinateDistance
+            } else {
+                context.coordinator.minZoomDistance = 50
+                context.coordinator.maxZoomDistance = 50_000
+            }
         }
 
         // Built-in Apple controls (compass, tracking, scale)
@@ -41,11 +48,70 @@ struct MapView: UIViewRepresentable {
         compass.compassVisibility = .adaptive
         mapView.addSubview(compass)
 
-        let tracking = MKUserTrackingButton(mapView: mapView)
-        tracking.translatesAutoresizingMaskIntoConstraints = false
-        tracking.layer.cornerRadius = 10
-        tracking.clipsToBounds = true
-        mapView.addSubview(tracking)
+        // Custom Focus (soft follow) button
+        let focusButton = UIButton(type: .system)
+        focusButton.translatesAutoresizingMaskIntoConstraints = false
+        focusButton.layer.cornerRadius = 10
+        focusButton.clipsToBounds = true
+        focusButton.accessibilityLabel = "Focus on current location"
+        focusButton.addTarget(context.coordinator, action: #selector(Coordinator.didTapFocus), for: .touchUpInside)
+        if #available(iOS 15.0, *) {
+            var config = UIButton.Configuration.plain()
+            config.image = UIImage(systemName: "location")
+            config.baseBackgroundColor = .secondarySystemBackground
+            config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+            focusButton.configuration = config
+            focusButton.layer.cornerRadius = 10
+        } else {
+            focusButton.backgroundColor = .secondarySystemBackground
+            focusButton.setImage(UIImage(systemName: "location"), for: .normal)
+            focusButton.tintColor = .label
+            focusButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        }
+        mapView.addSubview(focusButton)
+        context.coordinator.focusButton = focusButton
+
+        // Zoom buttons (+ / -) stacked vertically above the focus button
+        let zoomInButton = UIButton(type: .system)
+        zoomInButton.translatesAutoresizingMaskIntoConstraints = false
+        zoomInButton.accessibilityLabel = "Zoom in"
+        if #available(iOS 15.0, *) {
+            var config = UIButton.Configuration.plain()
+            config.image = UIImage(systemName: "plus")
+            config.baseBackgroundColor = .secondarySystemBackground
+            config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+            zoomInButton.configuration = config
+        } else {
+            zoomInButton.backgroundColor = .secondarySystemBackground
+            zoomInButton.setImage(UIImage(systemName: "plus"), for: .normal)
+            zoomInButton.tintColor = .label
+            zoomInButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        }
+        zoomInButton.layer.cornerRadius = 10
+        zoomInButton.addTarget(context.coordinator, action: #selector(Coordinator.didTapZoomIn), for: .touchUpInside)
+
+        let zoomOutButton = UIButton(type: .system)
+        zoomOutButton.translatesAutoresizingMaskIntoConstraints = false
+        zoomOutButton.accessibilityLabel = "Zoom out"
+        if #available(iOS 15.0, *) {
+            var config = UIButton.Configuration.plain()
+            config.image = UIImage(systemName: "minus")
+            config.baseBackgroundColor = .secondarySystemBackground
+            config.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+            zoomOutButton.configuration = config
+        } else {
+            zoomOutButton.backgroundColor = .secondarySystemBackground
+            zoomOutButton.setImage(UIImage(systemName: "minus"), for: .normal)
+            zoomOutButton.tintColor = .label
+            zoomOutButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        }
+        zoomOutButton.layer.cornerRadius = 10
+        zoomOutButton.addTarget(context.coordinator, action: #selector(Coordinator.didTapZoomOut), for: .touchUpInside)
+
+        mapView.addSubview(zoomInButton)
+        mapView.addSubview(zoomOutButton)
+        context.coordinator.zoomInButton = zoomInButton
+        context.coordinator.zoomOutButton = zoomOutButton
 
         let scale = MKScaleView(mapView: mapView)
         scale.translatesAutoresizingMaskIntoConstraints = false
@@ -54,18 +120,30 @@ struct MapView: UIViewRepresentable {
 
         // Layout with safe area
         NSLayoutConstraint.activate([
-            // Compass top-right
-            compass.topAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.topAnchor, constant: 12),
-            compass.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+                                        // Compass top-right
+                                        compass.topAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.topAnchor, constant: 12),
+                                        compass.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -12),
 
-            // Tracking below compass
-            tracking.topAnchor.constraint(equalTo: compass.bottomAnchor, constant: 12),
-            tracking.trailingAnchor.constraint(equalTo: compass.trailingAnchor),
+                                        // Focus button bottom-right
+                                        focusButton.trailingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+                                        focusButton.bottomAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.bottomAnchor, constant: -36),
 
-            // Scale bottom-left
-            scale.leadingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.leadingAnchor, constant: 12),
-            scale.bottomAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.bottomAnchor, constant: -36),
-        ])
+                                        // Zoom out just above focus
+                                        zoomOutButton.trailingAnchor.constraint(equalTo: focusButton.trailingAnchor),
+                                        zoomOutButton.bottomAnchor.constraint(equalTo: focusButton.topAnchor, constant: -12),
+
+                                        // Zoom in above zoom out
+                                        zoomInButton.trailingAnchor.constraint(equalTo: focusButton.trailingAnchor),
+                                        zoomInButton.bottomAnchor.constraint(equalTo: zoomOutButton.topAnchor, constant: -12),
+
+                                        // Equal sizes for buttons
+                                        zoomInButton.widthAnchor.constraint(equalTo: focusButton.widthAnchor),
+                                        zoomOutButton.widthAnchor.constraint(equalTo: focusButton.widthAnchor),
+
+                                        // Scale bottom-left
+                                        scale.leadingAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.leadingAnchor, constant: 12),
+                                        scale.bottomAnchor.constraint(equalTo: mapView.safeAreaLayoutGuide.bottomAnchor, constant: -36),
+                                    ])
 
         return mapView
     }
@@ -84,12 +162,12 @@ struct MapView: UIViewRepresentable {
         if coords.count > 1 {
             let lastChanged =
                 context.coordinator.polyline == nil ||
-                context.coordinator.polyline!.pointCount != coords.count ||
-                context.coordinator.lastCoordinate?.latitude  != coords.last!.latitude ||
-                context.coordinator.lastCoordinate?.longitude != coords.last!.longitude
+                    context.coordinator.polyline!.pointCount != coords.count ||
+                    context.coordinator.lastCoordinate?.latitude  != coords.last!.latitude ||
+                    context.coordinator.lastCoordinate?.longitude != coords.last!.longitude
 
             if lastChanged {
-                // Remove old polyline, add new (use geodesic if your tracks span long distances)
+                // Remove old polyline, add new
                 if let old = context.coordinator.polyline {
                     mapView.removeOverlay(old)
                 }
@@ -143,8 +221,9 @@ struct MapView: UIViewRepresentable {
             return
         }
 
-        // Auto-center if following, not within cooldown, and we actually moved
+        // Passive follow to last track point (only when NOT in user-focus mode)
         if followLastPoint,
+           !context.coordinator.isUserFocusEnabled,
            let last = context.coordinator.lastCoordinate,
            Date() >= context.coordinator.suppressAutoCenterUntil
         {
@@ -152,14 +231,20 @@ struct MapView: UIViewRepresentable {
             let dist = CLLocation(latitude: last.latitude, longitude: last.longitude)
                 .distance(from: CLLocation(latitude: center.latitude, longitude: center.longitude))
             if dist > 5 { // threshold to avoid jitter
-                // Preserve current zoom (span)
-                let newRegion = MKCoordinateRegion(center: last, span: mapView.region.span)
-                region = newRegion
+                // Update camera center only, keep distance/heading/pitch so zoom persists.
+                let cam = mapView.camera.copy() as! MKMapCamera
+                cam.centerCoordinate = last
                 context.coordinator.isProgrammaticChange = true
-                mapView.setRegion(newRegion, animated: true)
+                mapView.setCamera(cam, animated: true)
+                // Keep SwiftUI region binding center updated while leaving span untouched.
+                var newRegion = region
+                newRegion.center = last
+                region = newRegion
                 DispatchQueue.main.async { context.coordinator.isProgrammaticChange = false }
             }
         }
+
+        // ❌ Removed: no forcing .follow tracking mode here.
     }
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -180,6 +265,20 @@ struct MapView: UIViewRepresentable {
         var suppressAutoCenterUntil: Date = .distantPast
         var isProgrammaticChange = false
 
+        // Focus button
+        weak var focusButton: UIButton?
+        var isUserFocusEnabled: Bool = false { didSet { updateFocusUI() } }
+        var focusHasAdjustedZoom = false // retained but unused in soft-follow (safe to keep)
+
+        // Zoom buttons
+        weak var zoomInButton: UIButton?
+        weak var zoomOutButton: UIButton?
+        var minZoomDistance: CLLocationDistance = 50
+        var maxZoomDistance: CLLocationDistance = 50_000
+
+        // Last user zoom distance to preserve during soft-follow
+        var lastUserZoomDistance: CLLocationDistance?
+
         init(_ parent: MapView) {
             self.parent = parent
             super.init()
@@ -191,9 +290,13 @@ struct MapView: UIViewRepresentable {
         }
         deinit { NotificationCenter.default.removeObserver(self) }
 
-        // Pause follow if the user pans/zooms (delegate-driven, not by poking recognizers)
+        // Pause passive follow if the user pans/zooms (delegate-driven)
         func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
             if !isProgrammaticChange {
+                // Always remember the current zoom; reused while in focus mode.
+                lastUserZoomDistance = mapView.camera.centerCoordinateDistance
+            }
+            if !isProgrammaticChange && !isUserFocusEnabled {
                 suppressAutoCenterUntil = Date().addingTimeInterval(6) // grace window
                 mapView.setUserTrackingMode(.none, animated: true)
             }
@@ -201,17 +304,29 @@ struct MapView: UIViewRepresentable {
 
         // Keep SwiftUI binding in sync with the map's visible region
         func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-            // Avoid modifying SwiftUI state synchronously during view updates to silence runtime warning.
             let newRegion = mapView.region
-            // Skip if effectively unchanged to avoid feedback loop.
             if regionsAreEqual(newRegion, parent.region) { return }
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
-                // Double-check in case things changed again before dispatch executed.
                 if !self.regionsAreEqual(newRegion, self.parent.region) {
                     self.parent.region = newRegion
                 }
             }
+        }
+
+        // ✅ Soft-follow: recenter on user updates, preserving zoom distance.
+        func mapView(_ mapView: MKMapView, didUpdate userLocation: MKUserLocation) {
+            guard isUserFocusEnabled,
+                  CLLocationCoordinate2DIsValid(userLocation.coordinate) else { return }
+
+            let cam = mapView.camera.copy() as! MKMapCamera
+            cam.centerCoordinate = userLocation.coordinate
+            if let locked = lastUserZoomDistance {
+                cam.centerCoordinateDistance = locked
+            }
+            isProgrammaticChange = true
+            mapView.setCamera(cam, animated: true)
+            DispatchQueue.main.async { [weak self] in self?.isProgrammaticChange = false }
         }
 
         // Polyline renderer
@@ -258,29 +373,99 @@ struct MapView: UIViewRepresentable {
             let spanLatEps = 0.0005
             let spanLonEps = 0.0005
             return abs(a.center.latitude  - b.center.latitude)  < latEps &&
-                   abs(a.center.longitude - b.center.longitude) < lonEps &&
-                   abs(a.span.latitudeDelta  - b.span.latitudeDelta)  < spanLatEps &&
-                   abs(a.span.longitudeDelta - b.span.longitudeDelta) < spanLonEps
+                abs(a.center.longitude - b.center.longitude) < lonEps &&
+                abs(a.span.latitudeDelta  - b.span.latitudeDelta)  < spanLatEps &&
+                abs(a.span.longitudeDelta - b.span.longitudeDelta) < spanLonEps
+        }
+
+        // MARK: - Focus toggle (soft-follow)
+        @objc func didTapFocus() {
+            isUserFocusEnabled.toggle()
+            guard let mapView else { return }
+
+            if isUserFocusEnabled {
+                // If no locked zoom yet, capture current distance.
+                if lastUserZoomDistance == nil {
+                    lastUserZoomDistance = mapView.camera.centerCoordinateDistance
+                }
+                if let coord = mapView.userLocation.location?.coordinate,
+                   CLLocationCoordinate2DIsValid(coord) {
+                    let cam = mapView.camera.copy() as! MKMapCamera
+                    cam.centerCoordinate = coord
+                    if let locked = lastUserZoomDistance {
+                        cam.centerCoordinateDistance = locked
+                    }
+                    isProgrammaticChange = true
+                    mapView.setCamera(cam, animated: true)
+                    DispatchQueue.main.async { [weak self] in self?.isProgrammaticChange = false }
+                }
+            } else {
+                // Leaving focus: nothing special.
+            }
+        }
+
+        // MARK: - Zoom Handling
+        @objc func didTapZoomIn() { adjustZoom(factor: 0.5) }
+        @objc func didTapZoomOut() { adjustZoom(factor: 2.0) }
+
+        private func adjustZoom(factor: Double) {
+            guard let mapView else { return }
+            let currentDistance = mapView.camera.centerCoordinateDistance
+            var target = currentDistance * factor
+            target = max(minZoomDistance, min(maxZoomDistance, target))
+            guard abs(target - currentDistance) > 0.5 else { return }
+
+            let camera = mapView.camera.copy() as! MKMapCamera
+            camera.centerCoordinateDistance = target
+            isProgrammaticChange = true
+            mapView.setCamera(camera, animated: true)
+            DispatchQueue.main.async { [weak self] in self?.isProgrammaticChange = false }
+
+            // Remember this as the “locked” zoom for focus mode.
+            lastUserZoomDistance = target
+
+            // Keep SwiftUI region binding roughly in sync after animation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
+                guard let self, let mv = self.mapView else { return }
+                self.parent.region = mv.region
+            }
+        }
+
+        private func updateFocusUI() {
+            guard let button = focusButton else { return }
+            let imageName = isUserFocusEnabled ? "location.fill" : "location"
+            if #available(iOS 15.0, *) {
+                if var config = button.configuration {
+                    config.image = UIImage(systemName: imageName)
+                    config.baseForegroundColor = isUserFocusEnabled ? .systemBlue : .label
+                    button.configuration = config
+                }
+            } else {
+                button.setImage(UIImage(systemName: imageName), for: .normal)
+                button.tintColor = isUserFocusEnabled ? .systemBlue : .label
+            }
+            button.accessibilityValue = isUserFocusEnabled ? "On" : "Off"
         }
 
         @objc private func appDidBecomeActive() {
             guard let mapView else { return }
-            // Re-enable gesture recognizers (some iOS versions exhibit a dormant state after resume).
+            // Re-enable gesture recognizers (defensive)
             mapView.isUserInteractionEnabled = true
             mapView.isScrollEnabled = true
             mapView.isZoomEnabled = true
             mapView.isRotateEnabled = true
             mapView.isPitchEnabled = true
             mapView.gestureRecognizers?.forEach { $0.isEnabled = true }
-            // Ensure delegate still set (defensive) & overlays present.
             if mapView.delegate == nil { mapView.delegate = self }
-            // Re-apply region silently if map got desynced.
+
+            // Re-apply region silently if desynced.
             let desired = parent.region
             if !regionsAreEqual(mapView.region, desired) {
                 isProgrammaticChange = true
                 mapView.setRegion(desired, animated: false)
                 DispatchQueue.main.async { [weak self] in self?.isProgrammaticChange = false }
             }
+            updateFocusUI()
         }
     }
 }
