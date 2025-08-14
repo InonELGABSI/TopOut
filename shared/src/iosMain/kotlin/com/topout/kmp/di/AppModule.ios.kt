@@ -11,6 +11,7 @@ import com.topout.kmp.features.session_details.SessionDetailsViewModel
 import com.topout.kmp.features.sessions.SessionsViewModel
 import com.topout.kmp.features.settings.SettingsViewModel
 import com.topout.kmp.platform.SessionBackgroundManager
+import com.topout.kmp.platform.NotificationController
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.darwin.Darwin
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +32,9 @@ actual val platformModule = module {
 
     // Platform-specific session background manager (no-op on iOS)
     single<SessionBackgroundManager> { SessionBackgroundManager() }
+
+    // Platform-specific notification controller using expect/actual
+    single { NotificationController() }
 
     // Sensors - Platform-specific SensorDataSource
     single<SensorDataSource> { SensorDataSource(

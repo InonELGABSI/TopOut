@@ -85,7 +85,8 @@ val domainModule = module {
             sensors = get(),
             scope = scope,
             localUserRepository = get<LocalUserRepository>(),
-            sessionBackgroundManager = get()
+            sessionBackgroundManager = get(),
+            notificationController = getOrNull()
         )
     }
 

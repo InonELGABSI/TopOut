@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import com.topout.kmp.data.Result
 import com.topout.kmp.models.User
 
-class SettingsViewModel (
+class SettingsViewModel(
     val useCases: SettingsUseCases
 ) : BaseViewModel<SettingsState>() {
 
@@ -22,8 +22,9 @@ class SettingsViewModel (
         scope.launch {
             when (val result = useCases.getSettings()) {
                 is Result.Success -> {
-                    _uiState.emit(SettingsState.Loaded(result.data as User ))
+                    _uiState.emit(SettingsState.Loaded(result.data as User))
                 }
+
                 is Result.Failure -> {
                     _uiState.emit(SettingsState.Error(errorMessage = result.error?.message ?: "N/A"))
                 }
@@ -37,11 +38,18 @@ class SettingsViewModel (
                 is Result.Success -> {
                     _uiState.emit(SettingsState.Loaded(result.data as User))
                 }
+
                 is Result.Failure -> {
                     _uiState.emit(SettingsState.Error(errorMessage = result.error?.message ?: "Failed to update user"))
                 }
             }
         }
     }
-}
 
+    /**
+     * Called when user changes any preference (e.g. toggles notification setting)
+     */
+    fun onUserChanged(newUser: User) {
+        updateUser(newUser)
+    }
+}
