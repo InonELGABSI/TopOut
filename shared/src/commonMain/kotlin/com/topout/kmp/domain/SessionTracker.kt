@@ -106,7 +106,7 @@ class SessionTracker(
 
                 // Alerts
                 val triggered = mutableListOf<AlertType>()
-                if (abs(avgV * 60.0) > vThrMin) triggered.add(AlertType.RAPID_ASCENT)
+                if (abs(avgV) > vThrMin) triggered.add(AlertType.RAPID_ASCENT)
                 if (relThr > 0.0 && abs(relAltitude) > relThr) triggered.add(AlertType.RELATIVE_HEIGHT_EXCEEDED)
                 if (totalThr > 0.0 && gain > totalThr) triggered.add(AlertType.TOTAL_HEIGHT_EXCEEDED)
 
@@ -243,7 +243,7 @@ class SessionTracker(
         return when (alertType) {
             AlertType.RAPID_ASCENT -> {
                 val direction = if (avgVert > 0) "climbing" else "descending"
-                val speed = abs(avgVert * 60.0).toInt() // m/min
+                val speed = abs(avgVert).toInt() // m/min
                 "Speed Alert" to "You're $direction at $speed m/min, exceeding your average speed threshold."
             }
             AlertType.RELATIVE_HEIGHT_EXCEEDED ->
