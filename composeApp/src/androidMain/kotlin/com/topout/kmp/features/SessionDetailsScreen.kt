@@ -258,7 +258,7 @@ fun NewSessionDetailsContent(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Altitude over Time",
+                                    text = "MSE Altitude over Time",
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold
                                     )
@@ -548,12 +548,12 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
         ) {
             StatisticItemWithIcon(
                 icon = Icons.Default.KeyboardArrowUp,
-                label = "Max Altitude",
+                label = "Max MSE Altitude",
                 value = "%.1f m".format(maxAltitude)
             )
             StatisticItemWithIcon(
                 icon = Icons.Default.KeyboardArrowDown,
-                label = "Min Altitude",
+                label = "Min MSE Altitude",
                 value = "%.1f m".format(minAltitude)
             )
             StatisticItemWithIcon(

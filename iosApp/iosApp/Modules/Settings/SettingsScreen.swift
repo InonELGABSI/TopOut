@@ -472,21 +472,21 @@ struct ThresholdsCard: View {
             }
 
             ThresholdField(
-                label: "Relative Height Threshold",
+                label: "Height From Start Threshold",
                 value: $editableUser.relativeHeightFromStartThr,
                 isEditing: isEditing,
                 unit: editableUser.unitPreference,
                 theme: theme
             )
             ThresholdField(
-                label: "Total Height Threshold",
+                label: "Total Gain Threshold",
                 value: $editableUser.totalHeightFromStartThr,
                 isEditing: isEditing,
                 unit: editableUser.unitPreference,
                 theme: theme
             )
             ThresholdField(
-                label: "Average Speed Threshold",
+                label: "Average Vertical Speed Threshold",
                 value: $editableUser.currentAvgHeightSpeedThr,
                 isEditing: isEditing,
                 unit: "\(editableUser.unitPreference)/min",

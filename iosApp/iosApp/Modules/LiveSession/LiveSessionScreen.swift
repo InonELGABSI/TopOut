@@ -20,6 +20,8 @@ struct LiveSessionView: View {
     @State private var sessionToastVisible = false
     @State private var sessionToastMessage = ""
     @State private var sessionToastSuccess = true
+    // NEW: observable MSL state for UI updates
+    @State private var mslHeightState: MSLHeightState = MSLHeightState.Loading() // FIX: instantiate object
 
     @EnvironmentObject private var themeManager: AppThemeManager
     @Environment(\.appTheme) private var theme
@@ -101,7 +103,7 @@ struct LiveSessionView: View {
                     },
                     onRequestLocationPermission: { requestLocationPermission() },
                     onRefreshMSL:          { viewModel.viewModel.refreshMSLHeight() },
-                    mslHeightState:        viewModel.viewModel.mslHeightState.value,
+                    mslHeightState:        mslHeightState, // UPDATED to reactive state
                     theme:                 theme
                 )
 
@@ -218,11 +220,10 @@ struct LiveSessionView: View {
     private func onAppearSetup() {
         viewModel.startObserving()
         checkLocationPermission()
-        
-        Task {
+        // Observe UI state (existing logic)
+        Task { @MainActor in
             for await state in viewModel.viewModel.uiState {
-                if let loaded = state as? LiveSessionState.Loaded,
-                   loaded.trackPoint.danger {
+                if let loaded = state as? LiveSessionState.Loaded, loaded.trackPoint.danger {
                     let now = Int64(Date().timeIntervalSince1970 * 1000)
                     if !showDangerToast && (now - lastToastTimestamp) > 10_000 {
                         currentAlertType   = loaded.trackPoint.alertType
@@ -230,6 +231,12 @@ struct LiveSessionView: View {
                         lastToastTimestamp = now
                     }
                 }
+            }
+        }
+        // Observe MSL height state (NEW)
+        Task { @MainActor in
+            for await state in viewModel.viewModel.mslHeightState {
+                mslHeightState = state
             }
         }
     }

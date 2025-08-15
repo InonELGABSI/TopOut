@@ -464,7 +464,7 @@ fun ThresholdsCardContent(
             }
 
             ThresholdField(
-                label = "Relative Height Threshold",
+                label = "Height From Start Threshold",
                 value = user.relativeHeightFromStartThr ?: 0.0,
                 onValueChange = { onUserChange(user.copy(relativeHeightFromStartThr = it)) },
                 isEditing = isEditing,
@@ -472,7 +472,7 @@ fun ThresholdsCardContent(
             )
 
             ThresholdField(
-                label = "Total Height Threshold",
+                label = "Total Gain Threshold",
                 value = user.totalHeightFromStartThr ?: 0.0,
                 onValueChange = { onUserChange(user.copy(totalHeightFromStartThr = it)) },
                 isEditing = isEditing,
@@ -480,7 +480,7 @@ fun ThresholdsCardContent(
             )
 
             ThresholdField(
-                label = "Average Speed Threshold",
+                label = "Average Vertical Speed Threshold",
                 value = user.currentAvgHeightSpeedThr ?: 0.0,
                 onValueChange = { onUserChange(user.copy(currentAvgHeightSpeedThr = it)) },
                 isEditing = isEditing,

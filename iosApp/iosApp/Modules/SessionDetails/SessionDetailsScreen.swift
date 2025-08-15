@@ -486,14 +486,14 @@ struct SessionStatisticsCard: View {
             HStack(spacing: 0) {
                 StatisticItemWithIcon(
                     icon: "arrow.up",
-                    label: "Max Altitude",
+                    label: "Max MSE Altitude",
                     value: String(format: "%.1f m", sessionDetails.points.map { $0.altitude?.double ?? 0.0 }.max() ?? 0.0),
                     theme: theme
                 )
                 Spacer()
                 StatisticItemWithIcon(
                     icon: "arrow.down",
-                    label: "Min Altitude",
+                    label: "Min MSE Altitude",
                     value: String(format: "%.1f m", sessionDetails.points.map {$0.altitude?.double ?? 0.0}.min() ?? 0.0),
                     theme: theme
                 )

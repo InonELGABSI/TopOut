@@ -86,7 +86,9 @@ object GeoidUtils {
      */
     fun ellipsoidToMSL(ellipsoidHeight: Double, latitude: Double, longitude: Double): Double {
         val geoidHeight = calculateGeoidHeight(latitude, longitude)
-        return ellipsoidHeight - geoidHeight
+        val raw = ellipsoidHeight - geoidHeight
+        // Round to nearest whole meter (5.2 -> 5.0, 5.9 -> 6.0)
+        return raw.roundToInt().toDouble()
     }
 
     /**

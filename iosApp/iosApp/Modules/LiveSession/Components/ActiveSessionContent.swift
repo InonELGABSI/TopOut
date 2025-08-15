@@ -189,7 +189,7 @@ private struct LocationRow: View {
                 third:   formatted(trackPoint.altitude?.double, suffix: " m"),
                 firstLab: "Lat",
                 secondLab:"Lon",
-                thirdLab: "Alt",
+                thirdLab: "MSE",
                 theme: theme
             )
         }
@@ -318,6 +318,8 @@ private struct BottomControls: View {
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 28))
             }
+            .disabled(isPaused)
+            .opacity(isPaused ? 0.45 : 1.0)
 
             Button(action: isPaused ? onResumeClicked : onPauseClicked) {
                 HStack(spacing: 12) {
@@ -362,6 +364,8 @@ private struct BottomControls: View {
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 28))
             }
+            .disabled(isPaused)
+            .opacity(isPaused ? 0.45 : 1.0)
         }
     }
 }

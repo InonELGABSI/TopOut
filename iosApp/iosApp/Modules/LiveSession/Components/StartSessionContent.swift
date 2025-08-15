@@ -5,6 +5,7 @@
 import SwiftUI
 import Shared
 import Lottie
+import UIKit // Added for haptics
 
 struct StartSessionContent: View {
     let hasLocationPermission: Bool
@@ -61,6 +62,9 @@ private struct MSLCard: View {
     let theme: AppTheme
     let onRefresh: () -> Void
 
+    // Derived state helper
+    private var isLoading: Bool { mslHeightState is MSLHeightState.Loading }
+
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .bottom) {
@@ -77,13 +81,21 @@ private struct MSLCard: View {
                             .font(.headline)
                             .foregroundColor(theme.primary)
                         Spacer()
-                        Button(action: onRefresh) {
-                            Image(systemName: "arrow.clockwise")
-                                .foregroundColor(theme.primary)
-                                .font(.system(size: 16, weight: .medium))
+                        // Refresh button with loading feedback & haptics
+                        Button(action: {
+                            guard !isLoading else { return }
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            onRefresh()
+                        }) {
+                            RefreshIcon(isLoading: isLoading, theme: theme)
+                                .frame(width: 20, height: 20)
+                                .contentShape(Rectangle())
                         }
-                        .disabled(mslHeightState is MSLHeightState.Loading)
-                        .opacity(mslHeightState is MSLHeightState.Loading ? 0.5 : 1.0)
+                        .buttonStyle(.plain)
+                        .disabled(isLoading)
+                        .accessibilityLabel(isLoading ? "Refreshing MSL height" : "Refresh MSL height")
+                        .accessibilityHint("Fetch latest Mean Sea Level data")
+                        .opacity(isLoading ? 0.8 : 1.0)
                     }
                     VStack(spacing: 4) {
                         switch mslHeightState {
@@ -137,5 +149,26 @@ private struct MSLCard: View {
         }
         .frame(height: 180)
         .padding(.bottom, 0)
+    }
+}
+
+// MARK: - Refresh Icon View
+private struct RefreshIcon: View {
+    let isLoading: Bool
+    let theme: AppTheme
+
+    var body: some View {
+        ZStack {
+            if isLoading {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle())
+                    .tint(theme.primary)
+                    .scaleEffect(0.7)
+            } else {
+                Image(systemName: "arrow.clockwise")
+                    .foregroundColor(theme.primary)
+            }
+        }
+        .frame(width: 20, height: 20)
     }
 }

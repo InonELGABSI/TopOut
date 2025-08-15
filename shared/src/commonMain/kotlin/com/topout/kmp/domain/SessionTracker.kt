@@ -12,6 +12,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import co.touchlab.kermit.Logger
+import com.topout.kmp.utils.GeoidUtils
 import kotlin.math.*
 
 private data class PointInfo(
@@ -113,6 +114,10 @@ class SessionTracker(
                 val danger = triggered.isNotEmpty()
                 val primary = triggered.firstOrNull() ?: AlertType.NONE
 
+                val mslAlt = if (lat != null && lon != null && alt != null) {
+                    GeoidUtils.ellipsoidToMSL(alt, lat, lon)
+                } else alt
+
                 val metrics = Metrics(
                     gain = gain,
                     loss = loss,
@@ -128,7 +133,7 @@ class SessionTracker(
                     timestamp = ts,
                     latitude  = lat,
                     longitude = lon,
-                    altitude  = alt,
+                    altitude  = mslAlt,
                     accelerationX = sample.accel?.x,
                     accelerationY = sample.accel?.y,
                     accelerationZ = sample.accel?.z,

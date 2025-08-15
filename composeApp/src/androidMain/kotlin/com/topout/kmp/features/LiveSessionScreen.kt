@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -455,11 +456,11 @@ fun ActiveSessionContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
+                        .padding( bottom = 32.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Cancel chip button with gradient (light left, dark right)
+                    // Cancel chip button
                     Box(
                         modifier = Modifier
                             .height(48.dp)
@@ -467,8 +468,8 @@ fun ActiveSessionContent(
                             .background(
                                 brush = Brush.horizontalGradient(
                                     colors = listOf(
-                                        Color(0xFFE57373), // Light red
-                                        Color(0xFFD32F2F)  // Dark red
+                                        Color(0xFFE57373),
+                                        Color(0xFFD32F2F)
                                     )
                                 ),
                                 shape = RoundedCornerShape(
@@ -478,7 +479,8 @@ fun ActiveSessionContent(
                                     bottomEnd = 24.dp
                                 )
                             )
-                            .clickable { showCancelDialog = true }
+                            .alpha(if (isPaused) 0.45f else 1f)
+                            .clickable(enabled = !isPaused) { showCancelDialog = true }
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -544,7 +546,7 @@ fun ActiveSessionContent(
                         }
                     }
 
-                    // Stop & Save chip button with gradient (dark left, light right)
+                    // Stop & Save chip button
                     Box(
                         modifier = Modifier
                             .height(48.dp)
@@ -552,8 +554,8 @@ fun ActiveSessionContent(
                             .background(
                                 brush = Brush.horizontalGradient(
                                     colors = listOf(
-                                        Color(0xFF388E3C), // Dark green
-                                        Color(0xFF66BB6A)  // Light green
+                                        Color(0xFF388E3C),
+                                        Color(0xFF66BB6A)
                                     )
                                 ),
                                 shape = RoundedCornerShape(
@@ -563,7 +565,8 @@ fun ActiveSessionContent(
                                     bottomEnd = 0.dp
                                 )
                             )
-                            .clickable { showStopDialog = true }
+                            .alpha(if (isPaused) 0.45f else 1f)
+                            .clickable(enabled = !isPaused) { showStopDialog = true }
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -860,7 +863,7 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
                         )
                     )
                     Text(
-                        text = "Alt",
+                        text = "MSE",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
