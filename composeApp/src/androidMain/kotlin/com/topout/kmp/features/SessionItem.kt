@@ -145,7 +145,7 @@ private fun SessionStats(session: Session) {
             )
         }
 
-        // Average Vertical Speed
+        // Average Vertical Speed  
         session.avgVertical?.let { avgV ->
             StatItem(
                 icon = Icons.Default.Schedule,

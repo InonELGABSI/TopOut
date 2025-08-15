@@ -293,9 +293,14 @@ fun ProfileCardContent(
 
                     Button(
                         onClick = {
-                            viewModel.updateUser(user)
-                            onToggleEdit(false)
-                            onShowToast(SessionToastType.PROFILE_UPDATED)
+                            viewModel.updateUser(user) { success ->
+                                onToggleEdit(false)
+                                if (success) {
+                                    onShowToast(SessionToastType.PROFILE_UPDATED)
+                                } else {
+                                    onShowToast(SessionToastType.PROFILE_UPDATE_FAILED)
+                                }
+                            }
                         },
                         modifier = Modifier.weight(1f)
                     ) {
@@ -387,9 +392,14 @@ fun PreferencesCardContent(
 
                     Button(
                         onClick = {
-                            viewModel.updateUser(user)
-                            onToggleEdit(false)
-                            onShowToast(SessionToastType.PREFERENCES_UPDATED)
+                            viewModel.updateUser(user) { success ->
+                                onToggleEdit(false)
+                                if (success) {
+                                    onShowToast(SessionToastType.PREFERENCES_UPDATED)
+                                } else {
+                                    onShowToast(SessionToastType.PREFERENCES_UPDATE_FAILED)
+                                }
+                            }
                         },
                         modifier = Modifier.weight(1f)
                     ) {
@@ -493,9 +503,14 @@ fun ThresholdsCardContent(
 
                     Button(
                         onClick = {
-                            viewModel.updateUser(user)
-                            onToggleEdit(false)
-                            onShowToast(SessionToastType.THRESHOLDS_UPDATED) // Show success toast
+                            viewModel.updateUser(user) { success ->
+                                onToggleEdit(false)
+                                if (success) {
+                                    onShowToast(SessionToastType.THRESHOLDS_UPDATED)
+                                } else {
+                                    onShowToast(SessionToastType.THRESHOLDS_UPDATE_FAILED)
+                                }
+                            }
                         },
                         modifier = Modifier.weight(1f)
                     ) {

@@ -67,9 +67,7 @@ actual class NotificationController() {
     fun openSystemNotificationSettings() {
         val settingsUrl = "app-settings:"
         val url = NSURL(string = settingsUrl)
-        if (url != null) {
-            UIApplication.sharedApplication.openURL(url)
-        }
+        UIApplication.sharedApplication.openURL(url)
     }
 
     actual fun sendAlertNotification(alertType: AlertType, title: String, message: String): Boolean =
@@ -161,21 +159,39 @@ actual class NotificationController() {
                 setBody(message)
                 setSound(UNNotificationSound.defaultSound())
                 setThreadIdentifier(threadId)
-                if (category != null) setCategoryIdentifier(category)
+
+                if (category != null) {
+                    setCategoryIdentifier(category)
+                }
+
+                // Handle badge updates properly on main thread
                 if (incrementBadge) {
-                    // Access badge number on main thread
                     dispatch_async(dispatch_get_main_queue()) {
                         val currentBadge = UIApplication.sharedApplication.applicationIconBadgeNumber
                         setBadge(NSNumber(long = currentBadge.toLong() + 1))
+
+                        // Also update the app icon badge immediately
+                        UIApplication.sharedApplication.setApplicationIconBadgeNumber(currentBadge + 1)
                     }
                 } else {
-                    setBadge(null) // No badge update
+                    setBadge(NSNumber(long = 0)) // Set badge to 0 instead of null
                 }
+
+                // Add user info for better notification handling
+                setUserInfo(mapOf(
+                    "sourceApp" to "TopOut",
+                    "notificationType" to (category ?: "general"),
+                    "timestamp" to getCurrentTimestamp()
+                ))
             }
+
             val request = UNNotificationRequest.requestWithIdentifier(identifier, content, null)
             notificationCenter.addNotificationRequest(request) { error ->
-                if (error != null) println("[Notif] Failed id=$identifier error=${error.localizedDescription}")
-                else println("[Notif] Scheduled id=$identifier thread=$threadId title=$title")
+                if (error != null) {
+                    println("[Notif] Failed id=$identifier error=${error.localizedDescription}")
+                } else {
+                    println("[Notif] Scheduled id=$identifier thread=$threadId title=$title")
+                }
             }
             true
         } catch (e: Exception) {

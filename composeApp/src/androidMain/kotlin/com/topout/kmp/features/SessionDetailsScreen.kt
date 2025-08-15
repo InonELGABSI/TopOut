@@ -105,11 +105,18 @@ fun SessionDetailsScreen(
         icon = Icons.Outlined.DeleteOutline,
         isDestructive = true,
         onConfirm = {
-            viewModel.deleteSession(sessionId)
-            showDeleteDialog = false
-            toastType = SessionToastType.SESSION_DELETED
-            showSessionToast = true
-            shouldNavigateAfterDelete = true
+            viewModel.deleteSession(sessionId) { success ->
+                if (success) {
+                    showDeleteDialog = false
+                    toastType = SessionToastType.SESSION_DELETED
+                    showSessionToast = true
+                    shouldNavigateAfterDelete = true
+                } else {
+                    showDeleteDialog = false
+                    toastType = SessionToastType.SESSION_DELETE_FAILED
+                    showSessionToast = true
+                }
+            }
         },
         onDismiss = { showDeleteDialog = false }
     )
@@ -119,10 +126,17 @@ fun SessionDetailsScreen(
         EditTitleDialog(
             currentTitle = uiState.sessionDetails.session.title ?: "Climbing Session",
             onTitleChanged = { newTitle ->
-                viewModel.updateSessionTitle(sessionId, newTitle)
-                showEditTitleDialog = false
-                toastType = SessionToastType.SESSION_TITLE_EDITED
-                showSessionToast = true
+                viewModel.updateSessionTitle(sessionId, newTitle) { success ->
+                    if (success) {
+                        showEditTitleDialog = false
+                        toastType = SessionToastType.SESSION_TITLE_EDITED
+                        showSessionToast = true
+                    } else {
+                        showEditTitleDialog = false
+                        toastType = SessionToastType.SESSION_TITLE_EDIT_FAILED
+                        showSessionToast = true
+                    }
+                }
             },
             onDismiss = { showEditTitleDialog = false }
         )

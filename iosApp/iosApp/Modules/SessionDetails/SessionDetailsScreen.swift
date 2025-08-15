@@ -14,6 +14,11 @@ struct SessionDetailsView: View {
     @State private var showShareSheet = false
     @State private var hasLoaded = false
 
+    // FeedbackToast state management
+    @State private var showFeedbackToast = false
+    @State private var feedbackMessage = ""
+    @State private var feedbackSuccess = false
+
     private let sessionId: String
     init(sessionId: String) {
         self.sessionId = sessionId
@@ -185,8 +190,24 @@ struct SessionDetailsView: View {
                 message: Text("This action cannot be undone. Are you sure you want to delete this session?"),
                 primaryButton: .destructive(Text("Delete")) {
                     if case .loaded(let loadedState) = onEnum(of: viewModel.uiState) {
-                        viewModel.viewModel.deleteSession(sessionId: loadedState.sessionDetails.session.id)
-                        presentationMode.wrappedValue.dismiss()
+                        viewModel.viewModel.deleteSession(sessionId: loadedState.sessionDetails.session.id) { success in
+                            DispatchQueue.main.async {
+                                if success.boolValue {
+                                    feedbackMessage = "Session deleted successfully"
+                                    feedbackSuccess = true
+                                    showFeedbackToast = true
+
+                                    // Dismiss after showing feedback
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                        presentationMode.wrappedValue.dismiss()
+                                    }
+                                } else {
+                                    feedbackMessage = "Failed to delete session"
+                                    feedbackSuccess = false
+                                    showFeedbackToast = true
+                                }
+                            }
+                        }
                     }
                 },
                 secondaryButton: .cancel()
@@ -200,7 +221,18 @@ struct SessionDetailsView: View {
                         viewModel.viewModel.updateSessionTitle(
                             sessionId: state.sessionDetails.session.id,
                             newTitle: newTitle
-                        )
+                        ) { success in
+                            DispatchQueue.main.async {
+                                if success.boolValue {
+                                    feedbackMessage = "Session title updated successfully"
+                                    feedbackSuccess = true
+                                } else {
+                                    feedbackMessage = "Failed to update session title"
+                                    feedbackSuccess = false
+                                }
+                                showFeedbackToast = true
+                            }
+                        }
                     }
                 },
                 onCancel: { showEditTitleDialog = false },
@@ -214,6 +246,35 @@ struct SessionDetailsView: View {
                 hasLoaded = true
             }
         }
+        .overlay(
+            VStack {
+                Spacer()
+                if showFeedbackToast {
+                    FeedbackToast(
+                        message: feedbackMessage,
+                        success: feedbackSuccess,
+                        onDismiss: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showFeedbackToast = false
+                            }
+                        }
+                    )
+                    .padding(.bottom, 80)
+                    .transition(.feedbackToast)
+                    .onAppear {
+                        // Auto-dismiss after 3 seconds
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                            if showFeedbackToast {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    showFeedbackToast = false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .animation(.easeInOut(duration: 0.3), value: showFeedbackToast)
+        )
     }
 }
 

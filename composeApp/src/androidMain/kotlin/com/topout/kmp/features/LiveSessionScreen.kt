@@ -98,26 +98,80 @@ fun LiveSessionScreen(
                 trackPoint = uiState.trackPoint,
                 historyTrackPoints = uiState.historyTrackPoints,
                 isPaused = false,
-                onPauseClick = { viewModel.onPauseClicked() },
-                onResumeClick = { viewModel.onResumeClicked() },
-                onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
+                onPauseClick = {
+                    val success = viewModel.onPauseClicked()
+                    if (!success) {
+                        toastType = SessionToastType.SESSION_PAUSE_FAILED
+                        showSessionToast = true
+                    }
+                    success
+                },
+                onResumeClick = {
+                    val success = viewModel.onResumeClicked()
+                    if (!success) {
+                        toastType = SessionToastType.SESSION_RESUME_FAILED
+                        showSessionToast = true
+                    }
+                    success
+                },
+                onStopClick = {
+                    val success = viewModel.onStopClicked(uiState.trackPoint.sessionId)
+                    if (!success) {
+                        toastType = SessionToastType.SESSION_SAVE_FAILED
+                        showSessionToast = true
+                    }
+                    success
+                },
                 onCancelClick = {
-                    viewModel.onCancelClicked(uiState.trackPoint.sessionId)
-                    toastType = SessionToastType.SESSION_CANCELLED
-                    showSessionToast = true
+                    val success = viewModel.onCancelClicked(uiState.trackPoint.sessionId)
+                    if (success) {
+                        toastType = SessionToastType.SESSION_CANCELLED
+                        showSessionToast = true
+                    } else {
+                        toastType = SessionToastType.SESSION_CANCEL_FAILED
+                        showSessionToast = true
+                    }
+                    success
                 }
             )
             is LiveSessionState.Paused -> ActiveSessionContent(
                 trackPoint = uiState.trackPoint,
                 historyTrackPoints = uiState.historyTrackPoints,
                 isPaused = true,
-                onPauseClick = { viewModel.onPauseClicked() },
-                onResumeClick = { viewModel.onResumeClicked() },
-                onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
+                onPauseClick = {
+                    val success = viewModel.onPauseClicked()
+                    if (!success) {
+                        toastType = SessionToastType.SESSION_PAUSE_FAILED
+                        showSessionToast = true
+                    }
+                    success
+                },
+                onResumeClick = {
+                    val success = viewModel.onResumeClicked()
+                    if (!success) {
+                        toastType = SessionToastType.SESSION_RESUME_FAILED
+                        showSessionToast = true
+                    }
+                    success
+                },
+                onStopClick = {
+                    val success = viewModel.onStopClicked(uiState.trackPoint.sessionId)
+                    if (!success) {
+                        toastType = SessionToastType.SESSION_SAVE_FAILED
+                        showSessionToast = true
+                    }
+                    success
+                },
                 onCancelClick = {
-                    viewModel.onCancelClicked(uiState.trackPoint.sessionId)
-                    toastType = SessionToastType.SESSION_CANCELLED
-                    showSessionToast = true
+                    val success = viewModel.onCancelClicked(uiState.trackPoint.sessionId)
+                    if (success) {
+                        toastType = SessionToastType.SESSION_CANCELLED
+                        showSessionToast = true
+                    } else {
+                        toastType = SessionToastType.SESSION_CANCEL_FAILED
+                        showSessionToast = true
+                    }
+                    success
                 }
             )
 
@@ -139,6 +193,7 @@ fun LiveSessionScreen(
                 .padding(bottom = 120.dp)
         )
 
+        // SessionToast for action feedback (including pause/resume/stop/cancel failures)
         SessionToast(
             toastType = toastType,
             isVisible = showSessionToast && toastType != null,
@@ -159,7 +214,7 @@ fun LiveSessionScreen(
 @Composable
 fun StartSessionContent(
     hasLocationPermission: Boolean,
-    onStartClick: () -> Unit,
+    onStartClick: () -> Boolean,
     onRequestLocationPermission: () -> Unit,
     mslHeightState: com.topout.kmp.features.live_session.MSLHeightState,
     onRefreshMSLHeight: () -> Unit
@@ -330,7 +385,11 @@ fun StartSessionContent(
         Button(
             onClick = {
                 if (hasLocationPermission) {
-                    onStartClick()
+                    val success = onStartClick()
+                    if (!success) {
+                        // Handle start failure - this will be shown via ViewModel state change to Error
+                        // The error toast will be handled by the Error state UI
+                    }
                 } else {
                     onRequestLocationPermission()
                 }
@@ -361,14 +420,18 @@ fun ActiveSessionContent(
     trackPoint: TrackPoint,
     historyTrackPoints: List<TrackPoint>,
     isPaused: Boolean,
-    onPauseClick: () -> Unit,
-    onResumeClick: () -> Unit,
-    onStopClick: () -> Unit,
-    onCancelClick: () -> Unit
+    onPauseClick: () -> Boolean,
+    onResumeClick: () -> Boolean,
+    onStopClick: () -> Boolean,
+    onCancelClick: () -> Boolean
 ) {
     // State for stop confirmation dialog
     var showStopDialog by remember { mutableStateOf(false) }
     var showCancelDialog by remember { mutableStateOf(false) }
+
+    // State for handling action feedback
+    var toastType by remember { mutableStateOf<SessionToastType?>(null) }
+    var showToast by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Live Data Card - positioned first so it appears behind the map
@@ -460,7 +523,13 @@ fun ActiveSessionContent(
                                 ),
                                 shape = RoundedCornerShape(24.dp)
                             )
-                            .clickable { if (!isPaused) onPauseClick() else onResumeClick() }
+                            .clickable {
+                                val success = if (!isPaused) onPauseClick() else onResumeClick()
+                                if (!success) {
+                                    toastType = if (!isPaused) SessionToastType.SESSION_PAUSE_FAILED else SessionToastType.SESSION_RESUME_FAILED
+                                    showToast = true
+                                }
+                            }
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -544,6 +613,20 @@ fun ActiveSessionContent(
                 useTopContentSpacing = true
             )
         }
+
+        // SessionToast for action feedback (including pause/resume/stop/cancel failures)
+        SessionToast(
+            toastType = toastType,
+            isVisible = showToast && toastType != null,
+            onDismiss = {
+                showToast = false
+                toastType = null
+            },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(WindowInsets.navigationBars.asPaddingValues())
+                .padding(bottom = 12.dp)
+        )
     }
 
     // Stop session confirmation dialog
@@ -555,7 +638,14 @@ fun ActiveSessionContent(
         cancelText = "Continue",
         icon = Icons.Default.Stop,
         isDestructive = true,
-        onConfirm = onStopClick,
+        onConfirm = {
+            val success = onStopClick()
+            showStopDialog = false
+            if (!success) {
+                toastType = SessionToastType.SESSION_SAVE_FAILED
+                showToast = true
+            }
+        },
         onDismiss = { showStopDialog = false }
     )
 
@@ -568,7 +658,14 @@ fun ActiveSessionContent(
         cancelText = "Keep Session",
         icon = Icons.Default.Cancel,
         isDestructive = true,
-        onConfirm = onCancelClick,
+        onConfirm = {
+            val success = onCancelClick()
+            showCancelDialog = false
+            if (!success) {
+                toastType = SessionToastType.SESSION_CANCEL_FAILED
+                showToast = true
+            }
+        },
         onDismiss = { showCancelDialog = false }
     )
 }

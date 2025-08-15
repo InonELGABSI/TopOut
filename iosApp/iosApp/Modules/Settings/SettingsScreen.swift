@@ -11,6 +11,11 @@ struct SettingsView: View {
     @State private var isEditingPreferences = false
     @State private var isEditingThresholds = false
 
+    // Toast state for feedback
+    @State private var showToast = false
+    @State private var toastMessage = ""
+    @State private var toastSuccess = false
+
     @EnvironmentObject private var themeManager: AppThemeManager
     @Environment(\.appTheme) private var theme
 
@@ -28,7 +33,15 @@ struct SettingsView: View {
                             user: state.user,
                             isEditing: isEditingProfile,
                             onToggleEdit: { isEditingProfile = $0 },
-                            onUpdateUser: { user in viewModel.viewModel.updateUser(user: user) },
+                            onUpdateUser: { user in
+                                viewModel.viewModel.updateUser(user: user) { success in
+                                    if success.boolValue {
+                                        showSuccessToast("Profile updated successfully")
+                                    } else {
+                                        showErrorToast("Failed to update profile")
+                                    }
+                                }
+                            },
                             theme: theme
                         )
                         .zIndex(1)
@@ -38,7 +51,15 @@ struct SettingsView: View {
                             user: state.user,
                             isEditing: isEditingPreferences,
                             onToggleEdit: { isEditingPreferences = $0 },
-                            onUpdateUser: { user in viewModel.viewModel.updateUser(user: user) },
+                            onUpdateUser: { user in
+                                viewModel.viewModel.updateUser(user: user) { success in
+                                    if success.boolValue {
+                                        showSuccessToast("Preferences updated successfully")
+                                    } else {
+                                        showErrorToast("Failed to update preferences")
+                                    }
+                                }
+                            },
                             theme: theme
                         )
                         .zIndex(2)
@@ -47,7 +68,15 @@ struct SettingsView: View {
                             user: state.user,
                             isEditing: isEditingThresholds,
                             onToggleEdit: { isEditingThresholds = $0 },
-                            onUpdateUser: { user in viewModel.viewModel.updateUser(user: user) },
+                            onUpdateUser: { user in
+                                viewModel.viewModel.updateUser(user: user) { success in
+                                    if success.boolValue {
+                                        showSuccessToast("Thresholds updated successfully")
+                                    } else {
+                                        showErrorToast("Failed to update thresholds")
+                                    }
+                                }
+                            },
                             theme: theme
                         )
                         .zIndex(3)
@@ -62,8 +91,62 @@ struct SettingsView: View {
             @unknown default:
                 EmptyView()
             }
+
+            // Toast overlay
+            if showToast {
+                VStack {
+                    Spacer()
+                    FeedbackToast(
+                        message: toastMessage,
+                        success: toastSuccess,
+                        onDismiss: dismissToast
+                    )
+                    .padding(.bottom, 100)
+                }
+                .zIndex(999)
+            }
         }
         .onAppear { viewModel.startObserving() }
+        .onChange(of: viewModel.uiState) { _, newState in
+            switch onEnum(of: newState) {
+            case .error(let state):
+                showErrorToast(state.errorMessage)
+            default:
+                break
+            }
+        }
+    }
+
+    private func showSuccessToast(_ message: String) {
+        toastMessage = message
+        toastSuccess = true
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+            showToast = true
+        }
+
+        // Auto-dismiss after 3 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            dismissToast()
+        }
+    }
+
+    private func showErrorToast(_ message: String) {
+        toastMessage = message
+        toastSuccess = false
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+            showToast = true
+        }
+
+        // Auto-dismiss after 4 seconds for errors
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+            dismissToast()
+        }
+    }
+
+    private func dismissToast() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            showToast = false
+        }
     }
 }
 

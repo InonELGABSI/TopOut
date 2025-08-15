@@ -17,6 +17,9 @@ struct LiveSessionView: View {
     @State private var hasLocationPermission   = false
     @State private var hasNavigatedToDetails = false
     @State private var animationTrigger = 0  // Add animation trigger state
+    @State private var sessionToastVisible = false
+    @State private var sessionToastMessage = ""
+    @State private var sessionToastSuccess = true
 
     @EnvironmentObject private var themeManager: AppThemeManager
     @Environment(\.appTheme) private var theme
@@ -33,6 +36,7 @@ struct LiveSessionView: View {
             theme.background.ignoresSafeArea()
             sessionContent          // big switch broken out
             dangerToastView         // toast broken out
+            sessionFeedbackToastView // new toast overlay
         }
         .onAppear(perform: onAppearSetup)
         .alert(isPresented: $showingStopConfirmation, content: stopAlert)
@@ -91,7 +95,10 @@ struct LiveSessionView: View {
                 // Content section
                 StartSessionContent(
                     hasLocationPermission: hasLocationPermission,
-                    onStartClick:          { viewModel.viewModel.onStartClicked() },
+                    onStartClick:          {
+                        let ok = viewModel.viewModel.onStartClicked()
+                        showSessionToast(message: ok ? "Session started" : "Failed to start session", success: ok)
+                    },
                     onRequestLocationPermission: { requestLocationPermission() },
                     onRefreshMSL:          { viewModel.viewModel.refreshMSLHeight() },
                     mslHeightState:        viewModel.viewModel.mslHeightState.value,
@@ -111,8 +118,14 @@ struct LiveSessionView: View {
                 mapRegion:     $mapRegion,
                 onStopClicked: { showingStopConfirmation    = true },
                 onCancelClicked: { showingDiscardConfirmation = true },
-                onPauseClicked: { viewModel.viewModel.onPauseClicked() },
-                onResumeClicked: { viewModel.viewModel.onResumeClicked() },
+                onPauseClicked: {
+                    let ok = viewModel.viewModel.onPauseClicked()
+                    showSessionToast(message: ok ? "Session paused" : "Failed to pause", success: ok)
+                },
+                onResumeClicked: {
+                    let ok = viewModel.viewModel.onResumeClicked()
+                    showSessionToast(message: ok ? "Session resumed" : "Failed to resume", success: ok)
+                },
                 isPaused: false,
                 theme:         theme
             )
@@ -124,8 +137,14 @@ struct LiveSessionView: View {
                 mapRegion:     $mapRegion,
                 onStopClicked: { showingStopConfirmation    = true },
                 onCancelClicked: { showingDiscardConfirmation = true },
-                onPauseClicked: { viewModel.viewModel.onPauseClicked() },
-                onResumeClicked: { viewModel.viewModel.onResumeClicked() },
+                onPauseClicked: {
+                    let ok = viewModel.viewModel.onPauseClicked()
+                    showSessionToast(message: ok ? "Session paused" : "Failed to pause", success: ok)
+                },
+                onResumeClicked: {
+                    let ok = viewModel.viewModel.onResumeClicked()
+                    showSessionToast(message: ok ? "Session resumed" : "Failed to resume", success: ok)
+                },
                 isPaused: true,
                 theme:         theme
             )
@@ -151,7 +170,10 @@ struct LiveSessionView: View {
         case .error(let state):
             ErrorContent(
                 errorMessage: state.errorMessage,
-                onRetryClick: { viewModel.viewModel.onStartClicked() },
+                onRetryClick: {
+                    let ok = viewModel.viewModel.onStartClicked()
+                    showSessionToast(message: ok ? "Retrying…" : "Retry failed", success: ok)
+                },
                 theme:        theme
             )
         }
@@ -175,6 +197,22 @@ struct LiveSessionView: View {
         }
     }
     
+    @ViewBuilder private var sessionFeedbackToastView: some View {
+        if sessionToastVisible {
+            VStack { // full-screen container so toast has width context
+                Spacer()
+                FeedbackToast(message: sessionToastMessage, success: sessionToastSuccess) {
+                    withAnimation { sessionToastVisible = false }
+                }
+                .padding(.horizontal)
+                .padding(.bottom, showDangerToast ? 200 : 120)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .animation(.spring(), value: sessionToastVisible)
+        }
+    }
+
     // MARK: – Lifecycle
     
     private func onAppearSetup() {
@@ -204,7 +242,8 @@ struct LiveSessionView: View {
             message: Text("Are you sure you want to stop this climbing session? Your progress will be saved."),
             primaryButton: .destructive(Text("Stop Session")) {
                 if let loaded = viewModel.uiState as? LiveSessionState.Loaded {
-                    viewModel.viewModel.onStopClicked(sessionId: loaded.trackPoint.sessionId)
+                    let ok = viewModel.viewModel.onStopClicked(sessionId: loaded.trackPoint.sessionId)
+                    showSessionToast(message: ok ? "Stopping session…" : "Failed to stop session", success: ok)
                 }
             },
             secondaryButton: .cancel(Text("Continue"))
@@ -215,7 +254,8 @@ struct LiveSessionView: View {
     private func discardActions() -> some View {
         Button("Cancel Session", role: .destructive) {
             if let loaded = viewModel.uiState as? LiveSessionState.Loaded {
-                viewModel.viewModel.onCancelClicked(sessionId: loaded.trackPoint.sessionId)
+                let ok = viewModel.viewModel.onCancelClicked(sessionId: loaded.trackPoint.sessionId)
+                showSessionToast(message: ok ? "Session cancelled" : "Failed to cancel", success: ok)
             }
         }
         Button("Keep Session", role: .cancel) { }
@@ -240,6 +280,15 @@ struct LiveSessionView: View {
         case .relativeHeightExceeded: return "Height threshold exceeded!"
         case .totalHeightExceeded:    return "Maximum height threshold exceeded!"
         case .none:                   return "Warning: Abnormal movement detected!"
+        }
+    }
+
+    private func showSessionToast(message: String, success: Bool) {
+        sessionToastMessage = message
+        sessionToastSuccess = success
+        withAnimation { sessionToastVisible = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            withAnimation { sessionToastVisible = false }
         }
     }
 }

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A34733E22E39705900F48612 /* README_iOS_IMPLEMENTATION.md in Resources */ = {isa = PBXBuildFile; fileRef = A34733E12E39705900F48612 /* README_iOS_IMPLEMENTATION.md */; };
 		A3A9BAD02E46994200D8E22E /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = A3A9BACF2E46994200D8E22E /* Lottie */; };
 		A3A9BAD32E4699C800D8E22E /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = A3A9BAD22E4699C800D8E22E /* FirebaseAnalytics */; };
 		A3A9BAD52E4699C800D8E22E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = A3A9BAD42E4699C800D8E22E /* FirebaseAuth */; };
@@ -30,7 +29,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		A34733E12E39705900F48612 /* README_iOS_IMPLEMENTATION.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README_iOS_IMPLEMENTATION.md; sourceTree = "<group>"; };
 		B9DA97B12DC1472C00A4DA20 /* TopOut.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TopOut.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -87,7 +85,6 @@
 		B9DA97A82DC1472C00A4DA20 = {
 			isa = PBXGroup;
 			children = (
-				A34733E12E39705900F48612 /* README_iOS_IMPLEMENTATION.md */,
 				B9DA98002DC14AA900A4DA20 /* Configuration */,
 				B9DA97B32DC1472C00A4DA20 /* iosApp */,
 				A3827FB62E3B9F9E00D6B274 /* Frameworks */,
@@ -179,7 +176,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A34733E22E39705900F48612 /* README_iOS_IMPLEMENTATION.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -346,6 +342,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";
@@ -381,6 +378,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"iosApp/Preview Content\"";

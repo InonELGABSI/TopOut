@@ -47,52 +47,48 @@ open class LiveSessionViewModel(
         loadCurrentMSLHeight()
     }
 
-    open fun onStartClicked() {
-        // Start background session management
-        sessionBackgroundManager.startBackgroundSession()
-
-        // 2. Always stop/clean old session before starting new
-        stopSessionAndCleanup()
-
-        _uiState.value = LiveSessionState.Loading
-
-        // 3. Use background scope for session if available, otherwise create UI scope
-        sessionScope = try {
-            sessionBackgroundManager.getBackgroundScope() ?: CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        } catch (_: Exception) {
-            CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        }
-
-        liveSessionManager = inject<LiveSessionManager> { parametersOf(sessionScope) }.value
-
-        trackPointJob = sessionScope!!.launch {
-            try {
-                val trackPointFlow = liveSessionManager!!.invoke()
-                trackPointFlow.collect { point: TrackPoint ->
-                    currentTrackPoint = point
-
-                    if (isPaused) {
-                        _uiState.value = LiveSessionState.Paused(
-                            trackPoint = point,
-                            historyTrackPoints = currentHistoryPoints
-                        )
-                    } else {
-                        _uiState.value = LiveSessionState.Loaded(
-                            trackPoint = point,
-                            historyTrackPoints = currentHistoryPoints
-                        )
-                    }
-
-                    // Start history tracking once we have a session ID
-                    if (historyTrackPointsJob == null) {
-                        startHistoryTracking(point.sessionId)
-                    }
-                }
-            } catch (ce: CancellationException) {
-                // cancellation (user stopped) – ignore
-            } catch (e: Exception) {
-                _uiState.value = LiveSessionState.Error(e.message ?: "Unknown error")
+    open fun onStartClicked(): Boolean {
+        return try {
+            sessionBackgroundManager.startBackgroundSession()
+            // Always clean previous session first
+            stopSessionAndCleanup()
+            _uiState.value = LiveSessionState.Loading
+            sessionScope = try {
+                sessionBackgroundManager.getBackgroundScope() ?: CoroutineScope(SupervisorJob() + Dispatchers.Default)
+            } catch (_: Exception) {
+                CoroutineScope(SupervisorJob() + Dispatchers.Default)
             }
+            liveSessionManager = inject<LiveSessionManager> { parametersOf(sessionScope) }.value
+            trackPointJob = sessionScope!!.launch {
+                try {
+                    val trackPointFlow = liveSessionManager!!.invoke()
+                    trackPointFlow.collect { point: TrackPoint ->
+                        currentTrackPoint = point
+                        if (isPaused) {
+                            _uiState.value = LiveSessionState.Paused(
+                                trackPoint = point,
+                                historyTrackPoints = currentHistoryPoints
+                            )
+                        } else {
+                            _uiState.value = LiveSessionState.Loaded(
+                                trackPoint = point,
+                                historyTrackPoints = currentHistoryPoints
+                            )
+                        }
+                        if (historyTrackPointsJob == null) {
+                            startHistoryTracking(point.sessionId)
+                        }
+                    }
+                } catch (_: CancellationException) {
+                    // ignore
+                } catch (e: Exception) {
+                    _uiState.value = LiveSessionState.Error(e.message ?: "Unknown error")
+                }
+            }
+            true
+        } catch (e: Exception) {
+            _uiState.value = LiveSessionState.Error(e.message ?: "Unknown error starting session")
+            false
         }
     }
 
@@ -103,7 +99,7 @@ open class LiveSessionViewModel(
                     currentHistoryPoints = historyPoints
                     updateUIState()
                 }
-            } catch (ce: CancellationException) {
+            } catch (_: CancellationException) {
                 // cancellation (user stopped) – ignore
             } catch (e: Exception) {
                 // Log error but don't break the session for history tracking failure
@@ -122,45 +118,43 @@ open class LiveSessionViewModel(
         }
     }
 
-    open fun onStopClicked(sessionId: String) {
-        // Stop background session management
-        sessionBackgroundManager.stopBackgroundSession()
-
-        // Always cancel jobs and manager
-        stopSessionAndCleanup()
-
-        _uiState.value = LiveSessionState.Stopping
-
-        // Finish session logic
-        scope.launch {
-            try {
-                // Finish and save the session (if needed)
-                useCases.finishSession(sessionId)
-                _uiState.value = LiveSessionState.SessionStopped(sessionId)
-            } catch (e: Exception) {
-                _uiState.value = LiveSessionState.Error(e.message ?: "Error finishing session")
+    open fun onStopClicked(sessionId: String): Boolean {
+        return try {
+            sessionBackgroundManager.stopBackgroundSession()
+            stopSessionAndCleanup()
+            _uiState.value = LiveSessionState.Stopping
+            scope.launch {
+                try {
+                    useCases.finishSession(sessionId)
+                    _uiState.value = LiveSessionState.SessionStopped(sessionId)
+                } catch (e: Exception) {
+                    _uiState.value = LiveSessionState.Error(e.message ?: "Error finishing session")
+                }
             }
+            true
+        } catch (e: Exception) {
+            _uiState.value = LiveSessionState.Error(e.message ?: "Error stopping session")
+            false
         }
     }
 
-    open fun onCancelClicked(sessionId: String) {
-        // Stop background session management
-        sessionBackgroundManager.stopBackgroundSession()
-
-        // Always cancel jobs and manager first
-        stopSessionAndCleanup()
-
-        _uiState.value = LiveSessionState.Stopping
-
-        // Cancel and delete session locally without saving to remote
-        scope.launch {
-            try {
-                // Delete the session and its track points locally
-                useCases.cancelLocalSession(sessionId)
-                resetToInitialState()
-            } catch (e: Exception) {
-                _uiState.value = LiveSessionState.Error(e.message ?: "Error cancelling session")
+    open fun onCancelClicked(sessionId: String): Boolean {
+        return try {
+            sessionBackgroundManager.stopBackgroundSession()
+            stopSessionAndCleanup()
+            _uiState.value = LiveSessionState.Stopping
+            scope.launch {
+                try {
+                    useCases.cancelLocalSession(sessionId)
+                    resetToInitialState()
+                } catch (e: Exception) {
+                    _uiState.value = LiveSessionState.Error(e.message ?: "Error cancelling session")
+                }
             }
+            true
+        } catch (e: Exception) {
+            _uiState.value = LiveSessionState.Error(e.message ?: "Error cancelling session")
+            false
         }
     }
 
@@ -194,22 +188,38 @@ open class LiveSessionViewModel(
             }
         }
     }
-    open fun onPauseClicked() {
-        liveSessionManager?.pause()
-        isPaused = true
-        val tp = currentTrackPoint ?: return
-        _uiState.value = LiveSessionState.Paused(tp, currentHistoryPoints)
+    open fun onPauseClicked(): Boolean {
+        return try {
+            liveSessionManager?.pause()
+            isPaused = true
+            val tp = currentTrackPoint
+            if (tp != null) {
+                _uiState.value = LiveSessionState.Paused(tp, currentHistoryPoints)
+            }
+            true
+        } catch (e: Exception) {
+            _uiState.value = LiveSessionState.Error(e.message ?: "Error pausing session")
+            false
+        }
     }
 
     fun refreshMSLHeight() {
         loadCurrentMSLHeight()
     }
 
-    open fun onResumeClicked() {
-        liveSessionManager?.resume()
-        isPaused = false
-        val tp = currentTrackPoint ?: return
-        _uiState.value = LiveSessionState.Loaded(tp, currentHistoryPoints)
+    open fun onResumeClicked(): Boolean {
+        return try {
+            liveSessionManager?.resume()
+            isPaused = false
+            val tp = currentTrackPoint
+            if (tp != null) {
+                _uiState.value = LiveSessionState.Loaded(tp, currentHistoryPoints)
+            }
+            true
+        } catch (e: Exception) {
+            _uiState.value = LiveSessionState.Error(e.message ?: "Error resuming session")
+            false
+        }
     }
 
     // 4. Helper for fully stopping and cleaning up any running session

@@ -33,24 +33,27 @@ class SessionDetailsViewModel (
         }
     }
 
-    fun deleteSession(sessionId: String) {
+    fun deleteSession(sessionId: String, onResult: (Boolean) -> Unit) {
         scope.launch {
             val result = useCases.deleteSession(sessionId)
-            when(result) {
+            val success = when(result) {
                 is Result.Success -> {
                     // Navigate back or show success message
+                    true
                 }
                 is Result.Failure -> {
                     _uiState.emit(SessionDetailsState.Error(result.error?.message ?: "Failed to delete session"))
+                    false
                 }
             }
+            onResult(success)
         }
     }
 
-    fun updateSessionTitle(sessionId: String, newTitle: String) {
+    fun updateSessionTitle(sessionId: String, newTitle: String, onResult: (Boolean) -> Unit) {
         scope.launch {
             val result = useCases.updateSessionTitle(sessionId, newTitle)
-            when(result) {
+            val success = when(result) {
                 is Result.Success -> {
                     // Update the UI state directly instead of reloading
                     val currentState = _uiState.value
@@ -60,11 +63,14 @@ class SessionDetailsViewModel (
                         )
                         _uiState.emit(SessionDetailsState.Loaded(updatedSessionDetails))
                     }
+                    true
                 }
                 is Result.Failure -> {
                     _uiState.emit(SessionDetailsState.Error(result.error?.message ?: "Failed to update session title"))
+                    false
                 }
             }
+            onResult(success)
         }
     }
 }
