@@ -17,16 +17,12 @@ data class TrackPoint(
     val accelerationY: Float? = null,          // Accelerometer Y
     val accelerationZ: Float? = null,          // Accelerometer Z
 
-    // Calculated metrics
-    val vVertical: Double = 0.0,               // Vertical speed
-    val vHorizontal: Double = 0.0,             // Horizontal speed
-    val vTotal: Double = 0.0,                  // Total speed
-
     val gain: Double = 0.0,                    // Σ העליות
     val loss: Double = 0.0,                    // Σ הירידות
     val relAltitude: Double = 0.0,             // hᵢ − h₀
 
     val avgVertical: Double = 0.0,             // avgV
+    val avgHorizontal: Double = 0.0,           // avgH
     val danger: Boolean = false,               // Danger threshold crossed
     val alertType: AlertType = AlertType.NONE  // Alert type
 )

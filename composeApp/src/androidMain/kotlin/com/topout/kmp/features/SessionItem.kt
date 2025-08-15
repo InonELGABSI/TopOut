@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -134,13 +135,23 @@ private fun SessionStats(session: Session) {
             )
         }
 
-        // Average Rate
-        session.avgRate?.let { rate ->
+        // Average Horizontal Speed
+        session.avgHorizontal?.let { avgH ->
+            StatItem(
+                icon = Icons.Default.Speed,
+                value = String.format("%.1f", avgH),
+                label = "Avg-H",
+                iconTint = Color(0xFF9C27B0)
+            )
+        }
+
+        // Average Vertical Speed
+        session.avgVertical?.let { avgV ->
             StatItem(
                 icon = Icons.Default.Schedule,
-                value = String.format("%.1f", rate),
-                label = "Avg Rate",
-                iconTint = Color(0xFF9C27B0)
+                value = String.format("%.1f", avgV),
+                label = "Avg-V",
+                iconTint = Color(0xFFFF9800)
             )
         }
     }

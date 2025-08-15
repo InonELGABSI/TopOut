@@ -92,12 +92,22 @@ private func SessionStats(session: Session, theme: AppTheme) -> some View {
             )
         }
 
-        // Average Rate
-        if let rate = session.avgRate {
+        // Average Horizontal Speed
+        if let avgH = session.avgHorizontal {
             StatItem(
-                value: String(format: "%.1f", rate),
-                label: "Avg Rate",
+                value: String(format: "%.1f", avgH),
+                label: "Avg-H",
                 color: Color.purple,
+                theme: theme
+            )
+        }
+
+        // Average Vertical Speed
+        if let avgV = session.avgVertical {
+            StatItem(
+                value: String(format: "%.1f", avgV),
+                label: "Avg-V",
+                color: Color.brown,
                 theme: theme
             )
         }

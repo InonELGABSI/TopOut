@@ -521,7 +521,8 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
     val minAltitude = points.mapNotNull { it.altitude }.minOrNull() ?: 0.0
     val totalGain = points.lastOrNull()?.gain ?: 0.0
     val totalLoss = points.lastOrNull()?.loss ?: 0.0
-    val maxSpeed = points.maxOfOrNull { it.vTotal } ?: 0.0
+    val avgHorizontal = sessionDetails.session.avgHorizontal ?: 0.0
+    val avgVertical = sessionDetails.session.avgVertical ?: 0.0
 
     Column(
         modifier = Modifier
@@ -552,7 +553,7 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
             )
         }
 
-        // Second row - 2 items
+        // Second row - 3 items
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -565,8 +566,15 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
             )
             StatisticItemWithIcon(
                 icon = Icons.Default.Speed,
-                label = "Max Speed",
-                value = "%.1f m/s".format(maxSpeed)
+                label = "Avg-H",
+                value = "%.1f m/s".format(avgHorizontal),
+                textColor = androidx.compose.ui.graphics.Color(0xFF9C27B0)
+            )
+            StatisticItemWithIcon(
+                icon = Icons.Default.Schedule,
+                label = "Avg-V",
+                value = "%.1f m/s".format(avgVertical),
+                textColor = androidx.compose.ui.graphics.Color(0xFFFF9800)
             )
         }
     }

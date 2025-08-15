@@ -33,7 +33,8 @@ fun DocumentSnapshot.toSession(): Session {
         totalDescent = get<Double?>("total_descent") ?: 0.0,
         maxAltitude = get<Double?>("max_altitude") ?: 0.0,
         minAltitude = get<Double?>("min_altitude") ?: 0.0,
-        avgRate = get<Double?>("avg_rate") ?: 0.0,
+        avgVertical = get<Double?>("avg_vertical") ?: 0.0,
+        avgHorizontal = get<Double?>("avg_horizontal") ?: 0.0,
         alertTriggered = get<Long?>("alert_triggered") ?: 0,
         createdAt = millis("created_at"),
         updatedAt = millis("updated_at"), // Note: different field name convention
@@ -60,7 +61,8 @@ fun Session.toFirestoreMap(): Map<String, Any?> =
         "total_descent"   to totalDescent,
         "max_altitude"    to maxAltitude,
         "min_altitude"    to minAltitude,
-        "avg_rate"        to avgRate,
+        "avg_vertical"        to avgVertical,
+        "avg_horizontal"      to avgHorizontal,
         "alert_triggered" to alertTriggered,
         "updated_at"       to updatedAt,
         "created_at"      to createdAt

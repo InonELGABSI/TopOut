@@ -48,4 +48,8 @@ fun List<TrackPoint>.minAltitude(): Double =
  */
 fun List<TrackPoint>.avgVerticalSpeed(): Double =
     if (isEmpty()) 0.0
-    else map { it.vVertical }.average()
+    else map { it.avgVertical }.average()
+
+fun List<TrackPoint>.avgHorizontalSpeed(): Double =
+    if (isEmpty()) 0.0
+    else map { it.avgHorizontal }.average()

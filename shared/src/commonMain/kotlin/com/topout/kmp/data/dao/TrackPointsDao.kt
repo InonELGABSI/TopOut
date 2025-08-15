@@ -38,12 +38,10 @@ class TrackPointsDao(
             accelX = accelX?.toDouble(),
             accelY = accelY?.toDouble(),
             accelZ = accelZ?.toDouble(),
-            vVertical = metrics.vVertical,
-            vHorizontal = metrics.vHorizontal,
-            vTotal = metrics.vTotal,
             gain = metrics.gain,
             loss = metrics.loss,
             relAltitude = metrics.relAltitude,
+            avgHorizontal = metrics.avgHorizontal,
             avgVertical = metrics.avgVertical,
             danger = if (metrics.danger) 1L else 0L,
             alertType = metrics.alertType.name

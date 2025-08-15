@@ -447,7 +447,6 @@ struct SessionStatisticsCard: View {
             }
             .padding(.horizontal, 16)
             HStack(spacing: 0) {
-                Spacer()
                 StatisticItemWithIcon(
                     icon: "chart.line.downtrend.xyaxis",
                     label: "Total Loss",
@@ -456,14 +455,21 @@ struct SessionStatisticsCard: View {
                     theme: theme
                 )
                 Spacer()
-                Spacer()
                 StatisticItemWithIcon(
                     icon: "speedometer",
-                    label: "Max Speed",
-                    value: String(format: "%.1f m/s", sessionDetails.points.map { $0.vTotal }.max() ?? 0.0),
+                    label: "Avg-H",
+                    value: String(format: "%.1f m/s", sessionDetails.session.avgHorizontal?.double ?? 0.0),
+                    textColor: .purple,
                     theme: theme
                 )
                 Spacer()
+                StatisticItemWithIcon(
+                    icon: "clock",
+                    label: "Avg-V",
+                    value: String(format: "%.1f m/s", sessionDetails.session.avgVertical?.double ?? 0.0),
+                    textColor: .brown,
+                    theme: theme
+                )
             }
             .padding(.horizontal, 16)
         }

@@ -32,8 +32,11 @@ data class Session(
     @SerialName("min_altitude")
     val minAltitude: Double? = 0.0,
 
-    @SerialName("avg_rate")
-    val avgRate: Double? = 0.0,
+    @SerialName("avg_vertical")
+    val avgVertical: Double? = 0.0,
+
+    @SerialName("avg_horizontal")
+    val avgHorizontal: Double? = 0.0,
 
     @SerialName("alert_triggered")
     val alertTriggered: Long? = 0,

@@ -208,9 +208,9 @@ private struct SpeedAltitudeRow: View {
                 title: "Speed",
                 icon: "speedometer",
                 triplet: (
-                    String(format: "%.1f", trackPoint.vHorizontal), "H",
-                    String(format: "%.1f", trackPoint.vVertical),   "V",
-                    String(format: "%.1f", trackPoint.avgVertical), "Avg-V"
+                    String(format: "%.1f", trackPoint.avgHorizontal), "Avg-H",
+                    String(format: "%.1f", trackPoint.avgVertical),   "Avg-V",
+                    "", ""  // Empty third column
                 ),
                 background: theme.secondaryContainer.opacity(0.3),
                 theme: theme

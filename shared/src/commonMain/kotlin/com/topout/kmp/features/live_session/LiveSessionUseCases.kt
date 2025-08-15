@@ -1,7 +1,7 @@
 package com.topout.kmp.features.live_session
 
 import com.topout.kmp.domain.GetLocalTrackPointsFlow
-import com.topout.kmp.domain.session.FinishSession
+import com.topout.kmp.domain.FinishSession
 import com.topout.kmp.domain.CancelLocalSession
 import com.topout.kmp.domain.GetCurrentMSLHeight
 

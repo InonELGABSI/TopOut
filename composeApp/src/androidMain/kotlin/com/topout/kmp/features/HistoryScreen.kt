@@ -534,7 +534,8 @@ private fun createDummyUiState(type: String = "loaded"): SessionsState {
                     totalDescent = 100.0,
                     maxAltitude = 300.0,
                     minAltitude = 150.0,
-                    avgRate = 1.5,
+                    avgHorizontal = 1.2,
+                    avgVertical = 0.8,
                     alertTriggered = 0L,
                     createdAt = null,
                 ),
@@ -548,7 +549,8 @@ private fun createDummyUiState(type: String = "loaded"): SessionsState {
                     totalDescent = 80.0,
                     maxAltitude = 250.0,
                     minAltitude = 120.0,
-                    avgRate = 1.2,
+                    avgHorizontal = 0.9,
+                    avgVertical = 0.6,
                     alertTriggered = 0L,
                     createdAt = null,
                 ),
@@ -562,7 +564,8 @@ private fun createDummyUiState(type: String = "loaded"): SessionsState {
                     totalDescent = 180.0,
                     maxAltitude = 450.0,
                     minAltitude = 200.0,
-                    avgRate = 1.8,
+                    avgHorizontal = 1.5,
+                    avgVertical = 1.1,
                     alertTriggered = 0L,
                     createdAt = null,
                 )
@@ -572,4 +575,3 @@ private fun createDummyUiState(type: String = "loaded"): SessionsState {
         else -> SessionsState.Loading
     }
 }
-

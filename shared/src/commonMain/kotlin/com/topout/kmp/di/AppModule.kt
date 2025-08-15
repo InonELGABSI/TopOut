@@ -25,7 +25,7 @@ import com.topout.kmp.domain.SaveSession
 import com.topout.kmp.domain.SignInAnonymously
 import com.topout.kmp.domain.LiveSessionManager
 import com.topout.kmp.domain.SyncOfflineChanges
-import com.topout.kmp.domain.session.FinishSession
+import com.topout.kmp.domain.FinishSession
 import com.topout.kmp.domain.CancelLocalSession
 import com.topout.kmp.domain.GetLocalTrackPointsFlow
 import com.topout.kmp.domain.UpdateSessionTitle

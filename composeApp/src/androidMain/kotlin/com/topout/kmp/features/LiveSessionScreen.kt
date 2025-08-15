@@ -823,30 +823,13 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(
-                                text = "%.1f".format(trackPoint.vHorizontal),
+                                text = "%.1f".format(trackPoint.avgHorizontal),
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Bold
                                 )
                             )
                             Text(
-                                text = "H",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = "%.1f".format(trackPoint.vVertical),
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                            Text(
-                                text = "V",
+                                text = "Avg-H",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

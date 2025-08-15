@@ -8,7 +8,8 @@ totalAscent REAL ,
 totalDescent REAL ,
 maxAltitude REAL ,
 minAltitude REAL ,
-avgRate REAL ,
+avgVertical REAL ,
+avgHorizontal REAL ,
 alertTriggered INTEGER DEFAULT 0,
 createdAt INTEGER DEFAULT (strftime('%s', 'now')),
 updatedAt INTEGER DEFAULT (strftime('%s', 'now')),
@@ -21,10 +22,10 @@ saveSession:
 INSERT OR REPLACE INTO SessionEntity(
   id, userId, title, startTime, endTime,
   totalAscent, totalDescent, maxAltitude,
-  minAltitude, avgRate, alertTriggered,
+  minAltitude, avgVertical,avgHorizontal, alertTriggered,
   createdAt,updatedAt,sessionDeletedOffline,
   sessionCreatedOffline, sessionUpdatedOffline
-) VALUES (?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);
+) VALUES (?, ?, ?,?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?);
 
 getSessionById:
 SELECT * FROM SessionEntity WHERE id = ?;
@@ -43,7 +44,8 @@ SET
   totalDescent = ?,
   maxAltitude  = ?,
   minAltitude  = ?,
-  avgRate      = ?
+  avgVertical      = ?,
+  avgHorizontal    = ?
 WHERE id = ?;
 
 markSessionDeletedOffline:

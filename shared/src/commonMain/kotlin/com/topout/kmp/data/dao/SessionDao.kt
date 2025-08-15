@@ -30,7 +30,8 @@ class SessionDao(
             totalDescent = entity.totalDescent,
             maxAltitude = entity.maxAltitude,
             minAltitude = entity.minAltitude,
-            avgRate = entity.avgRate,
+            avgVertical = entity.avgVertical,
+            avgHorizontal = entity.avgHorizontal,
             alertTriggered = entity.alertTriggered,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
@@ -80,7 +81,8 @@ class SessionDao(
         totalDescent: Double?,
         maxAltitude: Double?,
         minAltitude: Double?,
-        avgRate: Double?
+        avgVertical: Double?,
+        avgHorizontal: Double?
     ) {
         queries.updateSessionSummary(
             endTime,
@@ -88,7 +90,8 @@ class SessionDao(
             totalDescent,
             maxAltitude,
             minAltitude,
-            avgRate,
+            avgVertical,
+            avgHorizontal,
             id
         )
     }
