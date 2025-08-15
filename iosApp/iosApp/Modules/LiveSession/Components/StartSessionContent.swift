@@ -10,6 +10,7 @@ struct StartSessionContent: View {
     let hasLocationPermission: Bool
     let onStartClick: () -> Void
     let onRequestLocationPermission: () -> Void
+    let onRefreshMSL: () -> Void
     let mslHeightState: MSLHeightState
     let theme: AppTheme
 
@@ -26,7 +27,11 @@ struct StartSessionContent: View {
                     .foregroundColor(theme.onSurfaceVariant)
                     .padding(.horizontal, 16)
 
-                MSLCard(mslHeightState: mslHeightState, theme: theme)
+                MSLCard(
+                    mslHeightState: mslHeightState,
+                    theme: theme,
+                    onRefresh: onRefreshMSL
+                )
                     .padding(.horizontal, 16)
 
                 Button(action: {
@@ -54,6 +59,7 @@ struct StartSessionContent: View {
 private struct MSLCard: View {
     let mslHeightState: MSLHeightState
     let theme: AppTheme
+    let onRefresh: () -> Void
 
     var body: some View {
         GeometryReader { geo in
@@ -71,6 +77,13 @@ private struct MSLCard: View {
                             .font(.headline)
                             .foregroundColor(theme.primary)
                         Spacer()
+                        Button(action: onRefresh) {
+                            Image(systemName: "arrow.clockwise")
+                                .foregroundColor(theme.primary)
+                                .font(.system(size: 16, weight: .medium))
+                        }
+                        .disabled(mslHeightState is MSLHeightState.Loading)
+                        .opacity(mslHeightState is MSLHeightState.Loading ? 0.5 : 1.0)
                     }
                     VStack(spacing: 4) {
                         switch mslHeightState {

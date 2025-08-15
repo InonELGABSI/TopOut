@@ -93,6 +93,7 @@ struct LiveSessionView: View {
                     hasLocationPermission: hasLocationPermission,
                     onStartClick:          { viewModel.viewModel.onStartClicked() },
                     onRequestLocationPermission: { requestLocationPermission() },
+                    onRefreshMSL:          { viewModel.viewModel.refreshMSLHeight() },
                     mslHeightState:        viewModel.viewModel.mslHeightState.value,
                     theme:                 theme
                 )
