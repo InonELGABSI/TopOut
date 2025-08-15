@@ -2,6 +2,45 @@ import SwiftUI
 import UIKit
 import Shared
 import Firebase
+import UserNotifications
+
+// MARK: - Notification Best Practices Manager
+enum NotificationManager {
+    static func registerCategories() {
+        let generalCategory = UNNotificationCategory(
+            identifier: "topout_general",
+            actions: [],
+            intentIdentifiers: [],
+            options: .customDismissAction
+        )
+
+        let alertHeightCategory = UNNotificationCategory(
+            identifier: "alert_height_warning",
+            actions: [
+                .init(identifier: "action_ok", title: "OK", options: .foreground)
+            ],
+            intentIdentifiers: [],
+            options: .customDismissAction
+        )
+
+        // Add categories for different alert types
+        let alertSpeedCategory = UNNotificationCategory(
+            identifier: "alert_speed_warning",
+            actions: [
+                .init(identifier: "action_ok", title: "OK", options: .foreground)
+            ],
+            intentIdentifiers: [],
+            options: .customDismissAction
+        )
+
+        UNUserNotificationCenter.current().setNotificationCategories([
+            generalCategory,
+            alertHeightCategory,
+            alertSpeedCategory
+        ])
+        NSLog("[Notif] Registered categories")
+    }
+}
 
 // MARK: - Gradient Text Helper
 extension UIColor {
@@ -111,13 +150,100 @@ enum NavBarThemer {
 }
 
 // MARK: - UIApplicationDelegate
-final class AppDelegate: NSObject, UIApplicationDelegate {
+final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         FirebaseApp.configure()
-        // Set an initial look (updated by theme below on first render)
+
+        let center = UNUserNotificationCenter.current()
+        center.delegate = self
+
         NavBarThemer.apply(primary: .systemBlue)
+
+        // Best Practice: Register categories and request permission
+        NotificationManager.registerCategories()
+        requestNotificationPermissionIfNeeded()
+
         return true
+    }
+
+    private func requestNotificationPermissionIfNeeded() {
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationSettings { [weak self] settings in
+            guard let self = self else { return }
+
+            switch settings.authorizationStatus {
+            case .notDetermined:
+                center.requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, error in
+                    guard let self = self else { return }
+                    NSLog("[Notif] Permission request result: granted=\(granted), error=\(error?.localizedDescription ?? "none")")
+                    if granted {
+                        #if DEBUG
+                        DispatchQueue.main.async {
+                            self.scheduleDebugTestNotification(reason: "Permission just granted")
+                        }
+                        #endif
+                    }
+                }
+            case .denied:
+                NSLog("[Notif] Permission was denied. User must enable in Settings.")
+            case .authorized, .provisional, .ephemeral:
+                NSLog("[Notif] Permission already authorized.")
+                #if DEBUG
+                DispatchQueue.main.async {
+                    self.scheduleDebugTestNotification(reason: "Already authorized on launch")
+                }
+                #endif
+            @unknown default:
+                break
+            }
+        }
+    }
+
+    #if DEBUG
+    private func scheduleDebugTestNotification(reason: String) {
+        let content = UNMutableNotificationContent()
+        content.title = "TopOut Ready"
+        content.body = "Local notifications are working. (\(reason))"
+        content.sound = .default
+        content.categoryIdentifier = "topout_general"
+        let request = UNNotificationRequest(identifier: "debug_init_\(UUID())", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request) { err in
+            if let err = err { NSLog("[Notif] Failed debug schedule: %@", err.localizedDescription) }
+            else { NSLog("[Notif] Debug notification scheduled") }
+        }
+    }
+    #endif
+
+    // Show banners & sounds while app in foreground
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .sound, .list])
+    }
+
+    // Handle notification tap/action
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        let identifier = response.actionIdentifier
+        let notificationId = response.notification.request.identifier
+
+        NSLog("[Notif] User interaction: action=\(identifier) notification=\(notificationId)")
+
+        // Handle specific actions if needed
+        switch identifier {
+        case "action_ok":
+            // User acknowledged the alert
+            break
+        case UNNotificationDefaultActionIdentifier:
+            // User tapped the notification (not an action button)
+            break
+        default:
+            break
+        }
+
+        completionHandler()
     }
 }
 

@@ -173,33 +173,52 @@ class SessionTracker(
         totalHeight: Double,
         avgVert: Double
     ) {
+        log.i { "sendNotificationIfNeeded called - alertType: $alertType, already notified: ${notifiedAlertTypes.contains(alertType)}" }
+
         // Only send notifications if:
-        // 1. We haven't sent one for this session yet
-        // 2. The user has enabled notifications
-        // 3. We have a notification controller
-        // 4. The alert type is not NONE
+        // 1. We haven't sent one for this alert type yet
+        // 2. The alert type is not NONE
         if (notifiedAlertTypes.contains(alertType) || alertType == AlertType.NONE) {
+            log.i { "Skipping notification - already sent or NONE type" }
             return
         }
 
+        // Log user notification preferences
         val notificationsEnabled = user?.enabledNotifications ?: false
-        if (!notificationsEnabled || notificationController == null) {
+        log.i { "User notifications enabled: $notificationsEnabled, user exists: ${user != null}" }
+
+        if (notificationController == null) {
+            log.w { "NotificationController is null - cannot send notifications" }
             return
         }
 
         // Check system notification permissions
-        if (!notificationController.areNotificationsEnabled()) {
+        val systemEnabled = notificationController.areNotificationsEnabled()
+        log.i { "System notifications enabled: $systemEnabled" }
+
+        if (!systemEnabled) {
+            log.w { "System notifications not enabled - skipping notification" }
             return
+        }
+
+        // For debugging: send notification even if user preference is disabled
+        // Remove this condition in production if you want to respect user preference
+        if (!notificationsEnabled) {
+            log.w { "User has disabled notifications in settings, but sending anyway for debugging" }
+            // Don't return here for debugging purposes
         }
 
         // Generate notification content based on the alert type
         val (title, message) = generateNotificationContent(alertType, relAltitude, totalHeight, avgVert)
+        log.i { "Sending notification: title='$title', message='$message'" }
 
         // Send the notification
         val sent = notificationController.sendAlertNotification(alertType, title, message)
         if (sent) {
             notifiedAlertTypes.add(alertType)
-            log.i { "Notification sent for session $sessionId with alert type $alertType" }
+            log.i { "✅ Notification sent successfully for session $sessionId with alert type $alertType" }
+        } else {
+            log.e { "❌ Failed to send notification for session $sessionId with alert type $alertType" }
         }
     }
 

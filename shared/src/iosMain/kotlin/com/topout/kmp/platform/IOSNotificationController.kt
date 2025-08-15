@@ -1,13 +1,14 @@
 package com.topout.kmp.platform
 
 import com.topout.kmp.models.AlertType
-import kotlinx.cinterop.*
 import kotlinx.coroutines.suspendCancellableCoroutine
 import platform.UserNotifications.*
 import platform.Foundation.*
 import platform.darwin.dispatch_get_main_queue
 import platform.darwin.dispatch_async
 import kotlin.coroutines.resume
+import platform.UIKit.UIApplication
+import platform.UIKit.UIApplicationWillEnterForegroundNotification
 
 /**
  * iOS-specific actual implementation of NotificationController
@@ -16,100 +17,169 @@ import kotlin.coroutines.resume
 actual class NotificationController() {
 
     private val notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
-
-    // Cache of current authorization status (updated asynchronously)
     private var authorizationGranted: Boolean = false
+    private var statusInitialized: Boolean = false
+
+    // Throttling map (threadIdentifier -> last sent epoch ms)
+    private val lastSentByThread = mutableMapOf<String, Long>()
+    private val minIntervalMsPerThread = 2000L // 2s default throttle
+
+    // Queue notifications requested before first settings load completes
+    private val pendingUntilInit = mutableListOf<() -> Unit>()
 
     init {
         refreshAuthorizationStatus()
+        // Listen for app entering foreground to refresh authorization status
+        NSNotificationCenter.defaultCenter.addObserverForName(
+            UIApplicationWillEnterForegroundNotification,
+            null,
+            null
+        ) { _ ->
+            refreshAuthorizationStatus()
+        }
     }
 
     private fun refreshAuthorizationStatus() {
         notificationCenter.getNotificationSettingsWithCompletionHandler { settings ->
+            val previous = authorizationGranted
             authorizationGranted = settings?.authorizationStatus == UNAuthorizationStatusAuthorized ||
                 settings?.authorizationStatus == UNAuthorizationStatusProvisional ||
                 settings?.authorizationStatus == UNAuthorizationStatusEphemeral
+
+            val justInitialized = !statusInitialized
+            statusInitialized = true
+
+            if ((justInitialized || !previous) && authorizationGranted) {
+                // Flush queued notifications now that we are authorized
+                dispatch_async(dispatch_get_main_queue()) {
+                    val toSend = pendingUntilInit.toList()
+                    pendingUntilInit.clear()
+                    toSend.forEach { it.invoke() }
+                }
+            }
+            println("[Notif] Settings refreshed. granted=${authorizationGranted} status=${settings?.authorizationStatus}")
         }
     }
 
-    actual fun sendAlertNotification(alertType: AlertType, title: String, message: String): Boolean {
-        return sendNotificationInternal(
-            title = title,
-            message = message,
-            identifier = "alert_${'$'}{alertType.name}_${'$'}{getCurrentTimestamp()}"
-        )
+    /**
+     * Open app notification settings screen for the user (if denied / limited)
+     */
+    fun openSystemNotificationSettings() {
+        val settingsUrl = "app-settings:"
+        val url = NSURL(string = settingsUrl)
+        if (url != null) {
+            UIApplication.sharedApplication.openURL(url)
+        }
     }
 
-    actual fun sendNotification(title: String, message: String): Boolean {
-        return sendNotificationInternal(
+    actual fun sendAlertNotification(alertType: AlertType, title: String, message: String): Boolean =
+        sendNotificationInternal(
             title = title,
             message = message,
-            identifier = "general_${'$'}{getCurrentTimestamp()}"
+            identifier = "alert_${alertType.name}_${getCurrentTimestamp()}",
+            threadId = "topout_alert_${alertType.name.lowercase()}",
+            category = "alert_${alertType.name.lowercase()}",
+            incrementBadge = true
         )
-    }
 
-    actual fun areNotificationsEnabled(): Boolean {
-        // Return cached value (async updated). Matches synchronous expect signature.
-        return authorizationGranted
+    actual fun sendNotification(title: String, message: String): Boolean =
+        sendNotificationInternal(
+            title = title,
+            message = message,
+            identifier = "general_${getCurrentTimestamp()}",
+            threadId = "topout_general",
+            category = null,
+            incrementBadge = false
+        )
+
+    actual fun areNotificationsEnabled(): Boolean = authorizationGranted
+
+    /**
+     * Test function to send a notification immediately (for debugging)
+     */
+    fun sendTestNotification(): Boolean {
+        println("[Notif] Sending test notification...")
+        return sendNotificationInternal(
+            title = "Test Alert",
+            message = "This is a test danger notification from SessionTracker",
+            identifier = "test_${getCurrentTimestamp()}",
+            threadId = "topout_test",
+            category = "alert_test",
+            incrementBadge = true
+        )
     }
 
     actual suspend fun requestNotificationPermission(): Boolean = suspendCancellableCoroutine { continuation ->
         val options = UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge
-
-        notificationCenter.requestAuthorizationWithOptions(
-            options = options.toULong()
-        ) { granted, error ->
+        notificationCenter.requestAuthorizationWithOptions(options) { granted, error ->
             refreshAuthorizationStatus()
             dispatch_async(dispatch_get_main_queue()) {
                 if (continuation.isActive) {
+                    if (error != null) println("[Notif] Permission request error: ${error.localizedDescription}")
                     continuation.resume(granted && error == null)
                 }
             }
         }
     }
 
-    private fun getCurrentTimestamp(): Long {
-        return NSDate().timeIntervalSince1970.toLong()
-    }
+    private fun getCurrentTimestamp(): Long = (NSDate().timeIntervalSince1970 * 1000.0).toLong()
 
     private fun sendNotificationInternal(
         title: String,
         message: String,
-        identifier: String
+        identifier: String,
+        threadId: String,
+        category: String? = null,
+        incrementBadge: Boolean = false,
+        allowWhileNotAuthorizedIfPending: Boolean = true
     ): Boolean {
-        // Guard: do not schedule if not authorized (avoid spamming request queue)
-        if (!areNotificationsEnabled()) return false
+        // Queue if not yet initialized and caller allows
+        if (!statusInitialized && allowWhileNotAuthorizedIfPending) {
+            pendingUntilInit.add { sendNotificationInternal(title, message, identifier, threadId, category, incrementBadge, false) }
+            println("[Notif] Queued (auth pending) id=$identifier")
+            return true
+        }
+
+        if (statusInitialized && !authorizationGranted) {
+            println("[Notif] Skip scheduling (denied) id=$identifier")
+            return false
+        }
+
+        // Throttling per thread to avoid spam
+        val now = getCurrentTimestamp()
+        lastSentByThread[threadId]?.let { last ->
+            if (now - last < minIntervalMsPerThread) {
+                println("[Notif] Throttled thread=$threadId id=$identifier (delta=${now - last} ms)")
+                return false
+            }
+        }
+        lastSentByThread[threadId] = now
+
         return try {
-            // Create notification content
             val content = UNMutableNotificationContent().apply {
                 setTitle(title)
                 setBody(message)
                 setSound(UNNotificationSound.defaultSound())
-            }
-
-            // Create trigger (immediate notification)
-            val trigger = UNTimeIntervalNotificationTrigger.triggerWithTimeInterval(
-                timeInterval = 0.1, // Almost immediate
-                repeats = false
-            )
-
-            // Create request
-            val request = UNNotificationRequest.requestWithIdentifier(
-                identifier = identifier,
-                content = content,
-                trigger = trigger
-            )
-
-            // Add to notification center
-            notificationCenter.addNotificationRequest(request) { error ->
-                if (error != null) {
-                    println("Failed to schedule notification: ${'$'}{error.localizedDescription}")
+                setThreadIdentifier(threadId)
+                if (category != null) setCategoryIdentifier(category)
+                if (incrementBadge) {
+                    // Access badge number on main thread
+                    dispatch_async(dispatch_get_main_queue()) {
+                        val currentBadge = UIApplication.sharedApplication.applicationIconBadgeNumber
+                        setBadge(NSNumber(long = currentBadge.toLong() + 1))
+                    }
+                } else {
+                    setBadge(null) // No badge update
                 }
             }
-
+            val request = UNNotificationRequest.requestWithIdentifier(identifier, content, null)
+            notificationCenter.addNotificationRequest(request) { error ->
+                if (error != null) println("[Notif] Failed id=$identifier error=${error.localizedDescription}")
+                else println("[Notif] Scheduled id=$identifier thread=$threadId title=$title")
+            }
             true
         } catch (e: Exception) {
-            println("Error sending iOS notification: ${'$'}{e.message}")
+            println("[Notif] Exception scheduling id=$identifier msg=${e.message ?: "Unknown error"}")
             false
         }
     }
