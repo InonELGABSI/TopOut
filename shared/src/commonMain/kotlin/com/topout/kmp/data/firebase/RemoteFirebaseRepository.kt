@@ -14,6 +14,7 @@ import com.topout.kmp.utils.extensions.asSessionTitle
 import com.topout.kmp.utils.extensions.toFirestoreMap
 import com.topout.kmp.utils.extensions.toSession
 import com.topout.kmp.utils.extensions.toTrackPoint
+import com.topout.kmp.utils.extensions.toUser
 import kotlinx.datetime.Clock
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
@@ -135,7 +136,7 @@ class RemoteFirebaseRepository : FirebaseRepository {
             usersCollection
                 .document(uid)
                 .get()
-                .data<User>()
+                .toUser()
         }
     }
 
@@ -165,7 +166,7 @@ class RemoteFirebaseRepository : FirebaseRepository {
 
             if (!snapshot.exists) {
                 val dataToSave = User(id = uid)
-                docRef.set(dataToSave, merge = true)
+                docRef.set(dataToSave.toFirestoreMap(), merge = true)
             }
         }
     }

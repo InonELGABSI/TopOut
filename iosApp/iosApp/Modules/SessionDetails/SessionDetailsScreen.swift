@@ -465,7 +465,7 @@ struct SessionStatisticsCard: View {
                 Spacer()
                 StatisticItemWithIcon(
                     icon: "clock",
-                    label: "Avg-V",
+                    label: "Avg-V", 
                     value: String(format: "%.1f m/s", sessionDetails.session.avgVertical?.double ?? 0.0),
                     textColor: .brown,
                     theme: theme

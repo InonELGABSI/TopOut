@@ -2,7 +2,6 @@ package com.topout.kmp.utils.extensions
 
 import com.topout.kmp.models.User
 import dev.gitlive.firebase.firestore.DocumentSnapshot
-import dev.gitlive.firebase.firestore.FieldValue
 import dev.gitlive.firebase.firestore.Timestamp
 
 /* ---------- helpers ---------- */
@@ -21,7 +20,7 @@ private fun DocumentSnapshot.millis(field: String): Long {
 /* ---------- read ---------- */
 /** Firestore document ➜ User (pure Long timestamps) */
 fun DocumentSnapshot.toUser(): User {
-    val id = get<String>("id") ?: error("Missing id in User document")
+    val id: String = get("id")
 
     return User(
         id = id,
@@ -30,9 +29,10 @@ fun DocumentSnapshot.toUser(): User {
         imgUrl = get<String?>("img_url"),
         unitPreference = get<String?>("unit_preference") ?: "meters",
         enabledNotifications = get<Boolean?>("enabled_notifications") ?: false,
-        relativeHeightFromStartThr = get<Double?>("relative_height_from_start_thr") ?: 0.0,
-        totalHeightFromStartThr = get<Double?>("total_height_from_start_thr") ?: 0.0,
-        currentAvgHeightSpeedThr = get<Double?>("current_avg_height_speed_thr") ?: 0.0,
+        // keep null if absent
+        relativeHeightFromStartThr = get<Double?>("relative_height_from_start_thr"),
+        totalHeightFromStartThr = get<Double?>("total_height_from_start_thr"),
+        currentAvgHeightSpeedThr = get<Double?>("current_avg_height_speed_thr"),
         userUpdatedOffline = false,
         createdAt = millis("created_at"),
         updatedAt = millis("updated_at")
@@ -43,17 +43,20 @@ fun DocumentSnapshot.toUser(): User {
 /**
  * User ➜ Map ready for Firestore.
  */
-fun User.toFirestoreMap(): Map<String, Any?> =
-    mutableMapOf<String, Any?>(
+fun User.toFirestoreMap(): Map<String, Any?> {
+    val map = mutableMapOf<String, Any?>(
         "id" to id,
         "name" to name,
         "email" to email,
         "img_url" to imgUrl,
         "unit_preference" to (unitPreference ?: "meters"),
         "enabled_notifications" to (enabledNotifications ?: false),
-        "relative_height_from_start_thr" to (relativeHeightFromStartThr ?: 0.0),
-        "total_height_from_start_thr" to (totalHeightFromStartThr ?: 0.0),
-        "current_avg_height_speed_thr" to (currentAvgHeightSpeedThr ?: 0.0),
         "created_at" to createdAt,
         "updated_at" to updatedAt
     )
+    // only include thresholds if set
+    relativeHeightFromStartThr?.let { map["relative_height_from_start_thr"] = it }
+    totalHeightFromStartThr?.let { map["total_height_from_start_thr"] = it }
+    currentAvgHeightSpeedThr?.let { map["current_avg_height_speed_thr"] = it }
+    return map
+}

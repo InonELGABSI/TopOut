@@ -37,6 +37,7 @@ class SessionTracker(
     private val EMA_ALPHA     = 0.25  // smoothing for displayed speeds
     private val H_DEADBAND    = 0.30  // m/s; clamp tiny flicker
     private val V_DEADBAND    = 0.20  // m/s; clamp tiny flicker
+    private val ALERT_RATE_LIMIT_MS = 60_000L // 1 minute between same alert type
 
     private val startAltitude = MutableStateFlow<Double?>(null)
     private var lastAlt: Double? = null
@@ -58,7 +59,7 @@ class SessionTracker(
     private var emaInit = false
 
     // Alerts once-per-type
-    private val notifiedAlertTypes = mutableSetOf<AlertType>()
+    private val lastAlertTimes = mutableMapOf<AlertType, Long>()
 
     fun pause() { paused.value = true }
     fun resume() { paused.value = false }
@@ -98,10 +99,10 @@ class SessionTracker(
                 val relAltitude = if (alt != null && startAltitude.value != null)
                     alt - startAltitude.value!! else 0.0
 
-                // Thresholds
-                val relThr   = user?.relativeHeightFromStartThr ?: 0.0
-                val totalThr = user?.totalHeightFromStartThr ?: 0.0
-                val vThrMin  = user?.currentAvgHeightSpeedThr ?: 600.0 // m/min
+                // Thresholds (null or <=0 means disabled except speed which falls back to 600 m/min)
+                val relThr = user?.relativeHeightFromStartThr?.takeIf { it > 0 } ?: 0.0
+                val totalThr = user?.totalHeightFromStartThr?.takeIf { it > 0 } ?: 0.0
+                val vThrMin = user?.currentAvgHeightSpeedThr?.takeIf { it > 0 } ?: 600.0 // m/min fallback
 
                 // Alerts
                 val triggered = mutableListOf<AlertType>()
@@ -152,9 +153,8 @@ class SessionTracker(
                 )
 
                 triggered.forEach { a ->
-                    if (!notifiedAlertTypes.contains(a)) {
-                        sendNotificationIfNeeded(a, relAltitude, gain, avgV)
-                    }
+                    // Try rate-limited send (always evaluate each cycle)
+                    sendNotificationIfNeeded(a, relAltitude, gain, avgV, ts)
                 }
 
                 _trackPointFlow.emit(tp)
@@ -166,7 +166,7 @@ class SessionTracker(
         log.i { "stop() for session $sessionId" }
         collectJob?.cancel()
         collectJob = null
-        notifiedAlertTypes.clear()
+        lastAlertTimes.clear()
         lastPoints.clear()
         emaInit = false
     }
@@ -183,8 +183,8 @@ class SessionTracker(
         val dH = flatDistanceM(first.latitude, first.longitude, last.latitude, last.longitude)
         val dV = last.altitude - first.altitude
 
-        var rawH = if (dH < H_STATIONARY) 0.0 else dH / dt
-        var rawV = if (abs(dV) < V_STATIONARY) 0.0 else dV / dt
+        val rawH = if (dH < H_STATIONARY) 0.0 else dH / dt
+        val rawV = if (abs(dV) < V_STATIONARY) 0.0 else dV / dt
 
         // EMA + deadbands (speeds only)
         if (!emaInit) { emaH = rawH; emaV = rawV; emaInit = true }
@@ -219,14 +219,18 @@ class SessionTracker(
         alertType: AlertType,
         relAltitude: Double,
         totalHeight: Double,
-        avgVert: Double
+        avgVert: Double,
+        timestampMs: Long
     ) {
-        if (alertType == AlertType.NONE || notifiedAlertTypes.contains(alertType)) return
+        if (alertType == AlertType.NONE) return
         val nc = notificationController ?: return
         if (!nc.areNotificationsEnabled()) return
+        if (user?.enabledNotifications == false) return
+        val lastTime = lastAlertTimes[alertType]
+        if (lastTime != null && timestampMs - lastTime < ALERT_RATE_LIMIT_MS) return
         val (title, msg) = generateNotificationContent(alertType, relAltitude, totalHeight, avgVert)
         if (nc.sendAlertNotification(alertType, title, msg)) {
-            notifiedAlertTypes.add(alertType)
+            lastAlertTimes[alertType] = timestampMs
         }
     }
 

@@ -28,7 +28,7 @@ struct StartSessionContent: View {
                     .padding(.horizontal, 16)
 
                 MSLCard(
-                    mslHeightState: mslHeightState,
+                    mslHeightState: mslHeightState, 
                     theme: theme,
                     onRefresh: onRefreshMSL
                 )
