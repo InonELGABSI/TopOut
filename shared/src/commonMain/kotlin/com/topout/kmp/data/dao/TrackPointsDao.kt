@@ -18,7 +18,7 @@ class TrackPointsDao(
     private val queries: Track_pointsQueries
 ) {
 
-    suspend fun insertTrackPoint(
+    fun insertTrackPoint(
         sessionId: String,
         ts: Long,
         lat: Double? = null,
@@ -52,7 +52,7 @@ class TrackPointsDao(
         }
     }
 
-    suspend fun getTrackPointsBySessionId(sessionId: String): List<TrackPoint> {
+     fun getTrackPointsBySessionId(sessionId: String): List<TrackPoint> {
         return queries.getTrackPointsBySession(sessionId)
             .executeAsList()
             .map { it.toTrackPoint() }
@@ -65,10 +65,8 @@ class TrackPointsDao(
             .map { list -> list.map { it.toTrackPoint() } }
     }
 
-    suspend fun deleteTrackPointsBySessionId(sessionId: String) {
+     fun deleteTrackPointsBySessionId(sessionId: String) {
         queries.deleteTrackPointsBySession(sessionId)
     }
 
-    suspend fun endCurrentSession() {
-    }
 }

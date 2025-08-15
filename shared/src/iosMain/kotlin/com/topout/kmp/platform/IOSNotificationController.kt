@@ -61,14 +61,6 @@ actual class NotificationController() {
         }
     }
 
-    /**
-     * Open app notification settings screen for the user (if denied / limited)
-     */
-    fun openSystemNotificationSettings() {
-        val settingsUrl = "app-settings:"
-        val url = NSURL(string = settingsUrl)
-        UIApplication.sharedApplication.openURL(url)
-    }
 
     actual fun sendAlertNotification(alertType: AlertType, title: String, message: String): Boolean =
         sendNotificationInternal(
@@ -92,20 +84,6 @@ actual class NotificationController() {
 
     actual fun areNotificationsEnabled(): Boolean = authorizationGranted
 
-    /**
-     * Test function to send a notification immediately (for debugging)
-     */
-    fun sendTestNotification(): Boolean {
-        println("[Notif] Sending test notification...")
-        return sendNotificationInternal(
-            title = "Test Alert",
-            message = "This is a test danger notification from SessionTracker",
-            identifier = "test_${getCurrentTimestamp()}",
-            threadId = "topout_test",
-            category = "alert_test",
-            incrementBadge = true
-        )
-    }
 
     actual suspend fun requestNotificationPermission(): Boolean = suspendCancellableCoroutine { continuation ->
         val options = UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge
@@ -168,7 +146,7 @@ actual class NotificationController() {
                 if (incrementBadge) {
                     dispatch_async(dispatch_get_main_queue()) {
                         val currentBadge = UIApplication.sharedApplication.applicationIconBadgeNumber
-                        setBadge(NSNumber(long = currentBadge.toLong() + 1))
+                        setBadge(NSNumber(long = currentBadge + 1))
 
                         // Also update the app icon badge immediately
                         UIApplication.sharedApplication.setApplicationIconBadgeNumber(currentBadge + 1)

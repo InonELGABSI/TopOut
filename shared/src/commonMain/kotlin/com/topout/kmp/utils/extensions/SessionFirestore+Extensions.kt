@@ -2,7 +2,6 @@ package com.topout.kmp.utils.extensions
 
 import com.topout.kmp.models.Session
 import dev.gitlive.firebase.firestore.DocumentSnapshot
-import dev.gitlive.firebase.firestore.FieldValue
 import dev.gitlive.firebase.firestore.Timestamp
 
 /* ---------- helpers ---------- */
@@ -21,7 +20,7 @@ private fun DocumentSnapshot.millis(field: String): Long {
 /* ---------- read ---------- */
 /** Firestore document ➜ Session (pure Long timestamps) */
 fun DocumentSnapshot.toSession(): Session {
-    val id = get<String>("id") ?: error("Missing id in Session document")
+    val id = get<String>("id")
 
     return Session(
         id = id,

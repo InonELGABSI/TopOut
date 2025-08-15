@@ -10,12 +10,10 @@ import com.topout.kmp.data.Result
 import com.topout.kmp.data.Error
 import com.topout.kmp.data.sessions.SessionsError
 import com.topout.kmp.models.TrackPoint
-import com.topout.kmp.utils.extensions.asSessionTitle
 import com.topout.kmp.utils.extensions.toFirestoreMap
 import com.topout.kmp.utils.extensions.toSession
 import com.topout.kmp.utils.extensions.toTrackPoint
 import com.topout.kmp.utils.extensions.toUser
-import kotlinx.datetime.Clock
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
 
@@ -33,7 +31,7 @@ private suspend inline fun <T, E : Error> withFirebaseTimeout(
         }
         Result.Success(result)
     } catch (e: TimeoutCancellationException) {
-        Result.Failure(errorFactory("Request timed out - check your internet connection"))
+        Result.Failure(errorFactory("Request timed out - check your internet connection, message: ${e.message}"))
     } catch (e: Exception) {
         Result.Failure(errorFactory(e.message ?: "Unknown error occurred"))
     }
@@ -83,7 +81,6 @@ class RemoteFirebaseRepository : FirebaseRepository {
         val uid = auth.currentUser?.uid
             ?: return Result.Failure(SessionsError("User not authenticated"))
 
-        val now = Clock.System.now()
 
         val updatedSession = session.copy(
             userId = uid,

@@ -40,7 +40,7 @@ fun SessionItem(
         // Header with title and date
         SessionHeader(
             title = session.title ?: "Unnamed Session",
-            startTime = session.startTime?.toLong()
+            startTime = session.startTime
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -51,9 +51,9 @@ fun SessionItem(
         // Duration if available
         session.startTime?.let { start ->
             session.endTime?.let { end ->
-                if (end.toLong() > start.toLong()) {
+                if (end > start) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    SessionDuration(startTime = start.toLong(), endTime = end.toLong())
+                    SessionDuration(startTime = start, endTime = end)
                 }
             }
         }

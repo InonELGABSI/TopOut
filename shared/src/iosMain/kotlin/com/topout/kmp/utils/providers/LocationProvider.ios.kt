@@ -32,8 +32,6 @@ actual class LocationProvider {
     fun stopUpdatingLocation() = delegate.stopUpdatingLocation()
     fun beginActiveSession() = delegate.beginActiveSession()
     fun endActiveSession() = delegate.endActiveSession()
-    fun upgradeToAlwaysAuthorization() = delegate.upgradeToAlwaysAuthorization()
-    fun dispose() = delegate.dispose()
 }
 
 private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtocol {
@@ -134,8 +132,6 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
             else -> log.d { "No upgrade needed state=${statusString(manager.authorizationStatus)}" }
         }
     }
-
-    fun dispose() { stopUpdatingLocation() }
 
     fun locationFlow(): Flow<LocationData> = _locationFlow
 

@@ -24,7 +24,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import com.topout.kmp.ui.theme.ThemePalette
 import com.topout.kmp.ui.theme.TopOutTheme
 import com.topout.kmp.features.settings.SettingsState

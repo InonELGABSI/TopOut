@@ -1,11 +1,9 @@
 package com.topout.kmp.data.dao
 
-import com.topout.kmp.SessionEntity
 import com.topout.kmp.SessionsQueries
 import com.topout.kmp.models.Session
 import com.topout.kmp.utils.extensions.toEntity
 import com.topout.kmp.utils.extensions.toSession
-import dev.gitlive.firebase.firestore.Timestamp
 
 class SessionDao(
     private val queries: SessionsQueries
@@ -66,9 +64,6 @@ class SessionDao(
         queries.resolveDeletedOfflineSync(sessionId)
     }
 
-    fun updateSessionTitle(sessionId: String, title: String, sessionUpdatedOffline: Boolean) {
-        queries.updateSessionTitle(title, if (sessionUpdatedOffline) 1L else 0L, sessionId)
-    }
 
     fun resolveUpdatedOfflineSync(sessionId: String) {
         queries.resolveUpdatedOfflineSync(sessionId)

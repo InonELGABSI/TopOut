@@ -28,8 +28,6 @@ import com.topout.kmp.shared_components.TopRoundedCard
 import com.topout.kmp.shared_components.WaveAnimation
 import com.topout.kmp.utils.extensions.latLngOrNull
 import org.koin.androidx.compose.koinViewModel
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.topout.kmp.shared_components.SessionToast
@@ -52,7 +50,6 @@ fun LiveSessionScreen(
 
     var showDangerToast by remember { mutableStateOf(false) }
     var currentAlertType by remember { mutableStateOf(AlertType.NONE) }
-    var lastToastTimestamp by remember { mutableStateOf(0L) }
 
     LaunchedEffect(uiState) {
         when {
@@ -386,10 +383,6 @@ fun StartSessionContent(
             onClick = {
                 if (hasLocationPermission) {
                     val success = onStartClick()
-                    if (!success) {
-                        // Handle start failure - this will be shown via ViewModel state change to Error
-                        // The error toast will be handled by the Error state UI
-                    }
                 } else {
                     onRequestLocationPermission()
                 }

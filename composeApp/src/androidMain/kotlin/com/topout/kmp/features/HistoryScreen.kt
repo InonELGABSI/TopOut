@@ -3,12 +3,8 @@ package com.topout.kmp.features
 import androidx.compose.animation.core.EaseInOutCubic
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -21,8 +17,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -33,20 +27,15 @@ import com.topout.kmp.features.sessions.SessionsState
 import com.topout.kmp.features.sessions.SessionsViewModel
 import com.topout.kmp.features.sessions.SortOption
 import com.topout.kmp.models.Session
-import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import com.topout.kmp.shared_components.TopRoundedCard
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.times
 import androidx.compose.ui.zIndex
 import com.topout.kmp.shared_components.BottomRoundedCard
-import com.topout.kmp.shared_components.FullRoundedCard
-import com.topout.kmp.shared_components.MiddleRoundedCard
-import kotlin.math.roundToInt
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +43,6 @@ fun HistoryScreen(
     viewModel: SessionsViewModel = koinViewModel(),
     onSessionClick: (Session) -> Unit
 ) {
-    val topContentSpacing = rememberTopContentSpacingDp()
 
     LaunchedEffect(Unit) {
         viewModel.fetchSessions()
@@ -328,8 +316,6 @@ fun StackedSessionCards(
                         SessionCardContent(
                             session = session,
                             onSessionClick = onSessionClick,
-                            topContentSpacing = 0.dp,
-                            isFirstItem = revIndex == sessions.lastIndex
                         )
                     }
                     Box(
@@ -422,8 +408,6 @@ fun StackedSessionCards(
 fun SessionCardContent(
     session: Session,
     onSessionClick: (Session) -> Unit,
-    topContentSpacing: Dp,
-    isFirstItem: Boolean
 ) {
     Column(
         modifier = Modifier
@@ -440,24 +424,6 @@ fun SessionCardContent(
             session = session,
             onSessionClick = onSessionClick
         )
-    }
-}
-
-@Composable
-fun SessionsListContent(
-    sessions: List<Session>,
-    onSessionClicked: (Session) -> Unit
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 8.dp)
-    ) {
-        items(sessions) { session ->
-            SessionItem(
-                session = session,
-                onSessionClick = onSessionClicked
-            )
-        }
     }
 }
 
@@ -512,66 +478,4 @@ fun LoadingContent() {
         color = MaterialTheme.colorScheme.surfaceVariant,
         trackColor = MaterialTheme.colorScheme.secondary
     )
-}
-
-private fun createDummyUiState(type: String = "loaded"): SessionsState {
-    return when (type) {
-        "loading" -> SessionsState.Loading
-
-        "error" -> SessionsState.Error("Failed to load sessions. Please check your connection.")
-
-        "empty" -> SessionsState.Loaded(emptyList())
-
-        "loaded" -> SessionsState.Loaded(
-            listOf(
-                Session(
-                    id = "1",
-                    userId = "1",
-                    title = "Morning Climb",
-                    startTime = null, // Will be handled by ViewModel when real data comes from shared module
-                    endTime = null,
-                    totalAscent = 120.0,
-                    totalDescent = 100.0,
-                    maxAltitude = 300.0,
-                    minAltitude = 150.0,
-                    avgHorizontal = 1.2,
-                    avgVertical = 0.8,
-                    alertTriggered = 0L,
-                    createdAt = null,
-                ),
-                Session(
-                    id = "2",
-                    userId = "2",
-                    title = "Evening Session",
-                    startTime = null,
-                    endTime = null,
-                    totalAscent = 80.0,
-                    totalDescent = 80.0,
-                    maxAltitude = 250.0,
-                    minAltitude = 120.0,
-                    avgHorizontal = 0.9,
-                    avgVertical = 0.6,
-                    alertTriggered = 0L,
-                    createdAt = null,
-                ),
-                Session(
-                    id = "3",
-                    userId = "3",
-                    title = "Weekend Adventure",
-                    startTime = null,
-                    endTime = null,
-                    totalAscent = 200.0,
-                    totalDescent = 180.0,
-                    maxAltitude = 450.0,
-                    minAltitude = 200.0,
-                    avgHorizontal = 1.5,
-                    avgVertical = 1.1,
-                    alertTriggered = 0L,
-                    createdAt = null,
-                )
-            )
-        )
-
-        else -> SessionsState.Loading
-    }
 }

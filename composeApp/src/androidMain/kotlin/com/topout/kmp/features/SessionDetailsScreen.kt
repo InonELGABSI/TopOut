@@ -17,19 +17,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.zIndex
 import com.topout.kmp.features.session_details.SessionDetailsState
 import com.topout.kmp.features.session_details.SessionDetailsViewModel
 import com.topout.kmp.models.SessionDetails
 import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.map.LiveMap
-import com.topout.kmp.utils.extensions.latLngOrNull
 import com.topout.kmp.shared_components.*
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.max
 import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -563,7 +560,7 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
                 icon = Icons.AutoMirrored.Filled.TrendingUp,
                 label = "Total Gain",
                 value = "%.1f m".format(totalGain),
-                textColor = androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                textColor = Color(0xFF4CAF50)
             )
         }
 
@@ -576,19 +573,19 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
                 icon = Icons.AutoMirrored.Filled.TrendingDown,
                 label = "Total Loss",
                 value = "%.1f m".format(totalLoss),
-                textColor = androidx.compose.ui.graphics.Color(0xFFFF5722)
+                textColor = Color(0xFFFF5722)
             )
             StatisticItemWithIcon(
                 icon = Icons.Default.Speed,
                 label = "Avg-H",
                 value = "%.1f m/s".format(avgHorizontal),
-                textColor = androidx.compose.ui.graphics.Color(0xFF9C27B0)
+                textColor = Color(0xFF9C27B0)
             )
             StatisticItemWithIcon(
                 icon = Icons.Default.Schedule,
                 label = "Avg-V",
                 value = "%.1f m/s".format(avgVertical),
-                textColor = androidx.compose.ui.graphics.Color(0xFFFF9800)
+                textColor = Color(0xFFFF9800)
             )
         }
     }
@@ -600,7 +597,7 @@ fun StatisticItemWithIcon(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
-    textColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
+    textColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
         modifier = modifier.padding(horizontal = 8.dp),
@@ -661,33 +658,6 @@ fun TrackPointsCardContent(trackPoints: List<TrackPoint>) {
     }
 }
 
-@Composable
-fun StatisticItem(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    textColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = textColor
-            ),
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-    }
-}
 
 /**
  * Prepares chart data from track points with a maximum of 50 points.
