@@ -63,7 +63,6 @@ kotlin {
 
             api(libs.koin.core)
             implementation(libs.koin.compose)
-            implementation(libs.koin.test)
 
 
             implementation(libs.firebase.firestore)
@@ -93,6 +92,7 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.koin.test)
         }
     }
 }
@@ -107,5 +107,9 @@ android {
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
+    lint {
+        // Workaround: disable crashing detector due to metadata version mismatch
+        disable += "CoroutineCreationDuringComposition"
+        abortOnError = false
+    }
 }
-

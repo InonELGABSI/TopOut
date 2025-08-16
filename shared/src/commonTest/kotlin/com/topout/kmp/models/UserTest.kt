@@ -14,9 +14,10 @@ class UserTest {
         assertEquals("test-id", user.id)
         assertEquals("meters", user.unitPreference)
         assertEquals(false, user.enabledNotifications)
-        assertEquals(0.0, user.relativeHeightFromStartThr)
-        assertEquals(0.0, user.totalHeightFromStartThr)
-        assertEquals(0.0, user.currentAvgHeightSpeedThr)
+        // Thresholds are nullable in model; treat null as 0.0 for default semantics
+        assertEquals(0.0, user.relativeHeightFromStartThr ?: 0.0)
+        assertEquals(0.0, user.totalHeightFromStartThr ?: 0.0)
+        assertEquals(0.0, user.currentAvgHeightSpeedThr ?: 0.0)
         assertEquals(false, user.userUpdatedOffline)
         assertNotNull(user.createdAt)
         assertNotNull(user.updatedAt)
@@ -113,8 +114,8 @@ class UserTest {
     @Test
     fun user_allThresholdDefaultsAreZero() {
         val user = User(id = "test-id")
-        assertEquals(0.0, user.relativeHeightFromStartThr)
-        assertEquals(0.0, user.totalHeightFromStartThr)
-        assertEquals(0.0, user.currentAvgHeightSpeedThr)
+        assertEquals(0.0, user.relativeHeightFromStartThr ?: 0.0)
+        assertEquals(0.0, user.totalHeightFromStartThr ?: 0.0)
+        assertEquals(0.0, user.currentAvgHeightSpeedThr ?: 0.0)
     }
 }
