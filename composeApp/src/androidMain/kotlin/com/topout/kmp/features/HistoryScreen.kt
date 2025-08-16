@@ -111,7 +111,6 @@ fun HistoryControlsSection(
     viewModel: SessionsViewModel,
     modifier: Modifier = Modifier
 ) {
-    // Get state from ViewModel instead of using local remember
     val searchText by viewModel.currentSearchTextState.collectAsState()
     val currentSortOption by viewModel.currentSortOptionState.collectAsState()
     var showSortMenu by remember { mutableStateOf(false) }
@@ -125,7 +124,6 @@ fun HistoryControlsSection(
         "Ascent (Lowest)"
     )
 
-    // Function to convert SortOption enum to string
     fun sortOptionToString(sortOption: SortOption): String {
         return when (sortOption) {
             SortOption.DATE_NEWEST -> "Date (Newest)"
@@ -137,7 +135,6 @@ fun HistoryControlsSection(
         }
     }
 
-    // Function to convert string to SortOption enum
     fun stringToSortOption(sortString: String): SortOption {
         return when (sortString) {
             "Date (Newest)" -> SortOption.DATE_NEWEST
@@ -154,13 +151,11 @@ fun HistoryControlsSection(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Controls row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Sort button on the left
             Box {
                 OutlinedButton(
                     onClick = { showSortMenu = true },
@@ -199,7 +194,6 @@ fun HistoryControlsSection(
                             text = { Text(option) },
                             onClick = {
                                 showSortMenu = false
-                                // Apply sorting through ViewModel
                                 viewModel.sortSessions(stringToSortOption(option))
                             }
                         )
@@ -207,11 +201,9 @@ fun HistoryControlsSection(
                 }
             }
 
-            // Search input on the right
             OutlinedTextField(
                 value = searchText,
                 onValueChange = { newText ->
-                    // Call ViewModel search method whenever text changes
                     viewModel.searchSessions(newText)
                 },
                 modifier = Modifier
@@ -234,7 +226,6 @@ fun HistoryControlsSection(
                     if (searchText.isNotEmpty()) {
                         IconButton(
                             onClick = {
-                                // Clear search in ViewModel
                                 viewModel.searchSessions("")
                             }
                         ) {
@@ -277,7 +268,6 @@ fun StackedSessionCards(
     val density = LocalDensity.current
     val headerHeight = 200.dp
 
-    // State for header visibility (keep your animation logic as before)
     var headerOffset by remember { mutableFloatStateOf(0f) }
     var lastScrollValue by remember { mutableIntStateOf(0) }
     val headerHeightPx = with(density) { headerHeight.toPx() }
@@ -298,17 +288,12 @@ fun StackedSessionCards(
     }
 
     Box(modifier = modifier) {
-        // The stacking layout, scrollable
         Layout(
             modifier = Modifier
                 .verticalScroll(scrollState)
                 .fillMaxWidth(),
             content = {
-                // 1. Add the spacer for the header
                 Spacer(Modifier.height(headerHeight))
-                // 2. Add a spacer after the header for overlap (fine-tune as needed)
-//                Spacer(Modifier.height( 24.dp))
-                // 3. All session cards (stacked)
                 sessions.asReversed().forEachIndexed { revIndex, session ->
                     val color = palette[revIndex % palette.size]
                     val elevation = 6.dp + (revIndex * 2).dp
@@ -322,7 +307,6 @@ fun StackedSessionCards(
                         modifier = Modifier
                             .zIndex(revIndex.toFloat())
                     ) {
-                        // Use BottomRoundedCard for all session cards
                         BottomRoundedCard(
                             modifier = Modifier.fillMaxWidth(),
                             elevation = elevation,
@@ -335,29 +319,23 @@ fun StackedSessionCards(
         ) { measurables, constraints ->
             val overlapPx = overlap.roundToPx()
             var y = 0
-            // 1. Header spacer
             val headerPlaceable = measurables[0].measure(constraints)
             y += headerPlaceable.height
 
             val cardPlacements = mutableListOf<Pair<Int, Placeable>>()
-            // 2. Cards (start from index 1 since we only have header spacer)
             for (i in 1 until measurables.size) {
                 val placeable = measurables[i].measure(constraints)
                 cardPlacements.add(y to placeable)
-                // Each card overlaps the previous
                 y += placeable.height - overlapPx
             }
             val layoutHeight = if (cardPlacements.isEmpty()) y else y + overlapPx
 
             layout(constraints.maxWidth, layoutHeight) {
-                // Place header spacer (not visible, just offsets)
                 headerPlaceable.place(0, 0)
-                // Place cards
                 cardPlacements.forEach { (yy, pl) -> pl.place(0, yy) }
             }
         }
 
-        // Sticky/fixed header (as before)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -419,7 +397,6 @@ fun SessionCardContent(
                 bottom = 20.dp
             )
     ) {
-        // Session content - reuse existing SessionItem content or create new layout
         SessionItem(
             session = session,
             onSessionClick = onSessionClick

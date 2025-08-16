@@ -1,11 +1,8 @@
-//==============================================================
-//  StartSessionContent.swift
-//==============================================================
 
 import SwiftUI
 import Shared
 import Lottie
-import UIKit // Added for haptics
+import UIKit
 
 struct StartSessionContent: View {
     let hasLocationPermission: Bool
@@ -62,17 +59,14 @@ private struct MSLCard: View {
     let theme: AppTheme
     let onRefresh: () -> Void
 
-    // Derived state helper
     private var isLoading: Bool { mslHeightState is MSLHeightState.Loading }
 
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .bottom) {
-                // Card background
                 RoundedRectangle(cornerRadius: 12)
                     .fill(theme.primaryContainer.opacity(0.3))
 
-                // Card content (text and info)
                 VStack(spacing: 16) {
                     HStack {
                         Image(systemName: "arrow.up.and.down")
@@ -81,7 +75,6 @@ private struct MSLCard: View {
                             .font(.headline)
                             .foregroundColor(theme.primary)
                         Spacer()
-                        // Refresh button with loading feedback & haptics
                         Button(action: {
                             guard !isLoading else { return }
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -125,14 +118,13 @@ private struct MSLCard: View {
                             EmptyView()
                         }
                     }
-                    Spacer(minLength: 4) // <-- Spacer for visual balance above wave
+                    Spacer(minLength: 4)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
                 .padding(.bottom, 12)
                 .zIndex(1)
 
-                // --- Wave Animation overlays bottom, fills card, clipped by card shape ---
                 WaveAnimationView(
                     animationAsset: "Waves",
                     speed: 1.0,
@@ -140,11 +132,11 @@ private struct MSLCard: View {
                     iterations: 0 // Infinite loop
                 )
                 .frame(width: geo.size.width, height: 48)
-                .offset(y: 18) // Tweak so just the crest is visible
+                .offset(y: 18)
                 .allowsHitTesting(false)
                 .zIndex(0)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12)) // 👈 Card + wave clipped together
+            .clipShape(RoundedRectangle(cornerRadius: 12))
             .frame(width: geo.size.width, height: 180, alignment: .bottom)
         }
         .frame(height: 180)
@@ -152,7 +144,6 @@ private struct MSLCard: View {
     }
 }
 
-// MARK: - Refresh Icon View
 private struct RefreshIcon: View {
     let isLoading: Bool
     let theme: AppTheme

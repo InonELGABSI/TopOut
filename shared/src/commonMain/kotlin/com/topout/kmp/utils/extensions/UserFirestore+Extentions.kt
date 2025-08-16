@@ -4,20 +4,16 @@ import com.topout.kmp.models.User
 import dev.gitlive.firebase.firestore.DocumentSnapshot
 import dev.gitlive.firebase.firestore.Timestamp
 
-/* ---------- helpers ---------- */
 
 /** get field as Long else Timestamp else 0  */
 private fun DocumentSnapshot.millis(field: String): Long {
-    // try Long first (what we usually store)
     get<Long?>(field)?.let { return it }
 
-    // fallback to Timestamp (when Firestore wrote serverTimestamp)
     get<Timestamp?>(field)?.let { return it.toEpochMillis() }
 
     return 0L
 }
 
-/* ---------- read ---------- */
 /** Firestore document ➜ User (pure Long timestamps) */
 fun DocumentSnapshot.toUser(): User {
     val id: String = get("id")
@@ -29,7 +25,6 @@ fun DocumentSnapshot.toUser(): User {
         imgUrl = get<String?>("img_url"),
         unitPreference = get<String?>("unit_preference") ?: "meters",
         enabledNotifications = get<Boolean?>("enabled_notifications") ?: false,
-        // keep null if absent
         relativeHeightFromStartThr = get<Double?>("relative_height_from_start_thr"),
         totalHeightFromStartThr = get<Double?>("total_height_from_start_thr"),
         currentAvgHeightSpeedThr = get<Double?>("current_avg_height_speed_thr"),
@@ -39,7 +34,6 @@ fun DocumentSnapshot.toUser(): User {
     )
 }
 
-/* ---------- write ---------- */
 /**
  * User ➜ Map ready for Firestore.
  */
@@ -54,7 +48,6 @@ fun User.toFirestoreMap(): Map<String, Any?> {
         "created_at" to createdAt,
         "updated_at" to updatedAt
     )
-    // only include thresholds if set
     relativeHeightFromStartThr?.let { map["relative_height_from_start_thr"] = it }
     totalHeightFromStartThr?.let { map["total_height_from_start_thr"] = it }
     currentAvgHeightSpeedThr?.let { map["current_avg_height_speed_thr"] = it }

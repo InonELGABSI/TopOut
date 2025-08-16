@@ -3,7 +3,6 @@ import Shared
 import MapKit
 
 struct LiveSessionView: View {
-    // MARK: – State / DI
     @ObservedObject private(set) var viewModel = ViewModelWrapper<LiveSessionState, LiveSessionViewModel>()
     @State private var showingStopConfirmation    = false
     @State private var showingDiscardConfirmation = false
@@ -16,18 +15,17 @@ struct LiveSessionView: View {
     @State private var lastToastTimestamp: Int64 = 0
     @State private var hasLocationPermission   = false
     @State private var hasNavigatedToDetails = false
-    @State private var animationTrigger = 0  // Add animation trigger state
+    @State private var animationTrigger = 0
     @State private var sessionToastVisible = false
     @State private var sessionToastMessage = ""
     @State private var sessionToastSuccess = true
     // NEW: observable MSL state for UI updates
-    @State private var mslHeightState: MSLHeightState = MSLHeightState.Loading() // FIX: instantiate object
+    @State private var mslHeightState: MSLHeightState = MSLHeightState.Loading()
 
     @EnvironmentObject private var themeManager: AppThemeManager
     @Environment(\.appTheme) private var theme
     @EnvironmentObject var networkMonitor: NetworkMonitor
     
-    // ⬅️ ADDED for navigation to SessionDetails
     @State private var navigateToDetails = false
     @State private var stoppedSessionId: String? = nil
     
@@ -36,9 +34,9 @@ struct LiveSessionView: View {
     var body: some View {
         ZStack {
             theme.background.ignoresSafeArea()
-            sessionContent          // big switch broken out
-            dangerToastView         // toast broken out
-            sessionFeedbackToastView // new toast overlay
+            sessionContent
+            dangerToastView
+            sessionFeedbackToastView
         }
         .onAppear(perform: onAppearSetup)
         .alert(isPresented: $showingStopConfirmation, content: stopAlert)
@@ -60,17 +58,16 @@ struct LiveSessionView: View {
                     .navigationTitle("Session Details")
                     .navigationBarTitleDisplayMode(.inline)
                     .onDisappear {
-                        viewModel.viewModel.resetToInitialState() // clear ViewModel state
+                        viewModel.viewModel.resetToInitialState()
                         stoppedSessionId = nil
-                        hasNavigatedToDetails = false              // allow navigation next time
+                        hasNavigatedToDetails = false
                     }
             }
         }
 
     }
     
-    // MARK: – Computed Views
-    
+
     @ViewBuilder
     private var sessionContent: some View {
         switch onEnum(of: viewModel.uiState) {
@@ -84,17 +81,15 @@ struct LiveSessionView: View {
                         animationSize: 220,
                         iterations: 1
                     )
-                    .id("mountain_animation_\(animationTrigger)") // Restart animation with stable but refreshable ID
+                    .id("mountain_animation_\(animationTrigger)")
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.top, 60) // Generous top spacing after safe area
-                .padding(.bottom, 40) // Space before content
+                .padding(.top, 60)
+                .padding(.bottom, 40)
                 .onAppear {
-                    // Trigger animation restart every time we enter the loading state
                     animationTrigger += 1
                 }
 
-                // Content section
                 StartSessionContent(
                     hasLocationPermission: hasLocationPermission,
                     onStartClick:          {
@@ -103,11 +98,10 @@ struct LiveSessionView: View {
                     },
                     onRequestLocationPermission: { requestLocationPermission() },
                     onRefreshMSL:          { viewModel.viewModel.refreshMSLHeight() },
-                    mslHeightState:        mslHeightState, // UPDATED to reactive state
+                    mslHeightState:        mslHeightState,
                     theme:                 theme
                 )
 
-                // Push content up, button stays at natural position
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -152,7 +146,6 @@ struct LiveSessionView: View {
             )
 
         case .stopping:
-            // ⬅️ CHANGED: Show loading spinner while stopping
             VStack {
                 ProgressView("Stopping session…")
                     .progressViewStyle(CircularProgressViewStyle())
@@ -201,7 +194,7 @@ struct LiveSessionView: View {
     
     @ViewBuilder private var sessionFeedbackToastView: some View {
         if sessionToastVisible {
-            VStack { // full-screen container so toast has width context
+            VStack {
                 Spacer()
                 FeedbackToast(message: sessionToastMessage, success: sessionToastSuccess) {
                     withAnimation { sessionToastVisible = false }
@@ -215,12 +208,10 @@ struct LiveSessionView: View {
         }
     }
 
-    // MARK: – Lifecycle
-    
+
     private func onAppearSetup() {
         viewModel.startObserving()
         checkLocationPermission()
-        // Observe UI state (existing logic)
         Task { @MainActor in
             for await state in viewModel.viewModel.uiState {
                 if let loaded = state as? LiveSessionState.Loaded, loaded.trackPoint.danger {
@@ -233,7 +224,6 @@ struct LiveSessionView: View {
                 }
             }
         }
-        // Observe MSL height state (NEW)
         Task { @MainActor in
             for await state in viewModel.viewModel.mslHeightState {
                 mslHeightState = state
@@ -241,8 +231,7 @@ struct LiveSessionView: View {
         }
     }
     
-    // MARK: – Alerts / dialogs
-    
+
     private func stopAlert() -> Alert {
         Alert(
             title:   Text("Stop Session"),
@@ -268,8 +257,7 @@ struct LiveSessionView: View {
         Button("Keep Session", role: .cancel) { }
     }
     
-    // MARK: – Permission helpers
-    
+
     private func checkLocationPermission() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { hasLocationPermission = true }
     }
@@ -278,8 +266,7 @@ struct LiveSessionView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { hasLocationPermission = true }
     }
     
-    // MARK: – Toast helpers
-    
+
     private func getAlertMessage(alertType: AlertType) -> String {
         switch alertType {
         case .rapidDescent:           return "Rapid altitude decrease detected!"

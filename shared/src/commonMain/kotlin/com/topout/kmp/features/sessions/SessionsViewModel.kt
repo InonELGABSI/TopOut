@@ -27,7 +27,6 @@ class SessionsViewModel (
     private var currentSortOption: SortOption = SortOption.DATE_NEWEST
     private var currentSearchText: String = ""
 
-    // Expose current search text and sort option as state
     private val _currentSearchText = MutableStateFlow("")
     val currentSearchTextState: StateFlow<String> = _currentSearchText
 
@@ -65,7 +64,6 @@ class SessionsViewModel (
     }
 
     private fun applyFiltersAndSorting() {
-        // First apply search filter
         val filteredSessions = if (currentSearchText.isBlank()) {
             originalSessions
         } else {
@@ -75,7 +73,6 @@ class SessionsViewModel (
             }
         }
 
-        // Then apply sorting
         val sortedSessions = when (currentSortOption) {
             SortOption.DATE_NEWEST -> filteredSessions.sortedByDescending { it.createdAt ?: 0L }
             SortOption.DATE_OLDEST -> filteredSessions.sortedBy { it.createdAt ?: 0L }
@@ -95,7 +92,6 @@ class SessionsViewModel (
     }
 
     private fun applySorting(sortOption: SortOption) {
-        // This method is deprecated, use applyFiltersAndSorting instead
         currentSortOption = sortOption
         applyFiltersAndSorting()
     }

@@ -39,7 +39,7 @@ class SessionTrackingService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForeground(NOTIFICATION_ID, createNotification())
-        return START_STICKY // Restart if killed
+        return START_STICKY
     }
 
     private fun createNotificationChannel() {
@@ -64,7 +64,6 @@ class SessionTrackingService : Service() {
             0,
             Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                // Add extra to indicate we're returning to an active session
                 putExtra("NAVIGATE_TO_LIVE_SESSION", true)
             },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE

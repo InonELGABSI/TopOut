@@ -21,28 +21,17 @@ actual class AccelerometerProvider {
 
     private fun isSimulator(): Boolean =
         NSProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != null
-    /**
-     * One-shot read; returns X, Y, Z in m/s² plus epoch-millis timestamp.
-     *
-     * * Axis directions follow the iOS Core Motion coordinate system
-     * * The function suspends until **one** sensor event arrives, then stops updates;
-     *   cancellation immediately stops updates as well.
-     *
-     * @throws IllegalStateException when the device has no accelerometer.
-     */
     actual suspend fun getAcceleration(): AccelerationData {
-        // SIMULATOR: Return dummy/fake data (gravity only)
         if (isSimulator()) {
-            //log.w { "Simulating accelerometer data in Simulator" }
+
             return AccelerationData(
                 x = 0.0f,
                 y = 0.0f,
-                z = 9.8f, // As if device is flat, showing gravity only
+                z = 9.8f,
                 ts = (NSDate().timeIntervalSince1970 * 1000).toLong()
             )
         }
 
-        // REAL DEVICE: Use hardware as before
         return suspendCancellableCoroutine { cont ->
             if (!motionManager.isAccelerometerAvailable()) {
                 cont.resumeWithException(
@@ -51,7 +40,6 @@ actual class AccelerometerProvider {
                 return@suspendCancellableCoroutine
             }
 
-            // Match Android's SENSOR_DELAY_GAME (≈ 50 Hz, ~20 ms)
             motionManager.accelerometerUpdateInterval = 0.02  // 50 Hz
 
             motionManager.startAccelerometerUpdatesToQueue(

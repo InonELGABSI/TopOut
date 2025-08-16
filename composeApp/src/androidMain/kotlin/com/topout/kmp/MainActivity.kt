@@ -56,7 +56,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         FirebaseApp.initializeApp(this)
-        NotificationHelper.createGeneralChannel(this) // יצירת ערוץ נוטיפיקציה
+        NotificationHelper.createGeneralChannel(this)
 
         setContent {
             KoinContext {
@@ -92,7 +92,6 @@ class MainActivity : ComponentActivity() {
                     ) {
                         val navController = rememberNavController()
 
-                        // Check if we should navigate to live session from notification
                         var selectedTab by remember {
                             mutableStateOf<NavTab>(
                                 if (intent.getBooleanExtra("NAVIGATE_TO_LIVE_SESSION", false)) {
@@ -252,10 +251,6 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        // Handle when app is already running and notification is tapped
-        if (intent.getBooleanExtra("NAVIGATE_TO_LIVE_SESSION", false)) {
-            // The navigation will be handled by the selectedTab state above
-        }
     }
 }
 

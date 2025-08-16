@@ -4,12 +4,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Metrics(
-    val gain: Double = 0.0,            // Σ העליות
-    val loss: Double = 0.0,            // Σ הירידות
-    val relAltitude: Double = 0.0,     // hᵢ − h₀
+    val gain: Double = 0.0,
+    val loss: Double = 0.0,
+    val relAltitude: Double = 0.0,
 
-    val avgHorizontal: Double = 0.0,   // avgH
-    val avgVertical: Double = 0.0,     // avgV
-    val danger: Boolean = false,       // true אם אחד הספים חצה
+    val avgHorizontal: Double = 0.0,
+    val avgVertical: Double = 0.0,
+    val danger: Boolean = false,
     val alertType: AlertType = AlertType.NONE
 )

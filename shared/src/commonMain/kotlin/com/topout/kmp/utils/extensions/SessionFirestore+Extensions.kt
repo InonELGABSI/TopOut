@@ -4,20 +4,15 @@ import com.topout.kmp.models.Session
 import dev.gitlive.firebase.firestore.DocumentSnapshot
 import dev.gitlive.firebase.firestore.Timestamp
 
-/* ---------- helpers ---------- */
 
 /** get field as Long else Timestamp else 0  */
 private fun DocumentSnapshot.millis(field: String): Long {
-    // try Long first (what we usually store)
     get<Long?>(field)?.let { return it }
-
-    // fallback to Timestamp (when Firestore wrote serverTimestamp)
     get<Timestamp?>(field)?.let { return it.toEpochMillis() }
 
     return 0L
 }
 
-/* ---------- read ---------- */
 /** Firestore document ➜ Session (pure Long timestamps) */
 fun DocumentSnapshot.toSession(): Session {
     val id = get<String>("id")
@@ -43,11 +38,8 @@ fun DocumentSnapshot.toSession(): Session {
     )
 }
 
-/* ---------- write ---------- */
 /**
  * Session ➜ Map ready for Firestore.
- * Pass `serverCreatedAt = true` to store `created_at`
- * using FieldValue.serverTimestamp().
  */
 fun Session.toFirestoreMap(): Map<String, Any?> =
     mutableMapOf<String, Any?>(

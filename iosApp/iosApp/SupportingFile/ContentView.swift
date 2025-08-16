@@ -23,6 +23,6 @@ struct ContentView: View {
         .environmentObject(networkMonitor)
         .accentColor(themeManager.currentTheme.primary)
         .background(themeManager.currentTheme.background)
-        .preferredColorScheme(nil) // Let system handle Dark Mode automatically
+        .preferredColorScheme(nil)
     }
 }

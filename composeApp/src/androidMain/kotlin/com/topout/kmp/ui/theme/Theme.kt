@@ -10,11 +10,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 
 enum class ThemePalette {
-    CLASSIC_RED,       // Red/Gray theme (was CRIMSON_PEAK)
-    OCEAN_BLUE,        // Blue/Navy theme (was AZURE_HEIGHTS)
-    FOREST_GREEN,      // Green/Brown theme (was EMERALD_TRAIL)
-    STORM_GRAY,        // Blue/Steel theme (was STEEL_SUMMIT)
-    SUNSET_ORANGE      // Orange/Purple theme (was SUNSET_RIDGE)
+    CLASSIC_RED,
+    OCEAN_BLUE,
+    FOREST_GREEN,
+    STORM_GRAY,
+    SUNSET_ORANGE
 }
 
 object TopOutTheme {
@@ -234,7 +234,6 @@ object TopOutTheme {
     }
 }
 
-// Current theme palette provider
 val LocalThemePalette = staticCompositionLocalOf { ThemePalette.CLASSIC_RED }
 
 @Composable
@@ -254,7 +253,6 @@ fun TopOutAppTheme(
     }
 }
 
-// Extension function to get current theme palette anywhere in the app
 @Composable
 fun getCurrentThemePalette(): ThemePalette = LocalThemePalette.current
 

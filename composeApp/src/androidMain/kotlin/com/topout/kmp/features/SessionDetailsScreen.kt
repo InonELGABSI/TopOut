@@ -38,24 +38,16 @@ fun SessionDetailsScreen(
 ) {
     val uiState = viewModel.uiState.collectAsState().value
 
-    // State for delete confirmation dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
-
-    // State for edit title dialog
     var showEditTitleDialog by remember { mutableStateOf(false) }
-
-    // State for session toast
     var toastType by remember { mutableStateOf<SessionToastType?>(null) }
     var showSessionToast by remember { mutableStateOf(false) }
-
-    // State for handling delete navigation delay
     var shouldNavigateAfterDelete by remember { mutableStateOf(false) }
 
     LaunchedEffect(sessionId) {
         viewModel.loadSession(sessionId)
     }
 
-    // Handle navigation after delete with delay
     LaunchedEffect(shouldNavigateAfterDelete) {
         if (shouldNavigateAfterDelete) {
             kotlinx.coroutines.delay(1000)
@@ -118,7 +110,6 @@ fun SessionDetailsScreen(
         onDismiss = { showDeleteDialog = false }
     )
 
-    // Edit title dialog
     if (showEditTitleDialog && uiState is SessionDetailsState.Loaded) {
         EditTitleDialog(
             currentTitle = uiState.sessionDetails.session.title ?: "Climbing Session",
@@ -146,12 +137,10 @@ fun NewSessionDetailsContent(
     onDeleteClick: () -> Unit,
     onEditTitleClick: () -> Unit
 ) {
-    // Make the entire content scrollable
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        // Map section
         item {
             TopRoundedCard(
                 modifier = Modifier
@@ -159,7 +148,6 @@ fun NewSessionDetailsContent(
                     .height(500.dp),
                 cornerRadius = 24.dp
             ) {
-                // Map takes full card space
                 if (sessionDetails.points.isNotEmpty()) {
                     LiveMap(
                         location = null, // Not needed in route mode
@@ -183,7 +171,6 @@ fun NewSessionDetailsContent(
             }
         }
 
-        // Session title section
         item {
             SessionTitleSection(
                 sessionDetails = sessionDetails,
@@ -191,7 +178,6 @@ fun NewSessionDetailsContent(
             )
         }
 
-        // Session info section
         item {
             SessionInfoSection(
                 sessionDetails = sessionDetails,
@@ -199,7 +185,6 @@ fun NewSessionDetailsContent(
             )
         }
 
-        // Session name with statistics and track points wrapped together
         item {
             BottomRoundedCard(
                 modifier = Modifier.fillMaxWidth(),
@@ -210,16 +195,14 @@ fun NewSessionDetailsContent(
                 Column(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Title
                     Text(
-                        text = "Climbing Session", // You can make this dynamic based on session data
+                        text = "Climbing Session",
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontWeight = FontWeight.Bold
                         ),
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)
                     )
 
-                    // Horizontal divider under title
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 24.dp),
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
@@ -227,19 +210,15 @@ fun NewSessionDetailsContent(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Statistics (without background)
                     SessionStatisticsCard(sessionDetails = sessionDetails)
 
-                    // Horizontal divider under statistics
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                     )
 
-                    // Add spacing before the chart section
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Time-Height Chart
                     if (sessionDetails.points.isNotEmpty()) {
                         Column(
                             modifier = Modifier
@@ -276,7 +255,6 @@ fun NewSessionDetailsContent(
                         }
                     }
 
-                    // Track Points (without background)
                     TrackPointsCardContent(trackPoints = sessionDetails.points)
                 }
             }
@@ -541,7 +519,6 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // First row - 3 items
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -564,7 +541,6 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
             )
         }
 
-        // Second row - 3 items
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -654,15 +630,11 @@ fun TrackPointsCardContent(trackPoints: List<TrackPoint>) {
             )
         }
 
-        // Removed the detailed track points table - only showing the count above
     }
 }
 
 
-/**
- * Prepares chart data from track points with a maximum of 50 points.
- * Calculates time from session start and aggregates points if necessary.
- */
+
 private fun prepareChartData(trackPoints: List<TrackPoint>): List<Pair<Float, Float>> {
     if (trackPoints.isEmpty()) return emptyList()
 

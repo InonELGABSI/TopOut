@@ -30,25 +30,18 @@ fun SessionItem(
     onSessionClick: (Session) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Remove Card wrapper - the parent already provides the card background
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onSessionClick(session) }
             .padding(16.dp)
     ) {
-        // Header with title and date
         SessionHeader(
             title = session.title ?: "Unnamed Session",
             startTime = session.startTime
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Stats row with improved layout
         SessionStats(session = session)
-
-        // Duration if available
         session.startTime?.let { start ->
             session.endTime?.let { end ->
                 if (end > start) {
@@ -94,7 +87,6 @@ private fun SessionHeader(
 @SuppressLint("DefaultLocale")
 @Composable
 private fun SessionStats(session: Session) {
-    // Create a more visually appealing grid layout for stats
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -105,7 +97,6 @@ private fun SessionStats(session: Session) {
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        // Total Ascent
         session.totalAscent?.let { ascent ->
             StatItem(
                 icon = Icons.Default.KeyboardArrowUp,
@@ -115,7 +106,6 @@ private fun SessionStats(session: Session) {
             )
         }
 
-        // Total Descent
         session.totalDescent?.let { descent ->
             StatItem(
                 icon = Icons.Default.KeyboardArrowDown,
@@ -125,7 +115,6 @@ private fun SessionStats(session: Session) {
             )
         }
 
-        // Max Altitude
         session.maxAltitude?.let { altitude ->
             StatItem(
                 icon = Icons.AutoMirrored.Filled.TrendingUp,
@@ -135,7 +124,6 @@ private fun SessionStats(session: Session) {
             )
         }
 
-        // Average Horizontal Speed
         session.avgHorizontal?.let { avgH ->
             StatItem(
                 icon = Icons.Default.Speed,
@@ -145,7 +133,6 @@ private fun SessionStats(session: Session) {
             )
         }
 
-        // Average Vertical Speed  
         session.avgVertical?.let { avgV ->
             StatItem(
                 icon = Icons.Default.Schedule,

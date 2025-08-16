@@ -1,4 +1,3 @@
-// androidMain/…/SensorDataSource.kt
 package com.topout.kmp.data.sensors
 
 import com.google.android.gms.location.*
@@ -20,12 +19,10 @@ actual class SensorDataSource(
 ) {
     private val log = Logger.withTag("SensorDataSource")
 
-    // Flows that can be shared, only emit while started
     private val _accelFlow = MutableSharedFlow<AccelerationData>(replay = 1)
     private val _baroFlow  = MutableSharedFlow<AltitudeData>(replay = 1)
     private val _locFlow   = MutableSharedFlow<LocationData>(replay = 1)
 
-    // Expose only as read-only Flow
     actual val accelFlow: Flow<AccelerationData> get() = _accelFlow
     actual val baroFlow : Flow<AltitudeData> get() = _baroFlow
     actual val locFlow  : Flow<LocationData> get() = _locFlow
@@ -38,7 +35,6 @@ actual class SensorDataSource(
         log.i { "start() with scope: ${scope}" }
         this.scope = scope
 
-        // Start accelerometer
         scope.launch {
             while (isActive) {
                 try {
@@ -50,7 +46,6 @@ actual class SensorDataSource(
             }
         }
 
-        // Start barometer
         scope.launch {
             while (isActive) {
                 try {
@@ -62,7 +57,6 @@ actual class SensorDataSource(
             }
         }
 
-        // Simplified, robust location tracking for background
         startLocationTracking(scope)
     }
 
@@ -70,12 +64,11 @@ actual class SensorDataSource(
     private fun startLocationTracking(scope: CoroutineScope) {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
-        // Aggressive location request for background tracking
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
             .setMinUpdateIntervalMillis(500)
             .setMaxUpdateDelayMillis(2000)
             .setWaitForAccurateLocation(false)
-            .setMaxUpdateAgeMillis(10000) // Accept older locations in background
+            .setMaxUpdateAgeMillis(10000)
             .build()
 
         locationCallback = object : LocationCallback() {
@@ -109,19 +102,17 @@ actual class SensorDataSource(
             log.e { "Failed to request location updates: ${e.message}" }
         }
 
-        // Single fallback mechanism - only when FusedLocationProvider fails
         scope.launch {
-            delay(5000) // Wait 5 seconds for FusedLocationProvider to start
+            delay(5000)
             while (isActive) {
                 try {
-                    // Only use fallback if we haven't received location in a while
                     val freshLocation = locProvider.getLocation()
                     _locFlow.emit(freshLocation)
                     log.d { "Fallback location update: ${freshLocation.lat}, ${freshLocation.lon}" }
                 } catch (e: Exception) {
                     log.w { "Fallback location failed: ${e.message}" }
                 }
-                delay(5000) // Less frequent fallback
+                delay(5000)
             }
         }
     }
@@ -130,7 +121,6 @@ actual class SensorDataSource(
         log.i { "stop()" }
         scope?.cancel()
         scope = null
-        // Remove location updates
         locationCallback?.let { cb ->
             LocationServices.getFusedLocationProviderClient(context)
                 .removeLocationUpdates(cb)
@@ -142,7 +132,7 @@ actual class SensorDataSource(
 private fun android.location.Location.toModel() = LocationData(
     lat = latitude,
     lon = longitude,
-    altitude = if (hasAltitude()) altitude else 0.0, // Only use altitude if available
+    altitude = if (hasAltitude()) altitude else 0.0,
     speed = speed,
     ts = System.currentTimeMillis()
 )

@@ -6,12 +6,10 @@ struct SettingsView: View {
     @State private var showSignOutDialog = false
     @State private var showDeleteAccountDialog = false
 
-    // State for editing sections
     @State private var isEditingProfile = false
     @State private var isEditingPreferences = false
     @State private var isEditingThresholds = false
 
-    // Toast state for feedback
     @State private var showToast = false
     @State private var toastMessage = ""
     @State private var toastSuccess = false
@@ -92,7 +90,6 @@ struct SettingsView: View {
                 EmptyView()
             }
 
-            // Toast overlay
             if showToast {
                 VStack {
                     Spacer()
@@ -124,7 +121,6 @@ struct SettingsView: View {
             showToast = true
         }
 
-        // Auto-dismiss after 3 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             dismissToast()
         }
@@ -137,7 +133,6 @@ struct SettingsView: View {
             showToast = true
         }
 
-        // Auto-dismiss after 4 seconds for errors
         DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
             dismissToast()
         }
@@ -150,7 +145,6 @@ struct SettingsView: View {
     }
 }
 
-// MARK: - Card Components
 
 struct ProfileCard: View {
     let user: User
@@ -173,16 +167,14 @@ struct ProfileCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
-                // Leading: Icon + Title
                 Image(systemName: "person.fill")
                     .foregroundColor(theme.primary)
                 Text("Profile")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(theme.onSurface)
-                Spacer() // Pushes the button to the right
+                Spacer()
 
-                // Trailing: Edit button (shown only when not editing)
                 if !isEditing {
                     Button(action: {
                         editableUser = EditableUser(user: user)
@@ -287,10 +279,10 @@ struct ProfileCard: View {
                     )
                 )
         )
-        .topShadow(blur: 12, distance: 6)          // first soft penumbra
+        .topShadow(blur: 12, distance: 6)
         .topShadow(color: .black.opacity(0.08),
                    blur: 24,
-                   distance: 12)                    // second larger bloom
+                   distance: 12)
 
     }
 }
@@ -316,16 +308,14 @@ struct PreferencesCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
-                // Leading: Icon + Title
                 Image(systemName: "gearshape.fill")
                     .foregroundColor(theme.primary)
                 Text("Preferences")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(theme.onSurface)
-                Spacer() // Pushes the button to the right
+                Spacer()
 
-                // Trailing: Edit button (shown only when not editing)
                 if !isEditing {
                     Button(action: {
                         editableUser = EditableUser(user: user)
@@ -405,10 +395,10 @@ struct PreferencesCard: View {
                     )
                 )
         )
-        .topShadow(blur: 12, distance: 6)          // first soft penumbra
+        .topShadow(blur: 12, distance: 6)
         .topShadow(color: .black.opacity(0.08),
                    blur: 24,
-                   distance: 12)                    // second larger bloom
+                   distance: 12)
 
     }
 }
@@ -434,16 +424,14 @@ struct ThresholdsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
-                // Leading: Icon + Title
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundColor(theme.primary)
                 Text("Alert Thresholds")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(theme.onSurface)
-                Spacer() // Pushes the button to the right
+                Spacer()
 
-                // Trailing: Edit button (shown only when not editing)
                 if !isEditing {
                     Button(action: {
                         editableUser = EditableUser(user: user)
@@ -532,10 +520,10 @@ struct ThresholdsCard: View {
                     )
                 )
         )
-        .topShadow(blur: 12, distance: 6)          // first soft penumbra
+        .topShadow(blur: 12, distance: 6)
         .topShadow(color: .black.opacity(0.08),
                    blur: 24,
-                   distance: 12)                    // second larger bloom
+                   distance: 12)
 
     }
 }
@@ -547,7 +535,6 @@ struct ThemeCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // — Header row —
             HStack {
                 Label("Theme", systemImage: "paintpalette.fill")
                     .foregroundColor(theme.primary)
@@ -557,11 +544,9 @@ struct ThemeCard: View {
 
                 Spacer()
 
-                // Dark mode toggle with Lottie animation
                 LottieToggleButton(
                     isToggled: colorScheme == .dark,
                     onToggle: { isDark in
-                        // Toggle system appearance
                         UIApplication.shared.connectedScenes
                             .compactMap { $0 as? UIWindowScene }
                             .first?.windows.first?
@@ -608,11 +593,10 @@ struct ThemeCard: View {
     }
 }
 
-// MARK: - Field Components
 
 struct EditableField: View {
     let label: String
-    @Binding var value: String  // Non-optional!
+    @Binding var value: String
     let isEditing: Bool
     let icon: String
     var keyboardType: UIKeyboardType = .default
@@ -744,7 +728,7 @@ struct NotificationToggle: View {
 
 struct ThresholdField: View {
     let label: String
-    @Binding var value: Double // non-optional!
+    @Binding var value: Double
     let isEditing: Bool
     let unit: String
     let theme: AppTheme
@@ -846,7 +830,6 @@ struct ColorPalettePreview: View {
     }
 }
 
-// MARK: - Loading & Error Components
 
 struct SettingsLoadingContent: View {
     let theme: AppTheme
@@ -891,7 +874,6 @@ struct SettingsErrorContent: View {
     }
 }
 
-// MARK: - Helper Functions
 
 func formatDate(_ timestamp: Int64) -> String {
     if timestamp == 0 {

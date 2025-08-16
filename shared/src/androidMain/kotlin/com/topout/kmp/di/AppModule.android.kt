@@ -31,10 +31,8 @@ actual val platformModule = module {
         locProvider = get()
     )}
 
-    // Platform-specific session background manager
     single<SessionBackgroundManager> { SessionBackgroundManager(context = get()) }
 
-    // Platform-specific notification controller using expect/actual
     single { NotificationController(context = get()) }
 
     viewModelOf(::SessionsViewModel)

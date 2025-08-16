@@ -67,7 +67,6 @@ struct ElevationChartView: View {
                     }
                     .frame(height: 200)
                 } else {
-                    // Fallback for iOS 15
                     LegacyElevationChart(elevationData: elevationData, theme: theme)
                 }
                 
@@ -99,7 +98,7 @@ struct ElevationChartView: View {
             previousPoint = point
             
             return ElevationPoint(
-                distance: cumulativeDistance / 1000, // Convert to km
+                distance: cumulativeDistance / 1000,
                 elevation: point.altitude?.double ?? 0.0
             )
         }
@@ -114,8 +113,7 @@ struct ElevationChartView: View {
     }
     
     private func calculateDistance(from point1: TrackPoint, to point2: TrackPoint) -> Double {
-        // Simple distance calculation between two GPS coordinates
-        // Using Haversine formula
+
         let lat1 = (point1.latitude?.double ?? 0.0) * Double.pi / 180
         let lon1 = (point1.longitude?.double ?? 0.0) * Double.pi / 180
         let lat2 = (point2.latitude?.double ?? 0.0) * Double.pi / 180
@@ -133,11 +131,10 @@ struct ElevationChartView: View {
 }
 
 struct ElevationPoint {
-    let distance: Double  // in km
-    let elevation: Double // in meters
+    let distance: Double
+    let elevation: Double
 }
 
-// Fallback chart for iOS 15
 struct LegacyElevationChart: View {
     let elevationData: [ElevationPoint]
     let theme: AppTheme
@@ -168,7 +165,6 @@ struct LegacyElevationChart: View {
             }
             .stroke(theme.primary, lineWidth: 2)
 
-            // Add a gradient area below the line
             Path { path in
                 let width = geometry.size.width
                 let height = geometry.size.height

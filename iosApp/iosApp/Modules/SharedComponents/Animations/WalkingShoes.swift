@@ -1,10 +1,3 @@
-//
-//  WalkingShoes.swift
-//  iosApp
-//
-//  Created by Inon Elgabsi on 30/07/2025.
-//
-
 import SwiftUI
 import Shared
 import Lottie
@@ -41,7 +34,6 @@ struct LoadingAnimation: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Animation container
             ZStack {
                 if let animation = LottieAnimation.named(animationAsset) {
                     LottieView(animation: animation)
@@ -49,7 +41,6 @@ struct LoadingAnimation: View {
                         .animationSpeed(Double(speed))
                         .frame(width: animationSize, height: animationSize)
                 } else {
-                    // Fallback to system icon
                     Image(systemName: "figure.walk")
                         .font(.system(size: animationSize * 0.3))
                         .foregroundColor(theme.primary)

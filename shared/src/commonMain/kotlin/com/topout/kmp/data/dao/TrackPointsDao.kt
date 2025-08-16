@@ -10,10 +10,6 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.IO
 
-/**
- * Data Access Object for TrackPoints - handles persistence to SQLDelight
- * Single Responsibility: Data access operations for track points
- */
 class TrackPointsDao(
     private val queries: Track_pointsQueries
 ) {

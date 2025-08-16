@@ -19,8 +19,6 @@ class SessionDetailsViewModel (
             when(result) {
                 is Result.Success -> {
                     result.data?.let { sessionDetails ->
-                        //test animated loader
-//                        _uiState.emit(SessionDetailsState.Loading)
                         _uiState.emit(SessionDetailsState.Loaded(sessionDetails))
                     } ?: run {
                         _uiState.emit(SessionDetailsState.Error("Session details not found"))
@@ -38,7 +36,6 @@ class SessionDetailsViewModel (
             val result = useCases.deleteSession(sessionId)
             val success = when(result) {
                 is Result.Success -> {
-                    // Navigate back or show success message
                     true
                 }
                 is Result.Failure -> {
@@ -55,7 +52,6 @@ class SessionDetailsViewModel (
             val result = useCases.updateSessionTitle(sessionId, newTitle)
             val success = when(result) {
                 is Result.Success -> {
-                    // Update the UI state directly instead of reloading
                     val currentState = _uiState.value
                     if (currentState is SessionDetailsState.Loaded) {
                         val updatedSessionDetails = currentState.sessionDetails.copy(

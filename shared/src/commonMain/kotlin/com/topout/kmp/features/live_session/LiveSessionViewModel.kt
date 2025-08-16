@@ -22,35 +22,29 @@ open class LiveSessionViewModel(
     private val _uiState = MutableStateFlow<LiveSessionState>(LiveSessionState.Loading)
     override val uiState: StateFlow<LiveSessionState> = _uiState
 
-    // MSL Height state
     private val _mslHeightState = MutableStateFlow<MSLHeightState>(MSLHeightState.Loading)
     val mslHeightState: StateFlow<MSLHeightState> = _mslHeightState
 
     private var trackPointJob: Job? = null
     private var historyTrackPointsJob: Job? = null
 
-    // 1. Hold references to manager and scope per session
     private var liveSessionManager: LiveSessionManager? = null
     private var sessionScope: CoroutineScope? = null
 
-    // Store current state to combine live point with history
     private var currentTrackPoint: TrackPoint? = null
     private var currentHistoryPoints: List<TrackPoint> = emptyList()
 
     private var isPaused: Boolean = false
 
-    // Platform-specific session background manager
     private val sessionBackgroundManager: SessionBackgroundManager by inject()
 
     init {
-        // Load current MSL height on initialization
         loadCurrentMSLHeight()
     }
 
     open fun onStartClicked(): Boolean {
         return try {
             sessionBackgroundManager.startBackgroundSession()
-            // Always clean previous session first
             stopSessionAndCleanup()
             _uiState.value = LiveSessionState.Loading
             sessionScope = try {
@@ -100,9 +94,7 @@ open class LiveSessionViewModel(
                     updateUIState()
                 }
             } catch (_: CancellationException) {
-                // cancellation (user stopped) – ignore
             } catch (e: Exception) {
-                // Log error but don't break the session for history tracking failure
                 println("Error tracking history points: ${e.message}")
             }
         }
@@ -222,9 +214,7 @@ open class LiveSessionViewModel(
         }
     }
 
-    // 4. Helper for fully stopping and cleaning up any running session
     private fun stopSessionAndCleanup() {
-        // Stop manager and clean up scope/jobs
         liveSessionManager?.stop()
         liveSessionManager = null
 
@@ -234,11 +224,9 @@ open class LiveSessionViewModel(
         historyTrackPointsJob?.cancel()
         historyTrackPointsJob = null
 
-        // Properly cancel the scope
         sessionScope?.coroutineContext?.get(Job)?.cancel()
         sessionScope = null
 
-        // Reset combined state
         currentTrackPoint = null
         currentHistoryPoints = emptyList()
         isPaused = false

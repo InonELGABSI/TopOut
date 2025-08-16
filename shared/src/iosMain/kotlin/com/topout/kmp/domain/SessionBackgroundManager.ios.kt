@@ -16,14 +16,12 @@ actual class SessionBackgroundManager {
     private var didBecomeActiveObs: NSObjectProtocol? = null
 
     actual fun startBackgroundSession() {
-        // Idempotent (avoid duplicating observers or scopes)
         if (backgroundScope != null) {
             log.d { "Background session already started" }
             return
         }
         log.i { "Starting background session" }
 
-        // Durable, UI-independent scope
         backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
         val center = NSNotificationCenter.defaultCenter
@@ -57,7 +55,6 @@ actual class SessionBackgroundManager {
 
     private fun beginBackgroundWindow() {
         if (bgTaskId != UIBackgroundTaskInvalid) return
-        // Defensive short background window for flush/transition work.
         bgTaskId = UIApplication.sharedApplication.beginBackgroundTaskWithName("session-location") {
             log.w { "Background task expired by system" }
             endBackgroundWindow()

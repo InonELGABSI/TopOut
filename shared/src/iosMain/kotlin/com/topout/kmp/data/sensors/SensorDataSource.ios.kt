@@ -37,10 +37,8 @@ actual class SensorDataSource(
         log.i { "start() with scope: $scope" }
         this.scope = scope
 
-        // Mark active tracking session (enables high-accuracy + background indicator logic)
         locProvider.beginActiveSession()
 
-        // Accelerometer – only when app is foreground
         accelJob = scope.launch {
             while (isActive) {
                 if (isForeground()) {
@@ -49,14 +47,13 @@ actual class SensorDataSource(
                     } catch (e: Exception) {
                         log.w { "Accelerometer error: ${e.message}" }
                     }
-                    delay(20) // ~50Hz
+                    delay(20)
                 } else {
-                    delay(500) // slow down in background
+                    delay(500)
                 }
             }
         }
 
-        // Barometer – only when app is foreground
         baroJob = scope.launch {
             while (isActive) {
                 if (isForeground()) {
@@ -65,14 +62,13 @@ actual class SensorDataSource(
                     } catch (e: Exception) {
                         log.w { "Barometer error: ${e.message}" }
                     }
-                    delay(100) // ~10Hz
+                    delay(100)
                 } else {
-                    delay(1000) // slow down in background
+                    delay(1000)
                 }
             }
         }
 
-        // Location – keep running in background to maintain app execution
         startLocationTracking(scope)
     }
 

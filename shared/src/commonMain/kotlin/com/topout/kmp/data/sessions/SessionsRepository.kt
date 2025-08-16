@@ -14,7 +14,6 @@ interface SessionsRepository {
     suspend fun saveSessions(sessions: List<Session>): Result<Unit, SessionsError>
     suspend fun getSessionsForSync(): Result<Sessions, SessionsError>
     suspend fun resolveLocalSync(sessionId: String, syncType: SyncType): Result<Unit, SessionsError>
-//    suspend fun updateSession(session: Session)
 }
 
 enum class SyncType {

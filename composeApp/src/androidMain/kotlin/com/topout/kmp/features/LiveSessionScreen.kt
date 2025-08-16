@@ -191,7 +191,6 @@ fun LiveSessionScreen(
                 .padding(bottom = 120.dp)
         )
 
-        // SessionToast for action feedback (including pause/resume/stop/cancel failures)
         SessionToast(
             toastType = toastType,
             isVisible = showSessionToast && toastType != null,
@@ -355,11 +354,9 @@ fun StartSessionContent(
                         }
                     }
 
-                    // Add some space for the wave animation
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Wave animation positioned at the bottom with overflow clipping
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -371,7 +368,7 @@ fun StartSessionContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(80.dp)
-                            .offset(y = 20.dp), // Offset to create overflow effect
+                            .offset(y = 20.dp),
                         speed = 1f
                     )
                 }
@@ -419,40 +416,34 @@ fun ActiveSessionContent(
     onStopClick: () -> Boolean,
     onCancelClick: () -> Boolean
 ) {
-    // State for stop confirmation dialog
     var showStopDialog by remember { mutableStateOf(false) }
     var showCancelDialog by remember { mutableStateOf(false) }
 
-    // State for handling action feedback
     var toastType by remember { mutableStateOf<SessionToastType?>(null) }
     var showToast by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Live Data Card - positioned first so it appears behind the map
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 450.dp), // Start 50dp before map ends to create overlap
+                .padding(top = 450.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            // Live data overview card
             TopRoundedCard(
                 modifier = Modifier.fillMaxWidth(),
                 cornerRadius = 24.dp,
-                elevation = 2.dp, // Lower elevation to appear behind map
+                elevation = 2.dp,
                 containerColor = MaterialTheme.colorScheme.surfaceContainer
             ) {
                 LiveDataOverviewCard(trackPoint = trackPoint)
             }
 
-            // Content area with chip buttons
             Column(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Chip buttons row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -460,7 +451,6 @@ fun ActiveSessionContent(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Cancel chip button
                     Box(
                         modifier = Modifier
                             .height(48.dp)
@@ -504,7 +494,6 @@ fun ActiveSessionContent(
                         }
                     }
 
-                    // Pause/Resume
                     Box(
                         modifier = Modifier
                             .height(48.dp)
@@ -512,9 +501,9 @@ fun ActiveSessionContent(
                             .background(
                                 brush = Brush.horizontalGradient(
                                     colors = if (!isPaused)
-                                        listOf(Color(0xFF757575), Color(0xFF9E9E9E))   // Pause (אפור)
+                                        listOf(Color(0xFF757575), Color(0xFF9E9E9E))
                                     else
-                                        listOf(Color(0xFF1976D2), Color(0xFF64B5F6))   // Resume (כחול)
+                                        listOf(Color(0xFF1976D2), Color(0xFF64B5F6))
                                 ),
                                 shape = RoundedCornerShape(24.dp)
                             )
@@ -546,7 +535,6 @@ fun ActiveSessionContent(
                         }
                     }
 
-                    // Stop & Save chip button
                     Box(
                         modifier = Modifier
                             .height(48.dp)
@@ -593,13 +581,12 @@ fun ActiveSessionContent(
             }
         }
 
-        // Map section in TopRoundedCard - positioned last so it appears above the live data card
         TopRoundedCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(500.dp),
             cornerRadius = 24.dp,
-            elevation = 6.dp // Higher elevation to appear above live data card
+            elevation = 6.dp
         ) {
             LiveMap(
                 location = trackPoint.latLngOrNull(),
@@ -610,7 +597,6 @@ fun ActiveSessionContent(
             )
         }
 
-        // SessionToast for action feedback (including pause/resume/stop/cancel failures)
         SessionToast(
             toastType = toastType,
             isVisible = showToast && toastType != null,
@@ -625,7 +611,6 @@ fun ActiveSessionContent(
         )
     }
 
-    // Stop session confirmation dialog
     ConfirmationDialog(
         isVisible = showStopDialog,
         title = "Stop Session",
@@ -645,7 +630,6 @@ fun ActiveSessionContent(
         onDismiss = { showStopDialog = false }
     )
 
-    // Cancel session confirmation dialog
     ConfirmationDialog(
         isVisible = showCancelDialog,
         title = "Cancel Session",
@@ -752,13 +736,13 @@ fun ErrorContent(
 
 @Composable
 fun LiveDataOverviewCard(trackPoint: TrackPoint) {
-    val topContentSpacing = 50.dp // Use a fixed top content spacing
+    val topContentSpacing = 50.dp
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                top = topContentSpacing + 20.dp, // Add top content spacing plus card padding
+                top = topContentSpacing + 20.dp,
                 start = 20.dp,
                 end = 20.dp,
                 bottom = 20.dp
@@ -799,7 +783,6 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
             )
         }
 
-        // Second Row: Location data with icon and title on left, coordinates with space around
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -871,12 +854,10 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
             }
         }
 
-        // Third Row: Split into two sections - Speed and Altitude
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Left side: Speed section
             Card(
                 modifier = Modifier.weight(1f),
                 colors = CardDefaults.cardColors(
@@ -948,7 +929,6 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
                 }
             }
 
-            // Right side: Altitude section
             Card(
                 modifier = Modifier.weight(1f),
                 colors = CardDefaults.cardColors(

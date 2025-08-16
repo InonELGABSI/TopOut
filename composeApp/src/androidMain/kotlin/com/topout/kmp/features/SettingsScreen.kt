@@ -49,13 +49,9 @@ fun SettingsScreen(
 ) {
     val uiState = viewModel.uiState.collectAsState().value
 
-    // State for session toast
     var toastType by remember { mutableStateOf<SessionToastType?>(null) }
     var showSessionToast by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        // TODO: viewModel.fetchUserSettings()
-    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -72,7 +68,6 @@ fun SettingsScreen(
                 )
             }
 
-            // Session Toast
             SessionToast(
                 toastType = toastType,
                 isVisible = showSessionToast && toastType != null,
@@ -123,9 +118,7 @@ fun StackedSettingsCards(
             .verticalScroll(scrollState)
             .fillMaxWidth(),
         content = {
-            // Add spacer for top content spacing
             Spacer(Modifier.height(rememberTopContentSpacingDp()))
-            // All settings cards (stacked)
             settingsCards.forEachIndexed { index, cardType ->
                 val color = palette[index % palette.size]
                 val elevation = 6.dp + (index * 2).dp
@@ -190,16 +183,13 @@ fun StackedSettingsCards(
         for (i in 2 until measurables.size) {
             val placeable = measurables[i].measure(constraints)
             cardPlacements.add(y to placeable)
-            // Each card overlaps the previous
             y += placeable.height - overlapPx
         }
         val layoutHeight = if (cardPlacements.isEmpty()) y else y + overlapPx
 
         layout(constraints.maxWidth, layoutHeight) {
-            // Place header spacer (not visible, just offsets)
             headerPlaceable.place(0, 0)
             overlapSpacer.place(0, headerPlaceable.height)
-            // Place cards
             cardPlacements.forEach { (yy, pl) -> pl.place(0, yy) }
         }
     }
@@ -277,7 +267,6 @@ fun ProfileCardContent(
                 icon = Icons.Default.CalendarMonth
             )
 
-            // Save/Cancel buttons when editing
             if (isEditing) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -309,7 +298,6 @@ fun ProfileCardContent(
             }
         }
 
-        // Circular edit button in top right corner
         if (!isEditing) {
             FloatingActionButton(
                 onClick = { onToggleEdit(true) },
@@ -376,7 +364,6 @@ fun PreferencesCardContent(
                 isEditing = isEditing
             )
 
-            // Save/Cancel buttons when editing
             if (isEditing) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -408,7 +395,6 @@ fun PreferencesCardContent(
             }
         }
 
-        // Circular edit button in top right corner
         if (!isEditing) {
             FloatingActionButton(
                 onClick = { onToggleEdit(true) },
@@ -487,7 +473,6 @@ fun ThresholdsCardContent(
                 unit = "${user.unitPreference ?: "meters"}/min"
             )
 
-            // Save/Cancel buttons when editing
             if (isEditing) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -519,7 +504,6 @@ fun ThresholdsCardContent(
             }
         }
 
-        // Circular edit button in top right corner
         if (!isEditing) {
             FloatingActionButton(
                 onClick = { onToggleEdit(true) },
@@ -541,7 +525,6 @@ fun ThresholdsCardContent(
 
 @Composable
 fun ThemeCardContent() {
-    // Get theme state and updater from MainActivity
     val currentThemeState = LocalThemeState.current
     val updateTheme = LocalThemeUpdater.current
 
@@ -579,7 +562,6 @@ fun ThemeCardContent() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Theme selection
         Text(
             text = "Color Palette",
             style = MaterialTheme.typography.bodyMedium,
@@ -587,7 +569,6 @@ fun ThemeCardContent() {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        // Theme options with color previews
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -642,13 +623,11 @@ fun ThemeOptionItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Color palette preview
             ColorPalettePreview(
                 colorScheme = colorScheme,
                 modifier = Modifier.size(60.dp)
             )
 
-            // Theme info
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -664,7 +643,6 @@ fun ThemeOptionItem(
                 )
             }
 
-            // Selection indicator
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
@@ -682,7 +660,6 @@ fun ColorPalettePreview(
     colorScheme: ColorScheme,
     modifier: Modifier = Modifier
 ) {
-    // Create a small color palette preview with key colors
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
@@ -695,7 +672,6 @@ fun ColorPalettePreview(
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        // Primary color
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -704,7 +680,6 @@ fun ColorPalettePreview(
                 .background(colorScheme.primary)
         )
 
-        // Secondary color
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -713,7 +688,6 @@ fun ColorPalettePreview(
                 .background(colorScheme.secondary)
         )
 
-        // Surface color
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -722,7 +696,6 @@ fun ColorPalettePreview(
                 .background(colorScheme.surfaceVariant)
         )
 
-        // Tertiary color (if available) or primary container
         Box(
             modifier = Modifier
                 .weight(1f)

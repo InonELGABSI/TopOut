@@ -17,7 +17,7 @@ actual class AppStateMonitor {
         private set
 
     actual fun startMonitoring() {
-        stopMonitoring() // Remove existing observers if any
+        stopMonitoring()
 
         didEnterBackgroundObserver = center.addObserverForName(
             name = UIApplicationDidEnterBackgroundNotification,

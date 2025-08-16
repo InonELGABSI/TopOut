@@ -3,7 +3,6 @@ import MapKit
 import Shared
 
 struct ActiveSessionContent: View {
-    // MARK: – Inputs
     let trackPoint:        TrackPoint
     let trackPoints:       [TrackPoint]
     @Binding var mapRegion: MKCoordinateRegion
@@ -13,21 +12,19 @@ struct ActiveSessionContent: View {
     let onResumeClicked:   () -> Void
     let isPaused:          Bool
     let theme:            AppTheme
-    @State private var isFollowingLast = true   // NEW: controls auto-follow
+    @State private var isFollowingLast = true
 
-    private let overlap: CGFloat = 18   // live panel rises 18 pt under map
+    private let overlap: CGFloat = 18
     
-    // MARK: – Body
     var body: some View {
         ZStack(alignment: .top) {
             // Background
             theme.background
                 .ignoresSafeArea()
 
-            // Live Data Card positioned first (behind)
             VStack {
                 Spacer()
-                    .frame(height: UIScreen.main.bounds.height * 0.45) // Start earlier to be behind map
+                    .frame(height: UIScreen.main.bounds.height * 0.45)
 
                 LiveDataCard(trackPoint: trackPoint, theme: theme, isPaused: isPaused)
                     .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: -4)
@@ -35,7 +32,6 @@ struct ActiveSessionContent: View {
                 Spacer()
             }
 
-            // Map positioned last (in front)
             VStack {
                 MapView(trackPoints: trackPoints, region: $mapRegion)
                     .frame(height: UIScreen.main.bounds.height * 0.50)
@@ -46,7 +42,6 @@ struct ActiveSessionContent: View {
                 Spacer()
             }
 
-            // Bottom Controls positioned at bottom
             VStack {
                 Spacer()
                 BottomControls(
@@ -77,7 +72,7 @@ private struct RoundedCornerBackground: View {
     
     var body: some View {
         GeometryReader { geo in
-            RoundedRectangle(cornerRadius: 0) // ignore, we use path below
+            RoundedRectangle(cornerRadius: 0)
                 .fill(color)
                 .overlay(
                     Path { path in
@@ -108,7 +103,6 @@ private struct RoundedCornerBackground: View {
     }
 }
 
-// --- the rest (cards, controls) unchanged ---
 
 private struct LiveDataCard: View {
     let trackPoint: TrackPoint
@@ -133,14 +127,13 @@ private struct LiveDataCard: View {
                 .clipShape(.rect(bottomLeadingRadius: 32, bottomTrailingRadius: 32))
         )
         .overlay(
-            // Subtle top border line
             Rectangle()
                 .fill(theme.onPrimary.opacity(0.1))
                 .frame(height: 1)
                 .frame(maxWidth: .infinity)
                 .position(x: UIScreen.main.bounds.width / 2, y: 0)
         )
-        .opacity(isPaused ? 0.6 : 1.0) // Dim the card when paused
+        .opacity(isPaused ? 0.6 : 1.0)
     }
 }
 
@@ -286,7 +279,6 @@ private struct ValueLabel: View {
     }
 }
 
-// MARK: – Bottom controls  (fixed corner names)
 
 private struct BottomControls: View {
     let onStopClicked:   () -> Void

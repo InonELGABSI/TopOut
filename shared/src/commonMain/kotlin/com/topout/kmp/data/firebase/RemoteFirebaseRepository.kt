@@ -17,9 +17,7 @@ import com.topout.kmp.utils.extensions.toUser
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.TimeoutCancellationException
 
-/**
- * Helper extension to wrap Firebase operations with timeout and consistent error handling
- */
+
 private suspend inline fun <T, E : Error> withFirebaseTimeout(
     timeoutMs: Long = 5_000,
     crossinline errorFactory: (String) -> E,

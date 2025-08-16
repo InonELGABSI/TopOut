@@ -19,7 +19,6 @@ class LocalSessionsRepository (
 
 
     override suspend fun getSessions(): Result<Sessions, SessionsError> {
-        // Simulate a network call to fetch sessions
         return try {
             val sessions = sessionDao.getAllSessions()
             Result.Success(Sessions(sessions))
@@ -101,15 +100,12 @@ class LocalSessionsRepository (
         return try {
             when (syncType) {
                 SyncType.CREATED_OFFLINE -> {
-                    // Mark session as no longer created offline (sessionCreatedOffline = 0)
                     sessionDao.resolveCreatedOfflineSync(sessionId)
                 }
                 SyncType.DELETED_OFFLINE -> {
-                    // Permanently delete the session from local DB
                     sessionDao.resolveDeletedOfflineSync(sessionId)
                 }
                 SyncType.UPDATED_OFFLINE -> {
-                    // Mark session as no longer updated offline (sessionUpdatedOffline = 0)
                     sessionDao.resolveUpdatedOfflineSync(sessionId)
                 }
             }

@@ -17,9 +17,6 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import co.touchlab.kermit.Logger
 
-/**
- * Simple location provider that gets fresh location data every time.
- */
 actual class LocationProvider(private val context: Context) {
 
     private val fused = LocationServices.getFusedLocationProviderClient(context)
@@ -39,10 +36,6 @@ actual class LocationProvider(private val context: Context) {
             }
         }
 
-        //val now = System.currentTimeMillis()
-        //log.i { "getLocation() called at $now" }
-
-        /* 2️⃣ Get fresh location every time */
         return withTimeout(5_000) {
             suspendCancellableCoroutine { cont ->
                 val cts = CancellationTokenSource()
@@ -51,11 +44,8 @@ actual class LocationProvider(private val context: Context) {
                     .addOnSuccessListener { location ->
                         if (location != null) {
                             val locationData = location.toModel()
-                            //log.i { "Got location: lat=${locationData.lat}, lon=${locationData.lon}, altitude=${locationData.altitude}" }
                             cont.resume(locationData)
                         } else {
-                            //log.w { "getCurrentLocation returned null, falling back to lastLocation" }
-                            // Fallback to lastLocation if getCurrentLocation returns null
                             fused.lastLocation
                                 .addOnSuccessListener { lastLoc ->
                                     if (lastLoc != null) {
@@ -77,7 +67,7 @@ actual class LocationProvider(private val context: Context) {
                     }
                     .addOnFailureListener { error ->
                         log.e(error) { "getCurrentLocation failed, falling back to lastLocation" }
-                        // Fallback to lastLocation
+
                         fused.lastLocation
                             .addOnSuccessListener { lastLoc ->
                                 if (lastLoc != null) {
@@ -103,7 +93,7 @@ actual class LocationProvider(private val context: Context) {
         }
     }
 
-    /* ---------- helpers ---------- */
+
 
     private fun hasLocationPermission(): Boolean =
         ContextCompat.checkSelfPermission(context, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
@@ -112,7 +102,7 @@ actual class LocationProvider(private val context: Context) {
     private fun android.location.Location.toModel() = LocationData(
         lat = latitude,
         lon = longitude,
-        altitude = if (hasAltitude()) altitude else 0.0, // Only use altitude if available
+        altitude = if (hasAltitude()) altitude else 0.0,
         speed = speed,
         ts = System.currentTimeMillis()
     )

@@ -42,7 +42,7 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
         activityType = CLActivityTypeFitness
         allowsBackgroundLocationUpdates = true
         pausesLocationUpdatesAutomatically = false
-        showsBackgroundLocationIndicator = false // enable only when actively tracking in background
+        showsBackgroundLocationIndicator = false
     }
 
     private val log = Logger.withTag("LocationProvider")
@@ -63,10 +63,8 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
     private var didBecomeActiveObs: NSObjectProtocol? = null
     private var didEnterBgObs: NSObjectProtocol? = null
 
-    // Proactive stale refresh threshold
     private val staleMs = 10_000L
 
-    // Simulation handling
     private val isSimulator = NSProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != null
     private var simulationJump = 0
     private val baseSimulationAltitude = 100.0
@@ -75,7 +73,6 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
         manager.delegate = this
         log.i { "Init CoreLocationDelegate. Deferring status query until authorization callback" }
 
-        // Log simulation status
         if (isSimulator) {
             log.i { "Simulator detected: Altitude simulation enabled (base=${baseSimulationAltitude}m, increment=10m)" }
         } else {
@@ -299,7 +296,6 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
         singleLocationCont?.let { cont -> cont.resume(locationData); singleLocationCont = null }
         retryCount = 0
         locationScope.launch { _locationFlow.emit(locationData) }
-        // Proactive stale refresh scheduling
         scheduleStaleRefresh()
     }
 
@@ -343,7 +339,6 @@ private class CoreLocationDelegate : NSObject(), CLLocationManagerDelegateProtoc
             val (lat, lon) = cached.coordinate.useContents { latitude to longitude }
             val speedMps = if (cached.speed >= 0) cached.speed.toFloat() else 0f
 
-            // Apply simulation altitude logic for cached location too
             val altitudeM = if (isSimulator) {
                 val simulatedAltitude = baseSimulationAltitude + (simulationJump * 10)
                 simulationJump++

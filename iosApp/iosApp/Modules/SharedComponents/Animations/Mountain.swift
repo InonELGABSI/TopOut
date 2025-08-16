@@ -1,9 +1,3 @@
-//
-//  MountainAnimationView.swift
-//  iosApp
-//
-//  Created by Inon Elgabsi on 30/07/2025.
-//
 
 import SwiftUI
 import Lottie
@@ -30,7 +24,7 @@ struct MountainAnimationView: View {
         ZStack {
             if let animation = LottieAnimation.named(animationAsset) {
                 LottieView(animation: animation)
-                    .playing(loopMode: loopMode)   // <-- add 'loopMode:' here
+                    .playing(loopMode: loopMode)
                     .animationSpeed(speed)
                     .frame(width: animationSize, height: animationSize)
                     .accessibilityLabel(Text("Mountain animation"))
@@ -71,7 +65,7 @@ struct MountainAnimationView_Previews: PreviewProvider {
                 animationAsset: "Travel_Mountain",
                 speed: 0.6,
                 animationSize: 120,
-                iterations: 0 // infinite
+                iterations: 0
             )
             MountainAnimationView(
                 animationAsset: "not_found_asset",

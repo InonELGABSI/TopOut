@@ -14,7 +14,6 @@ struct SessionDetailsView: View {
     @State private var showShareSheet = false
     @State private var hasLoaded = false
 
-    // FeedbackToast state management
     @State private var showFeedbackToast = false
     @State private var feedbackMessage = ""
     @State private var feedbackSuccess = false
@@ -24,7 +23,6 @@ struct SessionDetailsView: View {
         self.sessionId = sessionId
     }
 
-    // Use a reactive title so the inline nav title appears in BOTH entry paths
     private var navTitle: String {
         if case .loaded(let state) = onEnum(of: viewModel.uiState) {
             return state.sessionDetails.session.title ?? "Session Details"
@@ -59,7 +57,6 @@ struct SessionDetailsView: View {
                                     .clipShape(.rect(bottomLeadingRadius: 24, bottomTrailingRadius: 24))
                             }
 
-                            // Title Section with circular corners
                             VStack {
                                 HStack {
                                     Text(state.sessionDetails.session.title ?? "Climbing Session")
@@ -91,7 +88,6 @@ struct SessionDetailsView: View {
                             .padding(.horizontal, 16)
                             .padding(.top, 16)
 
-                            // Info Section with no background
                             SessionInfoSection(
                                 sessionDetails: state.sessionDetails,
                                 onDeleteClick: { showDeleteConfirmation = true },
@@ -101,7 +97,6 @@ struct SessionDetailsView: View {
                             .padding(.horizontal, 16)
                             .padding(.vertical, 16)
 
-                            // Climbing Session Card
                             VStack(spacing: 0) {
                                 Text("Climbing Session")
                                     .font(.system(size: 28, weight: .bold))
@@ -197,7 +192,6 @@ struct SessionDetailsView: View {
                                     feedbackSuccess = true
                                     showFeedbackToast = true
 
-                                    // Dismiss after showing feedback
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                                         presentationMode.wrappedValue.dismiss()
                                     }
@@ -278,7 +272,6 @@ struct SessionDetailsView: View {
     }
 }
 
-// MARK: - Share Session Sheet (keep its own NavigationStack; it’s presented modally)
 struct ShareSessionSheet: View {
     let sessionDetails: SessionDetails
     @Environment(\.dismiss) private var dismiss
@@ -372,7 +365,6 @@ struct ShareSessionSheet: View {
 
 
 
-// All color usage in these components should use the passed `theme` parameter:
 
 struct SessionTitleSection: View {
     let sessionDetails: SessionDetails
@@ -793,7 +785,6 @@ struct EditTitleView: View {
 }
 
 
-// MARK: - Helper Functions
 
 func calculateSessionDuration(_ sessionDetails: SessionDetails) -> String {
     let points = sessionDetails.points

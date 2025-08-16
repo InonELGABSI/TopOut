@@ -32,7 +32,6 @@ class SettingsViewModel(
         }
     }
 
-    // Non-suspend function that returns a boolean for Swift compatibility
     fun updateUser(user: User, onResult: (Boolean) -> Unit) {
         scope.launch {
             val success = when (val result = useCases.updateUser(user)) {

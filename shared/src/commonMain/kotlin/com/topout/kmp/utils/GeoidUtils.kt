@@ -2,19 +2,9 @@ package com.topout.kmp.utils
 
 import kotlin.math.*
 
-/**
- * Geoid height calculation utilities for converting GPS ellipsoid heights to MSL heights
- */
 object GeoidUtils {
 
-    /**
-     * Calculate geoid height using EGM96-based approximation
-     * This provides reasonably accurate geoid undulations globally
-     *
-     * @param latitude Latitude in degrees
-     * @param longitude Longitude in degrees
-     * @return Geoid height in meters (geoid above ellipsoid)
-     */
+
     fun calculateGeoidHeight(latitude: Double, longitude: Double): Double {
         // EGM96-based geoid approximation using spherical harmonics
         val lat = latitude * PI / 180.0  // Convert degrees to radians
@@ -76,14 +66,6 @@ object GeoidUtils {
         return geoidHeight.coerceIn(-110.0, 85.0)
     }
 
-    /**
-     * Convert GPS ellipsoid height to Mean Sea Level (MSL) height
-     *
-     * @param ellipsoidHeight Height above WGS84 ellipsoid in meters
-     * @param latitude Latitude in degrees
-     * @param longitude Longitude in degrees
-     * @return MSL height in meters
-     */
     fun ellipsoidToMSL(ellipsoidHeight: Double, latitude: Double, longitude: Double): Double {
         val geoidHeight = calculateGeoidHeight(latitude, longitude)
         val raw = ellipsoidHeight - geoidHeight
@@ -91,16 +73,4 @@ object GeoidUtils {
         return raw.roundToInt().toDouble()
     }
 
-    /**
-     * Convert MSL height to GPS ellipsoid height
-     *
-     * @param mslHeight Height above mean sea level in meters
-     * @param latitude Latitude in degrees
-     * @param longitude Longitude in degrees
-     * @return Ellipsoid height in meters
-     */
-    fun mslToEllipsoid(mslHeight: Double, latitude: Double, longitude: Double): Double {
-        val geoidHeight = calculateGeoidHeight(latitude, longitude)
-        return mslHeight + geoidHeight
-    }
 }

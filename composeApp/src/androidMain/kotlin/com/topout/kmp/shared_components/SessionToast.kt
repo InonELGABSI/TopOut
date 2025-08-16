@@ -68,7 +68,7 @@ fun SessionToast(
                 SessionToastType.SESSION_START_FAILED -> Triple(
                     Icons.Default.PlayArrow,
                     "Live session start failed",
-                    Color(0xFFE57373) // אדום
+                    Color(0xFFE57373)
                 )
                 SessionToastType.SESSION_SAVED -> Triple(
                     Icons.Default.CheckCircle,
@@ -78,7 +78,7 @@ fun SessionToast(
                 SessionToastType.SESSION_SAVE_FAILED -> Triple(
                     Icons.Default.Save,
                     "Session save failed",
-                    Color(0xFFE57373) // אדום
+                    Color(0xFFE57373)
                 )
                 SessionToastType.SESSION_CANCELLED -> Triple(
                     Icons.Default.Cancel,
@@ -88,47 +88,47 @@ fun SessionToast(
                 SessionToastType.SESSION_CANCEL_FAILED -> Triple(
                     Icons.Default.Cancel,
                     "Live session cancel failed",
-                    Color(0xFFE57373) // אדום
+                    Color(0xFFE57373)
                 )
                 SessionToastType.SESSION_PAUSED -> Triple(
                     Icons.Default.Pause,
                     "Live session paused",
-                    Color(0xFF9E9E9E) // אפור
+                    Color(0xFF9E9E9E)
                 )
                 SessionToastType.SESSION_PAUSE_FAILED -> Triple(
                     Icons.Default.Pause,
                     "Live session pause failed",
-                    Color(0xFFE57373) // אדום
+                    Color(0xFFE57373)
                 )
                 SessionToastType.SESSION_RESUMED -> Triple(
                     Icons.Default.PlayArrow,
                     "Live session resumed",
-                    Color(0xFF64B5F6) // כחול בהיר
+                    Color(0xFF64B5F6)
                 )
                 SessionToastType.SESSION_RESUME_FAILED -> Triple(
                     Icons.Default.PlayArrow,
                     "Live session resume failed",
-                    Color(0xFFE57373) // אדום
+                    Color(0xFFE57373)
                 )
                 SessionToastType.SESSION_TITLE_EDITED -> Triple(
                     Icons.Default.Edit,
                     "Session title edited",
-                    Color(0xFFFFC107) // צהוב
+                    Color(0xFFFFC107)
                 )
                 SessionToastType.SESSION_TITLE_EDIT_FAILED -> Triple(
                     Icons.Default.Edit,
                     "Session title edit failed",
-                    Color(0xFFE57373) // אדום
+                    Color(0xFFE57373)
                 )
                 SessionToastType.SESSION_DELETED -> Triple(
                     Icons.Default.Delete,
                     "Session deleted",
-                    Color(0xFFE57373) // אדום
+                    Color(0xFFE57373)
                 )
                 SessionToastType.SESSION_DELETE_FAILED -> Triple(
                     Icons.Default.Delete,
                     "Session delete failed",
-                    Color(0xFFE57373) // אדום
+                    Color(0xFFE57373)
                 )
                 SessionToastType.PROFILE_UPDATED -> Triple(
                     Icons.Default.Person,
@@ -138,7 +138,7 @@ fun SessionToast(
                 SessionToastType.PROFILE_UPDATE_FAILED -> Triple(
                     Icons.Default.Person,
                     "Profile update failed",
-                    Color(0xFFE57373) // אדום
+                    Color(0xFFE57373)
                 )
                 SessionToastType.PREFERENCES_UPDATED -> Triple(
                     Icons.Default.Settings,
@@ -148,7 +148,7 @@ fun SessionToast(
                 SessionToastType.PREFERENCES_UPDATE_FAILED -> Triple(
                     Icons.Default.Settings,
                     "Preferences update failed",
-                    Color(0xFFE57373) // אדום
+                    Color(0xFFE57373)
                 )
                 SessionToastType.THRESHOLDS_UPDATED -> Triple(
                     Icons.Default.Warning,
@@ -158,7 +158,7 @@ fun SessionToast(
                 SessionToastType.THRESHOLDS_UPDATE_FAILED -> Triple(
                     Icons.Default.Warning,
                     "Thresholds update failed",
-                    Color(0xFFE57373) // אדום
+                    Color(0xFFE57373)
                 )
             }
             Card(

@@ -10,26 +10,19 @@ import kotlin.coroutines.resume
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationWillEnterForegroundNotification
 
-/**
- * iOS-specific actual implementation of NotificationController
- * Uses UNUserNotificationCenter for local notifications
- */
 actual class NotificationController() {
 
     private val notificationCenter = UNUserNotificationCenter.currentNotificationCenter()
     private var authorizationGranted: Boolean = false
     private var statusInitialized: Boolean = false
 
-    // Throttling map (threadIdentifier -> last sent epoch ms)
     private val lastSentByThread = mutableMapOf<String, Long>()
-    private val minIntervalMsPerThread = 2000L // 2s default throttle
+    private val minIntervalMsPerThread = 2000L
 
-    // Queue notifications requested before first settings load completes
     private val pendingUntilInit = mutableListOf<() -> Unit>()
 
     init {
         refreshAuthorizationStatus()
-        // Listen for app entering foreground to refresh authorization status
         NSNotificationCenter.defaultCenter.addObserverForName(
             UIApplicationWillEnterForegroundNotification,
             null,
@@ -50,7 +43,6 @@ actual class NotificationController() {
             statusInitialized = true
 
             if ((justInitialized || !previous) && authorizationGranted) {
-                // Flush queued notifications now that we are authorized
                 dispatch_async(dispatch_get_main_queue()) {
                     val toSend = pendingUntilInit.toList()
                     pendingUntilInit.clear()
@@ -109,7 +101,6 @@ actual class NotificationController() {
         incrementBadge: Boolean = false,
         allowWhileNotAuthorizedIfPending: Boolean = true
     ): Boolean {
-        // Queue if not yet initialized and caller allows
         if (!statusInitialized && allowWhileNotAuthorizedIfPending) {
             pendingUntilInit.add { sendNotificationInternal(title, message, identifier, threadId, category, incrementBadge, false) }
             println("[Notif] Queued (auth pending) id=$identifier")
@@ -121,7 +112,6 @@ actual class NotificationController() {
             return false
         }
 
-        // Throttling per thread to avoid spam
         val now = getCurrentTimestamp()
         lastSentByThread[threadId]?.let { last ->
             if (now - last < minIntervalMsPerThread) {
@@ -142,20 +132,17 @@ actual class NotificationController() {
                     setCategoryIdentifier(category)
                 }
 
-                // Handle badge updates properly on main thread
                 if (incrementBadge) {
                     dispatch_async(dispatch_get_main_queue()) {
                         val currentBadge = UIApplication.sharedApplication.applicationIconBadgeNumber
                         setBadge(NSNumber(long = currentBadge + 1))
 
-                        // Also update the app icon badge immediately
                         UIApplication.sharedApplication.setApplicationIconBadgeNumber(currentBadge + 1)
                     }
                 } else {
-                    setBadge(NSNumber(long = 0)) // Set badge to 0 instead of null
+                    setBadge(NSNumber(long = 0))
                 }
 
-                // Add user info for better notification handling
                 setUserInfo(mapOf(
                     "sourceApp" to "TopOut",
                     "notificationType" to (category ?: "general"),

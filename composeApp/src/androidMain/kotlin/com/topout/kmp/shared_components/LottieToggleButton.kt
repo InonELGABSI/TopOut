@@ -22,13 +22,11 @@ fun LottieToggleButton(
     isToggled: Boolean,
     onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    height: Dp = 48.dp   // Height (not size) for rectangle
+    height: Dp = 48.dp
 ) {
     val composition by rememberLottieComposition(
         LottieCompositionSpec.Asset("Dark Mode Button.json")
     )
-
-    // Calculate frame-based progress values
     val startFrame = 0f
     val endFrame = 40f
     val totalFrames = 320f
@@ -44,7 +42,6 @@ fun LottieToggleButton(
         label = "lottie_toggle_animation"
     )
 
-    // Get animation's aspect ratio, fallback to 1f if not loaded
     val aspectRatio = remember(composition) {
         val w = composition?.bounds?.width()?.toFloat() ?: 1f
         val h = composition?.bounds?.height()?.toFloat() ?: 1f

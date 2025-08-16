@@ -12,7 +12,6 @@ fun UserEntity.toUser(): User {
 
         unitPreference = unitPreference ?: "meters",
         enabledNotifications = enabledNotifications?.toInt() == 1,
-        // leave thresholds nullable if not set in DB
         relativeHeightFromStartThr = relativeHeightFromStartThr,
         totalHeightFromStartThr = totalHeightFromStartThr,
         currentAvgHeightSpeedThr = currentAvgHeightSpeedThr,
@@ -32,7 +31,6 @@ fun User.toEntity(): UserEntity {
 
         unitPreference = unitPreference ?: "meters",
         enabledNotifications = if (enabledNotifications == true) 1L else 0L,
-        // write 0.0 only if explicitly set, otherwise keep null so Firestore merge can distinguish
         relativeHeightFromStartThr = relativeHeightFromStartThr,
         totalHeightFromStartThr = totalHeightFromStartThr,
         currentAvgHeightSpeedThr = currentAvgHeightSpeedThr,

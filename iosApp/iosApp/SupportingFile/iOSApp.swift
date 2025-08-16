@@ -4,7 +4,6 @@ import Shared
 import Firebase
 import UserNotifications
 
-// MARK: - Notification Best Practices Manager
 enum NotificationManager {
     static func registerCategories() {
         let generalCategory = UNNotificationCategory(
@@ -23,7 +22,6 @@ enum NotificationManager {
             options: .customDismissAction
         )
 
-        // Add categories for different alert types
         let alertSpeedCategory = UNNotificationCategory(
             identifier: "alert_speed_warning",
             actions: [
@@ -42,7 +40,6 @@ enum NotificationManager {
     }
 }
 
-// MARK: - Gradient Text Helper
 extension UIColor {
     static func gradientColor(from startColor: UIColor, to endColor: UIColor, size: CGSize) -> UIColor {
         let renderer = UIGraphicsImageRenderer(size: size)
@@ -63,7 +60,6 @@ extension UIColor {
     }
 }
 
-// MARK: - Appearance builder (blur + translucent + gradient titles)
 extension UINavigationBarAppearance {
     static func translucentThemed(primary: UIColor) -> UINavigationBarAppearance {
         let a = UINavigationBarAppearance()
@@ -83,12 +79,10 @@ extension UINavigationBarAppearance {
     }
 }
 
-// MARK: - Centralized theming helper
 enum NavBarThemer {
     static func apply(primary: UIColor) {
         let themed = UINavigationBarAppearance.translucentThemed(primary: primary)
         
-        // Apply to global appearance (for new navigation controllers)
         let nav = UINavigationBar.appearance()
         nav.standardAppearance           = themed
         nav.compactAppearance            = themed
@@ -96,11 +90,9 @@ enum NavBarThemer {
         nav.compactScrollEdgeAppearance  = themed
         nav.tintColor = .label
         
-        // Apply to all existing navigation controllers immediately
         applyToExistingNavigationControllers(appearance: themed)
     }
     
-    /// Apple's best practice: Update all active navigation controllers immediately
     private static func applyToExistingNavigationControllers(appearance: UINavigationBarAppearance) {
         DispatchQueue.main.async {
             guard let windowScene = UIApplication.shared.connectedScenes
@@ -113,12 +105,10 @@ enum NavBarThemer {
         }
     }
     
-    /// Recursively find and update all navigation controllers
     private static func updateNavigationControllers(in viewController: UIViewController?, with appearance: UINavigationBarAppearance) {
         guard let viewController = viewController else { return }
         
         if let navigationController = viewController as? UINavigationController {
-            // Apply the new appearance immediately
             navigationController.navigationBar.standardAppearance = appearance
             navigationController.navigationBar.compactAppearance = appearance
             navigationController.navigationBar.scrollEdgeAppearance = appearance
@@ -126,21 +116,17 @@ enum NavBarThemer {
                 navigationController.navigationBar.compactScrollEdgeAppearance = appearance
             }
             
-            // Force the navigation bar to update its appearance
             navigationController.navigationBar.setNeedsLayout()
         }
         
-        // Check child view controllers
         for child in viewController.children {
             updateNavigationControllers(in: child, with: appearance)
         }
         
-        // Check presented view controllers
         if let presented = viewController.presentedViewController {
             updateNavigationControllers(in: presented, with: appearance)
         }
         
-        // For tab bar controllers, check all tabs
         if let tabBarController = viewController as? UITabBarController {
             for tabViewController in tabBarController.viewControllers ?? [] {
                 updateNavigationControllers(in: tabViewController, with: appearance)
@@ -149,7 +135,6 @@ enum NavBarThemer {
     }
 }
 
-// MARK: - UIApplicationDelegate
 final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
@@ -160,7 +145,6 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
 
         NavBarThemer.apply(primary: .systemBlue)
 
-        // Best Practice: Register categories and request permission
         NotificationManager.registerCategories()
         requestNotificationPermissionIfNeeded()
 
@@ -215,14 +199,12 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     }
     #endif
 
-    // Show banners & sounds while app in foreground
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         completionHandler([.banner, .sound, .list])
     }
 
-    // Handle notification tap/action
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
@@ -231,13 +213,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
 
         NSLog("[Notif] User interaction: action=\(identifier) notification=\(notificationId)")
 
-        // Handle specific actions if needed
         switch identifier {
         case "action_ok":
-            // User acknowledged the alert
             break
         case UNNotificationDefaultActionIdentifier:
-            // User tapped the notification (not an action button)
             break
         default:
             break
@@ -247,7 +226,6 @@ final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCent
     }
 }
 
-// MARK: - App
 @main
 struct iOSApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
@@ -295,7 +273,6 @@ struct iOSApp: App {
             .environmentObject(themeManager)
             .environmentObject(networkMonitor)
             .withAppTheme()
-            // Apply themed nav bar once the theme is known, and whenever it changes.
             .onAppear {
                 NavBarThemer.apply(primary: UIColor(themeManager.currentTheme.primary))
             }
@@ -306,7 +283,6 @@ struct iOSApp: App {
     }
 }
 
-// MARK: - Bottom-bar tabs
 enum NavTab: String, CaseIterable, Identifiable {
     case history, liveSession, settings
     var id: String { rawValue }
@@ -319,7 +295,6 @@ enum NavTab: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - Navigation Stacks
 struct HistoryNavStack: View {
     @EnvironmentObject private var themeManager: AppThemeManager
     var body: some View {

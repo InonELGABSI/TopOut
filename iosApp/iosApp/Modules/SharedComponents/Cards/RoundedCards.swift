@@ -5,7 +5,7 @@ struct TopRoundedCard<Content: View>: View {
     let backgroundColor: Color
     
     init(
-        backgroundColor: Color = Color.white, // default for backwards compatibility
+        backgroundColor: Color = Color.white,
         @ViewBuilder content: () -> Content
     ) {
         self.backgroundColor = backgroundColor

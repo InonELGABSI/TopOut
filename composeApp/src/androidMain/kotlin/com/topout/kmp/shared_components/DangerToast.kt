@@ -28,7 +28,7 @@ fun DangerToast(
 ) {
     LaunchedEffect(isVisible) {
         if (isVisible) {
-            delay(10000) // 10 seconds timeout
+            delay(10000)
             onDismiss()
         }
     }
@@ -36,11 +36,11 @@ fun DangerToast(
     AnimatedVisibility(
         visible = isVisible,
         enter = slideInVertically(
-            initialOffsetY = { it }, // Changed from -it to it (slide from bottom)
+            initialOffsetY = { it },
             animationSpec = tween(300)
         ) + fadeIn(),
         exit = slideOutVertically(
-            targetOffsetY = { it }, // Changed from -it to it (slide to bottom)
+            targetOffsetY = { it },
             animationSpec = tween(300)
         ) + fadeOut(),
         modifier = modifier.zIndex(1000f)
@@ -108,7 +108,6 @@ fun DangerToast(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Alert icon
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
@@ -116,7 +115,6 @@ fun DangerToast(
                     modifier = Modifier.size(24.dp)
                 )
 
-                // Alert content
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -135,7 +133,6 @@ fun DangerToast(
                     )
                 }
 
-                // Dismiss button
                 IconButton(
                     onClick = onDismiss,
                     modifier = Modifier.size(24.dp)
@@ -152,7 +149,6 @@ fun DangerToast(
     }
 }
 
-// Helper data class to hold toast configuration
 private data class Quadruple<A, B, C, D>(
     val first: A,
     val second: B,

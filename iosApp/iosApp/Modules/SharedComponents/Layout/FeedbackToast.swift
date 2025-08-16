@@ -19,7 +19,6 @@ struct FeedbackToast: View {
     let success: Bool
     let onDismiss: () -> Void
 
-    // Gesture state for swipe-to-dismiss
     @State private var dragOffset: CGFloat = 0
 
     var body: some View {
@@ -65,7 +64,6 @@ struct FeedbackToast: View {
     }
 }
 
-// Keep the old name for backward compatibility
 typealias SessionFeedbackToast = FeedbackToast
 
 #Preview {

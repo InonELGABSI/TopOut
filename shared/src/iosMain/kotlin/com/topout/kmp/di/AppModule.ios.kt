@@ -23,21 +23,13 @@ import org.koin.dsl.module
 actual val platformModule = module {
     single<HttpClientEngine> { Darwin.create() }
 
-    // iOS providers have empty constructors, so we use explicit factory functions
     single<AccelerometerProvider> { AccelerometerProvider() }
     single<BarometerProvider> { BarometerProvider() }
     single<LocationProvider> { LocationProvider() }
 
-    // iosMain/di/platformModule.kt
     single<CoroutineScope> { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
-
-    // Platform-specific session background manager (no-op on iOS)
     single<SessionBackgroundManager> { SessionBackgroundManager() }
-
-    // Platform-specific notification controller using expect/actual
     single { NotificationController() }
-
-    // Sensors - Platform-specific SensorDataSource
     single<SensorDataSource> { SensorDataSource(
         accelProvider = get(),
         baroProvider = get(),
@@ -47,12 +39,10 @@ actual val platformModule = module {
 
     single { AppStateMonitor().apply { startMonitoring() } }
 
-    // ViewModels
     single { SessionsViewModel(get()) }
     single { SessionDetailsViewModel(get()) }
     single { SettingsViewModel(get()) }
     single { LiveSessionViewModel(get()) }
 
-    // Database
     single<SqlDriver> { DatabaseDriverFactory().createDriver() }
 }

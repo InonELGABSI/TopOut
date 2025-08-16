@@ -11,6 +11,6 @@ expect class SensorDataSource {
     val baroFlow : Flow<AltitudeData>
     val locFlow  : Flow<LocationData>
 
-    fun start(scope: CoroutineScope)          // open the hardware
-    fun stop()                                // release the hardware
+    fun start(scope: CoroutineScope)
+    fun stop()
 }
