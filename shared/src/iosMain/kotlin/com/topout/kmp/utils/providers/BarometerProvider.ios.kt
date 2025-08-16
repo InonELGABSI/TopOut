@@ -15,14 +15,6 @@ import co.touchlab.kermit.Logger
 import platform.UIKit.UIDevice
 import platform.Foundation.NSProcessInfo
 
-/**
- * One-shot barometer read that returns both the raw pressure (hPa) and the
- * derived altitude (m) in an AltitudeData record.
- *
- * Uses CoreMotion's CMAltimeter to get barometric data on iOS devices.
- *
- * @throws IllegalStateException if the device has no barometer or barometer access is unavailable.
- */
 @OptIn(ExperimentalForeignApi::class)
 actual class BarometerProvider {
 
@@ -33,9 +25,7 @@ actual class BarometerProvider {
         return NSProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != null
     }
     actual suspend fun getBarometerReading(): AltitudeData {
-        // Fake/simulate in Simulator
         if (isSimulator()) {
-            //log.w { "Simulating barometer data in Simulator" }
             return AltitudeData(
                 altitude = 42.0,
                 pressure = 1013.25f,
@@ -43,12 +33,9 @@ actual class BarometerProvider {
             )
         }
 
-        // ...your existing code below unchanged...
         return withTimeout(3000) {
             suspendCancellableCoroutine { cont ->
-                //log.d { "getBarometerReading()" }
                 if (!CMAltimeter.isRelativeAltitudeAvailable()) {
-                    //log.e { "Barometer not available on this device" }
                     cont.resumeWithException(
                         IllegalStateException("Barometer not available on this device")
                     )
@@ -67,7 +54,6 @@ actual class BarometerProvider {
                         }
                         data != null -> {
                             altimeter.stopRelativeAltitudeUpdates()
-                            //log.d { "Received barometer data" }
                             val altitudeM = data.relativeAltitude?.doubleValue ?: 0.0
                             val pressureHpa = (data.pressure?.doubleValue ?: 0.0) * 10.0
                             cont.resume(

@@ -6,9 +6,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 
-/**
- * Reusable confirmation dialog component for critical actions
- */
 @Composable
 fun ConfirmationDialog(
     isVisible: Boolean,

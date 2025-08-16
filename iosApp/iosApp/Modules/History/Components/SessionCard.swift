@@ -8,17 +8,14 @@ struct SessionCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Header with title and date
             SessionHeader(
                 title: session.title ?? "Unnamed Session",
                 startTime: session.startTime?.int64,
                 theme: theme
             )
 
-            // Stats section
             SessionStats(session: session, theme: theme)
 
-            // Duration if available
             if let startTime = session.startTime.int64,
                let endTime = session.endTime.int64,
                endTime > startTime {
@@ -27,8 +24,8 @@ struct SessionCard: View {
         }
         .padding(16)
         .background(
-            theme.surface                      // your fill colour
-                .clipShape(                     // ⬅️ choose which corners
+            theme.surface
+                .clipShape(
                     .rect(
                         topLeadingRadius: 24,
                         topTrailingRadius: 24
@@ -62,7 +59,6 @@ private func SessionHeader(title: String, startTime: Int64?, theme: AppTheme) ->
 @ViewBuilder
 private func SessionStats(session: Session, theme: AppTheme) -> some View {
     HStack(spacing: 0) {
-        // Total Ascent
         if let ascent = session.totalAscent {
             StatItem(
                 value: "\(Int(truncating: ascent))m",
@@ -72,7 +68,6 @@ private func SessionStats(session: Session, theme: AppTheme) -> some View {
             )
         }
 
-        // Total Descent
         if let descent = session.totalDescent {
             StatItem(
                 value: "\(Int(truncating: descent))m",
@@ -82,7 +77,6 @@ private func SessionStats(session: Session, theme: AppTheme) -> some View {
             )
         }
 
-        // Max Altitude
         if let altitude = session.maxAltitude {
             StatItem(
                 value: "\(Int(truncating: altitude))m",
@@ -92,12 +86,20 @@ private func SessionStats(session: Session, theme: AppTheme) -> some View {
             )
         }
 
-        // Average Rate
-        if let rate = session.avgRate {
+        if let avgH = session.avgHorizontal {
             StatItem(
-                value: String(format: "%.1f", rate),
-                label: "Avg Rate",
+                value: String(format: "%.1f", avgH),
+                label: "Avg-H",
                 color: Color.purple,
+                theme: theme
+            )
+        }
+
+        if let avgV = session.avgVertical {
+            StatItem(
+                value: String(format: "%.1f", avgV),
+                label: "Avg-V",
+                color: Color.brown,
                 theme: theme
             )
         }

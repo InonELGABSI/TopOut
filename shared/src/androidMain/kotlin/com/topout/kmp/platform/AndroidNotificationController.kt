@@ -8,10 +8,6 @@ import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-
-/**
- * Android-specific actual implementation of NotificationController
- */
 actual class NotificationController(private val context: Context) {
 
     companion object {
@@ -19,7 +15,6 @@ actual class NotificationController(private val context: Context) {
     }
 
     actual fun sendAlertNotification(alertType: AlertType, title: String, message: String): Boolean {
-        // Check permissions first
         if (!areNotificationsEnabled()) {
             return false
         }
@@ -38,7 +33,6 @@ actual class NotificationController(private val context: Context) {
     }
 
     actual fun sendNotification(title: String, message: String): Boolean {
-        // Check permissions first
         if (!areNotificationsEnabled()) {
             return false
         }
@@ -56,7 +50,6 @@ actual class NotificationController(private val context: Context) {
     }
 
     actual fun areNotificationsEnabled(): Boolean {
-        // For Android 13+ (API 33+), check POST_NOTIFICATIONS permission
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             return ActivityCompat.checkSelfPermission(
                 context,
@@ -64,13 +57,10 @@ actual class NotificationController(private val context: Context) {
             ) == PackageManager.PERMISSION_GRANTED
         }
 
-        // For older versions, check if notifications are enabled in NotificationManager
         return NotificationManagerCompat.from(context).areNotificationsEnabled()
     }
 
     actual suspend fun requestNotificationPermission(): Boolean {
-        // On Android, permissions are requested through the Activity
-        // This is handled in MainActivity, so we just return current status
         return areNotificationsEnabled()
     }
 
@@ -81,7 +71,6 @@ actual class NotificationController(private val context: Context) {
         message: String,
         notificationId: Int = (System.currentTimeMillis() % Int.MAX_VALUE).toInt()
     ) {
-        // Double-check permission before sending notification (API 33+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val permissionGranted = ActivityCompat.checkSelfPermission(
                 context,
@@ -94,7 +83,7 @@ actual class NotificationController(private val context: Context) {
         }
 
         val builder = NotificationCompat.Builder(context, GENERAL_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info) // Use system icon as fallback
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

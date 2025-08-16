@@ -10,15 +10,11 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.IO
 
-/**
- * Data Access Object for TrackPoints - handles persistence to SQLDelight
- * Single Responsibility: Data access operations for track points
- */
 class TrackPointsDao(
     private val queries: Track_pointsQueries
 ) {
 
-    suspend fun insertTrackPoint(
+    fun insertTrackPoint(
         sessionId: String,
         ts: Long,
         lat: Double? = null,
@@ -38,12 +34,10 @@ class TrackPointsDao(
             accelX = accelX?.toDouble(),
             accelY = accelY?.toDouble(),
             accelZ = accelZ?.toDouble(),
-            vVertical = metrics.vVertical,
-            vHorizontal = metrics.vHorizontal,
-            vTotal = metrics.vTotal,
             gain = metrics.gain,
             loss = metrics.loss,
             relAltitude = metrics.relAltitude,
+            avgHorizontal = metrics.avgHorizontal,
             avgVertical = metrics.avgVertical,
             danger = if (metrics.danger) 1L else 0L,
             alertType = metrics.alertType.name
@@ -54,7 +48,7 @@ class TrackPointsDao(
         }
     }
 
-    suspend fun getTrackPointsBySessionId(sessionId: String): List<TrackPoint> {
+     fun getTrackPointsBySessionId(sessionId: String): List<TrackPoint> {
         return queries.getTrackPointsBySession(sessionId)
             .executeAsList()
             .map { it.toTrackPoint() }
@@ -67,10 +61,8 @@ class TrackPointsDao(
             .map { list -> list.map { it.toTrackPoint() } }
     }
 
-    suspend fun deleteTrackPointsBySessionId(sessionId: String) {
+     fun deleteTrackPointsBySessionId(sessionId: String) {
         queries.deleteTrackPointsBySession(sessionId)
     }
 
-    suspend fun endCurrentSession() {
-    }
 }

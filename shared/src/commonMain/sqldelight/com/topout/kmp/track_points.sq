@@ -8,12 +8,10 @@ CREATE TABLE track_points (
     accelX REAL,
     accelY REAL,
     accelZ REAL,
-    vVertical REAL,
-    vHorizontal REAL,
-    vTotal REAL,
     gain REAL,
     loss REAL,
     relAltitude REAL,
+    avgHorizontal REAL,
     avgVertical REAL,
     danger INTEGER,
     alertType TEXT
@@ -21,10 +19,9 @@ CREATE TABLE track_points (
 
 insertTrackPoint:
 INSERT INTO track_points(sessionId, ts, lat, lon, altitude, accelX, accelY, accelZ,
-                         vVertical, vHorizontal, vTotal,
-                         gain, loss, relAltitude, avgVertical,
+                         gain, loss, relAltitude, avgVertical, avgHorizontal,
                          danger, alertType)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?,  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getTrackPointsBySession:
 SELECT * FROM track_points WHERE sessionId = ?;

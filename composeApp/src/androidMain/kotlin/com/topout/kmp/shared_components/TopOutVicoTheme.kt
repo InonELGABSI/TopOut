@@ -8,13 +8,9 @@ import androidx.compose.ui.graphics.Color
 import com.patrykandpatrick.vico.compose.common.VicoTheme
 import com.patrykandpatrick.vico.compose.common.getDefaultColors
 
-/**
- * Custom Vico theme for TopOut app using Material Theme colors
- */
 @SuppressLint("RestrictedApi")
 @Composable
 fun rememberTopOutVicoTheme(
-    // Use Material Theme colors for consistency
     primaryColor: Color = MaterialTheme.colorScheme.primary,
     secondaryColor: Color = MaterialTheme.colorScheme.secondary,
     tertiaryColor: Color = MaterialTheme.colorScheme.tertiary,
@@ -26,15 +22,14 @@ fun rememberTopOutVicoTheme(
 ): VicoTheme {
 
     val climbingColors = listOf(
-        primaryColor,                           // Primary theme color
-        secondaryColor,                         // Secondary theme color
-        tertiaryColor,                          // Tertiary theme color
-        MaterialTheme.colorScheme.primaryContainer,   // Container variants
+        primaryColor,
+        secondaryColor,
+        tertiaryColor,
+        MaterialTheme.colorScheme.primaryContainer,
         MaterialTheme.colorScheme.secondaryContainer,
-        errorColor                              // Error/warning color
+        errorColor
     )
 
-    // Get default colors outside of remember block
     val defaultColors = getDefaultColors()
 
     return remember(
@@ -60,28 +55,21 @@ fun rememberTopOutVicoTheme(
     }
 }
 
-/**
- * Alternative dark theme for TopOut charts - now uses Material Theme automatically
- */
 @Composable
 fun rememberTopOutDarkVicoTheme(showGrid: Boolean = false): VicoTheme {
-    // Material Theme automatically handles dark mode, so we just use the same function
     return rememberTopOutVicoTheme(showGrid = showGrid)
 }
 
-/**
- * High contrast theme using Material Theme colors with enhanced contrast
- */
 @Composable
 fun rememberTopOutHighContrastVicoTheme(showGrid: Boolean = false): VicoTheme {
     return rememberTopOutVicoTheme(
-        primaryColor = MaterialTheme.colorScheme.onSurface,      // High contrast
-        secondaryColor = MaterialTheme.colorScheme.primary,      // Strong primary
-        tertiaryColor = MaterialTheme.colorScheme.error,         // Error for visibility
+        primaryColor = MaterialTheme.colorScheme.onSurface,
+        secondaryColor = MaterialTheme.colorScheme.primary,
+        tertiaryColor = MaterialTheme.colorScheme.error,
         errorColor = MaterialTheme.colorScheme.error,
         surfaceColor = MaterialTheme.colorScheme.surface,
         onSurfaceColor = MaterialTheme.colorScheme.onSurface,
-        outlineColor = MaterialTheme.colorScheme.onSurface,      // Strong outline
+        outlineColor = MaterialTheme.colorScheme.onSurface,
         showGrid = showGrid
     )
 }

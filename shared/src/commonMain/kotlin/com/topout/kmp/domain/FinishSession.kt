@@ -1,5 +1,4 @@
-// shared/src/commonMain/kotlin/com/topout/kmp/domain/session/FinishSession.kt
-package com.topout.kmp.domain.session
+package com.topout.kmp.domain
 
 import com.topout.kmp.data.Result
 import com.topout.kmp.data.dao.SessionDao
@@ -30,6 +29,7 @@ class FinishSession(
         val maxAlt  = points.maxAltitude()
         val minAlt  = points.minAltitude()
         val avgVert = points.avgVerticalSpeed()
+        val avgHoriz = points.avgHorizontalSpeed()
         val endTime = Clock.System.now().toEpochMilliseconds()
 
         // 3️⃣ Update LOCAL session row
@@ -40,7 +40,8 @@ class FinishSession(
             totalDescent  = loss,
             maxAltitude   = maxAlt,
             minAltitude   = minAlt,
-            avgRate       = avgVert
+            avgVertical       = avgVert,
+            avgHorizontal     = avgHoriz
         )
         val updated = sessionDao.getSessionById(sessionId)
 

@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import co.touchlab.kermit.Logger
 import com.topout.kmp.data.user.UserRepository
 import com.topout.kmp.platform.NotificationController
-import com.topout.kmp.platform.SessionBackgroundManager
+import com.topout.kmp.domain.SessionBackgroundManager
 
 
 class LiveSessionManager(
@@ -32,18 +32,17 @@ class LiveSessionManager(
     private suspend fun start(): Flow<TrackPoint> {
         log.i { "start()" }
 
-        // Use background scope for sensors to survive app lifecycle changes
+        sessionBackgroundManager.startBackgroundSession()
+
         val effectiveScope = try {
             sessionBackgroundManager.getBackgroundScope() ?: scope
         } catch (_: Exception) {
-            // Fallback to regular scope if background manager not available (e.g., on iOS)
             scope
         }
 
         sensors.start(effectiveScope)
         aggregator?.stop()
 
-        // Get current user preferences for threshold-based alerts
         val user = try {
             when (val result = localUserRepository.getUser()) {
                 is Result.Success -> result.data
@@ -63,13 +62,11 @@ class LiveSessionManager(
                 val sessionId = result.data?.id ?: error("Session created but id == null")
                 log.i { "Session created with id: $sessionId" }
 
-                // Log user thresholds for debugging
                 user?.let {
                     log.i { "Using user thresholds - Height: ${it.relativeHeightFromStartThr}, Total: ${it.totalHeightFromStartThr}, Speed: ${it.currentAvgHeightSpeedThr}" }
                     log.i { "Notifications enabled: ${it.enabledNotifications}" }
                 } ?: log.i { "Using default thresholds (no user preferences found)" }
 
-                // Fresh aggregator for each session - USE BACKGROUND SCOPE
                 val aggregator = SensorAggregator(
                     accelFlow = sensors.accelFlow,
                     altFlow   = sensors.baroFlow,
@@ -77,10 +74,9 @@ class LiveSessionManager(
                     hz = 1000L
                 )
                 aggregator.setSessionId(sessionId)
-                aggregator.start(effectiveScope) // Use background scope here too
+                aggregator.start(effectiveScope)
                 this.aggregator = aggregator
 
-                // SessionTracker should also use background scope to survive app lifecycle
                 tracker = SessionTracker(
                     sessionId = sessionId,
                     aggregator = aggregator,

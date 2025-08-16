@@ -1,9 +1,3 @@
-//
-//  DarkModeToggleButton.swift
-//  iosApp
-//
-//  Created by Inon Elgabsi on 30/07/2025.
-//
 
 import SwiftUI
 import Lottie
@@ -40,7 +34,6 @@ struct LottieToggleButtonContent: UIViewRepresentable {
     let onToggle: (Bool) -> Void
     let height: CGFloat
     
-    // Animation frame constants to match Android
     private let startFrame: CGFloat = 0
     private let endFrame: CGFloat = 40
     private let totalFrames: CGFloat = 320
@@ -60,9 +53,7 @@ struct LottieToggleButtonContent: UIViewRepresentable {
     func makeUIView(context: Context) -> UIView {
         let containerView = UIView()
         
-        // Try to load the Lottie animation from bundle
         guard let animation = LottieAnimation.named("Dark_Mode_Button") else {
-            // Fallback to a simple toggle button if Lottie animation is not found
             return createFallbackButton(context: context)
         }
         
@@ -71,18 +62,15 @@ struct LottieToggleButtonContent: UIViewRepresentable {
         animationView.animationSpeed = 1.0
         animationView.contentMode = .scaleAspectFit
         
-        // Use a square container to maintain aspect ratio
         containerView.frame = CGRect(x: 0, y: 0, width: height, height: height)
         animationView.frame = containerView.bounds
         
         containerView.addSubview(animationView)
         
-        // Add tap gesture
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap))
         containerView.addGestureRecognizer(tapGesture)
         containerView.isUserInteractionEnabled = true
         
-        // Set initial progress
         animationView.currentProgress = targetProgress
         
         context.coordinator.animationView = animationView
@@ -100,7 +88,6 @@ struct LottieToggleButtonContent: UIViewRepresentable {
 
         animationView.animationSpeed = 1.0
 
-        // If you want to instantly snap when already at target:
         if abs(to - from) < 0.001 {
             animationView.currentProgress = to
         } else {
@@ -135,7 +122,7 @@ struct LottieToggleButtonContent: UIViewRepresentable {
     }
     
     class Coordinator: NSObject {
-        var isToggled: Bool        // change from `let` to `var`
+        var isToggled: Bool
         let onToggle: (Bool) -> Void
         var animationView: LottieAnimationView?
         
@@ -145,13 +132,12 @@ struct LottieToggleButtonContent: UIViewRepresentable {
         }
         
         @objc func handleTap() {
-            onToggle(!isToggled)   // will now flip correctly
+            onToggle(!isToggled)
         }
     }
 
 }
 
-// SwiftUI wrapper with proper sizing
 struct LottieToggleButtonView: View {
     let isToggled: Bool
     let onToggle: (Bool) -> Void
@@ -178,7 +164,6 @@ struct LottieToggleButtonView: View {
     }
 }
 
-// Preview for SwiftUI
 #if DEBUG
 struct LottieToggleButton_Previews: PreviewProvider {
     static var previews: some View {

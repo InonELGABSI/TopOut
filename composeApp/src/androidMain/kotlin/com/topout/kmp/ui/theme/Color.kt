@@ -2,7 +2,6 @@ package com.topout.kmp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Brand Colors - Base palette
 object BrandColors {
     val ClimbingRed = Color(0xFFDE2B2B)
     val MountainBlue = Color(0xFF1565C0)
@@ -15,22 +14,21 @@ object BrandColors {
 }
 
 
-// Theme 1: Classic Red (Red/Gray theme)
 object ClassicRedLightColors {
-    val primary = BrandColors.ClimbingRed          // #DE2B2B
+    val primary = BrandColors.ClimbingRed
     val onPrimary = Color.White
-    val primaryContainer = Color(0xFFFFE6E6)       // Soft red background
+    val primaryContainer = Color(0xFFFFE6E6)
     val onPrimaryContainer = BrandColors.ClimbingRed
 
-    val secondary = BrandColors.RockGray           // #5C6370
+    val secondary = BrandColors.RockGray
     val onSecondary = Color.White
     val secondaryContainer = Color(0xFFE7E9ED)
     val onSecondaryContainer = BrandColors.RockGray
 
-    val background = BrandColors.SnowWhite         // #FDFCFB
+    val background = BrandColors.SnowWhite
     val onBackground = Color(0xFF232323)
 
-    val surface = Color(0xFFFDFCFB)             // soft off-white
+    val surface = Color(0xFFFDFCFB)
     val onSurface = Color(0xFF232323)
     val surfaceVariant = Color(0xFFF3F1F2)
     val onSurfaceVariant = Color(0xFF3D3D3D)
@@ -42,7 +40,6 @@ object ClassicRedLightColors {
 }
 
 
-// Dark mode colors for Classic Red
 object ClassicRedDarkColors {
     val primary = Color(0xFFFF7676)
     val onPrimary = BrandColors.DeepNight
@@ -69,14 +66,14 @@ object ClassicRedDarkColors {
 }
 
 
-// Theme 2: Ocean Blue (Blue/Navy theme)
+
 object OceanBlueLightColors {
-    val primary = BrandColors.MountainBlue          // #1565C0
+    val primary = BrandColors.MountainBlue
     val onPrimary = Color.White
-    val primaryContainer = Color(0xFFD2E4FB)        // Soft blue
+    val primaryContainer = Color(0xFFD2E4FB)
     val onPrimaryContainer = BrandColors.MountainBlue
 
-    val secondary = BrandColors.SkyBlue             // #44A5E0
+    val secondary = BrandColors.SkyBlue
     val onSecondary = Color.White
     val secondaryContainer = Color(0xFFEEF7FB)
     val onSecondaryContainer = BrandColors.SkyBlue
@@ -84,7 +81,7 @@ object OceanBlueLightColors {
     val background = Color(0xFFF9FBFC)
     val onBackground = Color(0xFF14213D)
 
-    val surface = Color(0xFFF9FBFC)             // very light neutral
+    val surface = Color(0xFFF9FBFC)
     val onSurface = Color(0xFF1B1F23)
     val surfaceVariant = Color(0xFFE1E6F5)
     val onSurfaceVariant = Color(0xFF243D5C)
@@ -96,7 +93,6 @@ object OceanBlueLightColors {
 }
 
 
-// Dark mode colors for Ocean Blue
 object OceanBlueDarkColors {
     val primary = Color(0xFF71B8FF)
     val onPrimary = Color(0xFF10213C)
@@ -111,7 +107,7 @@ object OceanBlueDarkColors {
     val background = Color(0xFF111C2E)
     val onBackground = Color(0xFFD6ECF7)
 
-    val surface = Color(0xFF1A2236)             // rich navy
+    val surface = Color(0xFF1A2236)
     val onSurface = Color(0xFFD6ECF7)
     val surfaceVariant = Color(0xFF2B4268)
     val onSurfaceVariant = Color(0xFFAED9FC)
@@ -123,14 +119,13 @@ object OceanBlueDarkColors {
 }
 
 
-// Theme 3: Forest Green (Green/Brown theme)
 object ForestGreenLightColors {
-    val primary = BrandColors.ForestGreen             // #26836E
+    val primary = BrandColors.ForestGreen
     val onPrimary = Color.White
     val primaryContainer = Color(0xFFE1F7ED)
     val onPrimaryContainer = BrandColors.ForestGreen
 
-    val secondary = BrandColors.EarthBrown            // #7C5E3C
+    val secondary = BrandColors.EarthBrown
     val onSecondary = Color.White
     val secondaryContainer = Color(0xFFF3E5AB)
     val onSecondaryContainer = BrandColors.EarthBrown
@@ -138,8 +133,8 @@ object ForestGreenLightColors {
     val background = Color(0xFFF8FDF9)
     val onBackground = Color(0xFF212925)
 
-    val surface = Color(0xFFF8FDF9)             // almost pure white with green tint
-    val onSurface = Color(0xFF212925)           // deep charcoal-green
+    val surface = Color(0xFFF8FDF9)
+    val onSurface = Color(0xFF212925)
     val surfaceVariant = Color(0xFFD4EEDB)
     val onSurfaceVariant = Color(0xFF3E694D)
 
@@ -150,7 +145,6 @@ object ForestGreenLightColors {
 }
 
 
-// Dark mode colors for Forest Green
 object ForestGreenDarkColors {
     val primary = Color(0xFF77D8B9)
     val onPrimary = Color(0xFF0F3327)
@@ -177,14 +171,13 @@ object ForestGreenDarkColors {
 }
 
 
-// Theme 4: Storm Gray (Gray/Blue theme)
 object StormGrayLightColors {
     val primary = Color(0xFF546E7A)
     val onPrimary = Color.White
     val primaryContainer = Color(0xFFECEFF1)
     val onPrimaryContainer = Color(0xFF455A64)
 
-    val secondary = BrandColors.MountainBlue            // #1565C0
+    val secondary = BrandColors.MountainBlue
     val onSecondary = Color.White
     val secondaryContainer = Color(0xFFD0DFF7)
     val onSecondaryContainer = BrandColors.MountainBlue
@@ -192,7 +185,7 @@ object StormGrayLightColors {
     val background = Color(0xFFF6F7F9)
     val onBackground = Color(0xFF22272E)
 
-    val surface = Color(0xFFF6F7F9)             // neutral light gray
+    val surface = Color(0xFFF6F7F9)
     val onSurface = Color(0xFF22272E)
     val surfaceVariant = Color(0xFFDFE4EA)
     val onSurfaceVariant = Color(0xFF475062)
@@ -204,7 +197,6 @@ object StormGrayLightColors {
 }
 
 
-// Dark mode colors for Storm Gray
 object StormGrayDarkColors {
     val primary = Color(0xFF90A4AE)
     val onPrimary = Color(0xFF22272E)
@@ -231,7 +223,6 @@ object StormGrayDarkColors {
 }
 
 
-// Theme 5: Sunset Orange (Orange/Purple theme)
 object SunsetOrangeLightColors {
     val primary = Color(0xFFFF8456)
     val onPrimary = Color.White
@@ -258,7 +249,6 @@ object SunsetOrangeLightColors {
 }
 
 
-// Dark mode colors for Sunset Orange
 object SunsetOrangeDarkColors {
     val primary = Color(0xFFFFA26E)
     val onPrimary = Color(0xFF32251E)

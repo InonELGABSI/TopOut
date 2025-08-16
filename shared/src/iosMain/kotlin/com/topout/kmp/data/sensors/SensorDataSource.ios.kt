@@ -1,4 +1,3 @@
-// iosMain/com/topout/kmp/data/sensors/SensorDataSource.kt
 package com.topout.kmp.data.sensors
 
 import com.topout.kmp.models.sensor.*
@@ -9,57 +8,88 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import co.touchlab.kermit.Logger
 
-/** iOS-specific data-source that mirrors Android behavior with MutableSharedFlow and proper lifecycle. */
+
 actual class SensorDataSource(
-    private val accelProvider: AccelerometerProvider = AccelerometerProvider(),
-    private val baroProvider : BarometerProvider     = BarometerProvider(),
-    private val locProvider  : LocationProvider      = LocationProvider()
+    private val accelProvider: AccelerometerProvider,
+    private val baroProvider: BarometerProvider,
+    private val locProvider: LocationProvider,
+    private val appStateMonitor: AppStateMonitor
 ) {
     private val log = Logger.withTag("SensorDataSource")
 
-    // Flows that can be shared, only emit while started (same as Android)
     private val _accelFlow = MutableSharedFlow<AccelerationData>(replay = 1)
     private val _baroFlow  = MutableSharedFlow<AltitudeData>(replay = 1)
     private val _locFlow   = MutableSharedFlow<LocationData>(replay = 1)
 
-    // Expose only as read-only Flow (same as Android)
     actual val accelFlow: Flow<AccelerationData> get() = _accelFlow
     actual val baroFlow : Flow<AltitudeData> get() = _baroFlow
     actual val locFlow  : Flow<LocationData> get() = _locFlow
 
     private var scope: CoroutineScope? = null
+    private var accelJob: Job? = null
+    private var baroJob: Job? = null
+    private var locationJob: Job? = null
+
+    private fun isForeground(): Boolean = appStateMonitor.isForeground
+
 
     actual fun start(scope: CoroutineScope) {
-        log.i { "start()" }
+        log.i { "start() with scope: $scope" }
         this.scope = scope
 
-        // Start accelerometer (≈50 Hz, same as before)
-        scope.launch {
+        locProvider.beginActiveSession()
+
+        accelJob = scope.launch {
             while (isActive) {
-                _accelFlow.emit(accelProvider.getAcceleration())
-                delay(20)
+                if (isForeground()) {
+                    try {
+                        _accelFlow.emit(accelProvider.getAcceleration())
+                    } catch (e: Exception) {
+                        log.w { "Accelerometer error: ${e.message}" }
+                    }
+                    delay(20)
+                } else {
+                    delay(500)
+                }
             }
         }
 
-        // Start barometer (10 Hz, same as before)
-        scope.launch {
+        baroJob = scope.launch {
             while (isActive) {
-                _baroFlow.emit(baroProvider.getBarometerReading())
-                delay(100)
+                if (isForeground()) {
+                    try {
+                        _baroFlow.emit(baroProvider.getBarometerReading())
+                    } catch (e: Exception) {
+                        log.w { "Barometer error: ${e.message}" }
+                    }
+                    delay(100)
+                } else {
+                    delay(1000)
+                }
             }
         }
 
-        // Start location (1 Hz, same as before)
-        scope.launch {
-            while (isActive) {
-                _locFlow.emit(locProvider.getLocation())
-                delay(1_000)
+        startLocationTracking(scope)
+    }
+
+    private fun startLocationTracking(scope: CoroutineScope) {
+        locationJob = scope.launch {
+            locProvider.locationFlow().collect { locationData ->
+                _locFlow.emit(locationData)
             }
         }
+        locProvider.startUpdatingLocation()
     }
 
     actual fun stop() {
         log.i { "stop()" }
+        accelJob?.cancel()
+        baroJob?.cancel()
+        locationJob?.cancel()
+
+        locProvider.endActiveSession()
+        locProvider.stopUpdatingLocation()
+
         scope?.cancel()
         scope = null
     }

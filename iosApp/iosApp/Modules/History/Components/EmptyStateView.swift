@@ -14,7 +14,6 @@ struct EmptyStateView: View {
         VStack(spacing: 20) {
             Spacer()
             
-            // Fallbacks: emoji + SF Symbol
             Image(systemName: systemImage)
                 .font(.system(size: 72))
                 .foregroundColor(theme.primary.opacity(0.7))

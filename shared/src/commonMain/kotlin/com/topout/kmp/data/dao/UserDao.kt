@@ -8,7 +8,10 @@ import com.topout.kmp.utils.extensions.toEntity
 class UserDao(
     private val queries: UserQueries
 ) {
-    fun getUser() :User = queries.getUser().executeAsOne().toUser()
+    fun getUser() :User {
+        val entity =queries.getUser().executeAsOne()
+        return entity.toUser()
+    }
 
     fun saveUser(user: User) {
         val entity = user.toEntity()

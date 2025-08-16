@@ -14,12 +14,15 @@ struct SessionDetailsView: View {
     @State private var showShareSheet = false
     @State private var hasLoaded = false
 
+    @State private var showFeedbackToast = false
+    @State private var feedbackMessage = ""
+    @State private var feedbackSuccess = false
+
     private let sessionId: String
     init(sessionId: String) {
         self.sessionId = sessionId
     }
 
-    // Use a reactive title so the inline nav title appears in BOTH entry paths
     private var navTitle: String {
         if case .loaded(let state) = onEnum(of: viewModel.uiState) {
             return state.sessionDetails.session.title ?? "Session Details"
@@ -54,7 +57,6 @@ struct SessionDetailsView: View {
                                     .clipShape(.rect(bottomLeadingRadius: 24, bottomTrailingRadius: 24))
                             }
 
-                            // Title Section with circular corners
                             VStack {
                                 HStack {
                                     Text(state.sessionDetails.session.title ?? "Climbing Session")
@@ -86,7 +88,6 @@ struct SessionDetailsView: View {
                             .padding(.horizontal, 16)
                             .padding(.top, 16)
 
-                            // Info Section with no background
                             SessionInfoSection(
                                 sessionDetails: state.sessionDetails,
                                 onDeleteClick: { showDeleteConfirmation = true },
@@ -96,7 +97,6 @@ struct SessionDetailsView: View {
                             .padding(.horizontal, 16)
                             .padding(.vertical, 16)
 
-                            // Climbing Session Card
                             VStack(spacing: 0) {
                                 Text("Climbing Session")
                                     .font(.system(size: 28, weight: .bold))
@@ -185,8 +185,23 @@ struct SessionDetailsView: View {
                 message: Text("This action cannot be undone. Are you sure you want to delete this session?"),
                 primaryButton: .destructive(Text("Delete")) {
                     if case .loaded(let loadedState) = onEnum(of: viewModel.uiState) {
-                        viewModel.viewModel.deleteSession(sessionId: loadedState.sessionDetails.session.id)
-                        presentationMode.wrappedValue.dismiss()
+                        viewModel.viewModel.deleteSession(sessionId: loadedState.sessionDetails.session.id) { success in
+                            DispatchQueue.main.async {
+                                if success.boolValue {
+                                    feedbackMessage = "Session deleted successfully"
+                                    feedbackSuccess = true
+                                    showFeedbackToast = true
+
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                        presentationMode.wrappedValue.dismiss()
+                                    }
+                                } else {
+                                    feedbackMessage = "Failed to delete session"
+                                    feedbackSuccess = false
+                                    showFeedbackToast = true
+                                }
+                            }
+                        }
                     }
                 },
                 secondaryButton: .cancel()
@@ -200,7 +215,18 @@ struct SessionDetailsView: View {
                         viewModel.viewModel.updateSessionTitle(
                             sessionId: state.sessionDetails.session.id,
                             newTitle: newTitle
-                        )
+                        ) { success in
+                            DispatchQueue.main.async {
+                                if success.boolValue {
+                                    feedbackMessage = "Session title updated successfully"
+                                    feedbackSuccess = true
+                                } else {
+                                    feedbackMessage = "Failed to update session title"
+                                    feedbackSuccess = false
+                                }
+                                showFeedbackToast = true
+                            }
+                        }
                     }
                 },
                 onCancel: { showEditTitleDialog = false },
@@ -214,10 +240,38 @@ struct SessionDetailsView: View {
                 hasLoaded = true
             }
         }
+        .overlay(
+            VStack {
+                Spacer()
+                if showFeedbackToast {
+                    FeedbackToast(
+                        message: feedbackMessage,
+                        success: feedbackSuccess,
+                        onDismiss: {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                showFeedbackToast = false
+                            }
+                        }
+                    )
+                    .padding(.bottom, 80)
+                    .transition(.feedbackToast)
+                    .onAppear {
+                        // Auto-dismiss after 3 seconds
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                            if showFeedbackToast {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    showFeedbackToast = false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .animation(.easeInOut(duration: 0.3), value: showFeedbackToast)
+        )
     }
 }
 
-// MARK: - Share Session Sheet (keep its own NavigationStack; it’s presented modally)
 struct ShareSessionSheet: View {
     let sessionDetails: SessionDetails
     @Environment(\.dismiss) private var dismiss
@@ -311,7 +365,6 @@ struct ShareSessionSheet: View {
 
 
 
-// All color usage in these components should use the passed `theme` parameter:
 
 struct SessionTitleSection: View {
     let sessionDetails: SessionDetails
@@ -425,14 +478,14 @@ struct SessionStatisticsCard: View {
             HStack(spacing: 0) {
                 StatisticItemWithIcon(
                     icon: "arrow.up",
-                    label: "Max Altitude",
+                    label: "Max MSE Altitude",
                     value: String(format: "%.1f m", sessionDetails.points.map { $0.altitude?.double ?? 0.0 }.max() ?? 0.0),
                     theme: theme
                 )
                 Spacer()
                 StatisticItemWithIcon(
                     icon: "arrow.down",
-                    label: "Min Altitude",
+                    label: "Min MSE Altitude",
                     value: String(format: "%.1f m", sessionDetails.points.map {$0.altitude?.double ?? 0.0}.min() ?? 0.0),
                     theme: theme
                 )
@@ -447,7 +500,6 @@ struct SessionStatisticsCard: View {
             }
             .padding(.horizontal, 16)
             HStack(spacing: 0) {
-                Spacer()
                 StatisticItemWithIcon(
                     icon: "chart.line.downtrend.xyaxis",
                     label: "Total Loss",
@@ -456,14 +508,21 @@ struct SessionStatisticsCard: View {
                     theme: theme
                 )
                 Spacer()
-                Spacer()
                 StatisticItemWithIcon(
                     icon: "speedometer",
-                    label: "Max Speed",
-                    value: String(format: "%.1f m/s", sessionDetails.points.map { $0.vTotal }.max() ?? 0.0),
+                    label: "Avg-H",
+                    value: String(format: "%.1f m/s", sessionDetails.session.avgHorizontal?.double ?? 0.0),
+                    textColor: .purple,
                     theme: theme
                 )
                 Spacer()
+                StatisticItemWithIcon(
+                    icon: "clock",
+                    label: "Avg-V", 
+                    value: String(format: "%.1f m/s", sessionDetails.session.avgVertical?.double ?? 0.0),
+                    textColor: .brown,
+                    theme: theme
+                )
             }
             .padding(.horizontal, 16)
         }
@@ -726,7 +785,6 @@ struct EditTitleView: View {
 }
 
 
-// MARK: - Helper Functions
 
 func calculateSessionDuration(_ sessionDetails: SessionDetails) -> String {
     let points = sessionDetails.points

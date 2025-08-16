@@ -32,24 +32,19 @@ class SettingsViewModel(
         }
     }
 
-    fun updateUser(user: User) {
+    fun updateUser(user: User, onResult: (Boolean) -> Unit) {
         scope.launch {
-            when (val result = useCases.updateUser(user)) {
+            val success = when (val result = useCases.updateUser(user)) {
                 is Result.Success -> {
                     _uiState.emit(SettingsState.Loaded(result.data as User))
+                    true
                 }
-
                 is Result.Failure -> {
                     _uiState.emit(SettingsState.Error(errorMessage = result.error?.message ?: "Failed to update user"))
+                    false
                 }
             }
+            onResult(success)
         }
-    }
-
-    /**
-     * Called when user changes any preference (e.g. toggles notification setting)
-     */
-    fun onUserChanged(newUser: User) {
-        updateUser(newUser)
     }
 }

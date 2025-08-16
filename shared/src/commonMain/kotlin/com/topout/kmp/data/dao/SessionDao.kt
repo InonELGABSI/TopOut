@@ -1,11 +1,9 @@
 package com.topout.kmp.data.dao
 
-import com.topout.kmp.SessionEntity
 import com.topout.kmp.SessionsQueries
 import com.topout.kmp.models.Session
 import com.topout.kmp.utils.extensions.toEntity
 import com.topout.kmp.utils.extensions.toSession
-import dev.gitlive.firebase.firestore.Timestamp
 
 class SessionDao(
     private val queries: SessionsQueries
@@ -30,7 +28,8 @@ class SessionDao(
             totalDescent = entity.totalDescent,
             maxAltitude = entity.maxAltitude,
             minAltitude = entity.minAltitude,
-            avgRate = entity.avgRate,
+            avgVertical = entity.avgVertical,
+            avgHorizontal = entity.avgHorizontal,
             alertTriggered = entity.alertTriggered,
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
@@ -65,9 +64,6 @@ class SessionDao(
         queries.resolveDeletedOfflineSync(sessionId)
     }
 
-    fun updateSessionTitle(sessionId: String, title: String, sessionUpdatedOffline: Boolean) {
-        queries.updateSessionTitle(title, if (sessionUpdatedOffline) 1L else 0L, sessionId)
-    }
 
     fun resolveUpdatedOfflineSync(sessionId: String) {
         queries.resolveUpdatedOfflineSync(sessionId)
@@ -80,7 +76,8 @@ class SessionDao(
         totalDescent: Double?,
         maxAltitude: Double?,
         minAltitude: Double?,
-        avgRate: Double?
+        avgVertical: Double?,
+        avgHorizontal: Double?
     ) {
         queries.updateSessionSummary(
             endTime,
@@ -88,7 +85,8 @@ class SessionDao(
             totalDescent,
             maxAltitude,
             minAltitude,
-            avgRate,
+            avgVertical,
+            avgHorizontal,
             id
         )
     }

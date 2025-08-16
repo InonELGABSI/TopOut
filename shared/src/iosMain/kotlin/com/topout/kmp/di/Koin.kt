@@ -19,7 +19,6 @@ fun doInitKoin() {
     initKoin()
     sharedKoin = KoinPlatform.getKoin()
 }
-// Accessible from Swift
 fun getSharedKoin(): Koin = sharedKoin
 
 fun SessionDetailsViewModel(): SessionDetailsViewModel = KoinPlatform.getKoin().get()
@@ -27,7 +26,6 @@ fun SessionsViewModel(): SessionsViewModel = KoinPlatform.getKoin().get()
 fun SettingsViewModel(): SettingsViewModel = KoinPlatform.getKoin().get()
 fun liveSessionViewModel(): LiveSessionViewModel = KoinPlatform.getKoin().get()
 
-// Bridge function to expose SyncOfflineChanges to Swift
 suspend fun syncOfflineChanges() {
     val syncOfflineChanges: SyncOfflineChanges = KoinPlatform.getKoin().get()
     syncOfflineChanges.invoke()

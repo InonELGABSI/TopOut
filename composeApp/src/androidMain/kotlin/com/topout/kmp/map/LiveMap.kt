@@ -1,5 +1,6 @@
 package com.topout.kmp.map
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GpsFixed
@@ -16,49 +17,30 @@ import com.google.maps.android.compose.*
 import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import kotlinx.coroutines.launch
 
-/**
- * Live‑tracking Google Map that keeps the camera centred on [location] and
- * provides simple "+ / –" zoom buttons. Optionally displays a route based on [trackPoints].
- */
 @Composable
 fun LiveMap(
     location: com.topout.kmp.models.LatLng?,
     trackPoints: List<com.topout.kmp.models.TrackPoint>? = null,
-    modifier: Modifier = Modifier,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
     initialZoom: Float = 17f,
     showLocationFocus: Boolean = false,
     showTrackFocus: Boolean = false,
     useTopContentSpacing: Boolean = false
 ) {
-    /* ── state ---------------------------------------------------------------- */
     val coroutineScope = rememberCoroutineScope()
     val isRouteMode = !trackPoints.isNullOrEmpty() && location == null
 
-    // Get top content spacing and convert to pixels for map padding (optional)
     val topContentSpacing = if (useTopContentSpacing) rememberTopContentSpacingDp() else 0.dp
     val density = LocalDensity.current
     val topPaddingPx = with(density) { topContentSpacing.toPx().toInt() }
-    val bottomPaddingPx = 100 // Keep some bottom padding for controls
     val sidePaddingPx = 50 // Side padding
 
-    // Calculate effective padding - use top spacing for uniform padding but ensure bottom stays reasonable
-    val effectivePadding = if (useTopContentSpacing && topPaddingPx > sidePaddingPx) {
-        // When top spacing is significant, use it but cap the effective bottom padding
-        maxOf(topPaddingPx, bottomPaddingPx)
-    } else {
-        // Use standard padding when top spacing is not significant
-        maxOf(sidePaddingPx, bottomPaddingPx)
-    }
-
-    // Wait for real location in live mode, use route points in route mode
     val target = when {
-        isRouteMode -> trackPoints!!.mapNotNull { it.latLngOrNull() }.firstOrNull()?.toLatLng()
-        else -> location?.toLatLng() // Only set target when we have real location
+        isRouteMode -> trackPoints.firstNotNullOfOrNull { it.latLngOrNull() }?.toLatLng()
+        else -> location?.toLatLng()
     }
 
-    // Don't show map until we have a valid target location
     if (target == null && !isRouteMode) {
-        // Show loading state while waiting for location
         Box(
             modifier = modifier,
             contentAlignment = Alignment.Center
@@ -81,18 +63,15 @@ fun LiveMap(
         position = CameraPosition.fromLatLngZoom(target!!, initialZoom)
     }
 
-    // MarkerState MUST be remembered – prevents "state object during composition" warning
     val markerState = remember(target) { MarkerState(position = target!!) }
 
-    /* ── follow the climber (live mode) --------------------------------------- */
     LaunchedEffect(location) {
         if (!isRouteMode && location != null) {
             val latLng = location.toLatLng()
-            markerState.position = latLng // move marker
+            markerState.position = latLng
 
             if (useTopContentSpacing && topPaddingPx > 0) {
-                // Use the same top spacing logic as the focus button for live following
-                val offset = 0.001 // Small offset to create bounds around the point
+                val offset = 0.001
                 val bounds = com.google.android.gms.maps.model.LatLngBounds.builder()
                     .include(com.google.android.gms.maps.model.LatLng(
                         latLng.latitude - offset,
@@ -104,7 +83,6 @@ fun LiveMap(
                     ))
                     .build()
 
-                // Apply the same top-only padding logic as in route mode
                 val latSpan = bounds.northeast.latitude - bounds.southwest.latitude
                 val topPaddingRatio = topPaddingPx.toFloat() / 500f
                 val extraLatTop = latSpan * topPaddingRatio
@@ -124,13 +102,11 @@ fun LiveMap(
                     CameraUpdateFactory.newLatLngBounds(adjustedBounds, sidePaddingPx)
                 )
             } else {
-                // Standard behavior - just center on location
                 cameraState.animate(CameraUpdateFactory.newLatLng(latLng))
             }
         }
     }
 
-    /* ── show the whole route (route mode) ------------------------------------ */
     LaunchedEffect(trackPoints) {
         if (isRouteMode) {
             val points = trackPoints!!.mapNotNull { it.latLngOrNull()?.toLatLng() }
@@ -140,13 +116,10 @@ fun LiveMap(
                 try {
                     val bounds = boundsBuilder.build()
                     if (useTopContentSpacing && topPaddingPx > 0) {
-                        // Calculate the bounds with additional top padding by expanding the north bound
                         val latSpan = bounds.northeast.latitude - bounds.southwest.latitude
                         val lngSpan = bounds.northeast.longitude - bounds.southwest.longitude
 
-                        // Calculate how much extra latitude we need to add based on the screen height and top padding
-                        // This is an approximation - adjust the multiplier as needed
-                        val topPaddingRatio = topPaddingPx.toFloat() / 500f // Assuming 500dp map height
+                        val topPaddingRatio = topPaddingPx.toFloat() / 500f
                         val extraLatTop = latSpan * topPaddingRatio
 
                         val adjustedBounds = com.google.android.gms.maps.model.LatLngBounds.builder()
@@ -159,18 +132,15 @@ fun LiveMap(
                                 bounds.northeast.longitude
                             ))
                             .build()
-
                         cameraState.move(
                             CameraUpdateFactory.newLatLngBounds(adjustedBounds, sidePaddingPx)
                         )
                     } else {
-                        // Standard uniform padding
                         cameraState.move(
                             CameraUpdateFactory.newLatLngBounds(bounds, sidePaddingPx)
                         )
                     }
                 } catch (e: IllegalStateException) {
-                    // Log error or handle, e.g. when no valid points
                 }
             } else if (points.isNotEmpty()) {
                 cameraState.move(CameraUpdateFactory.newLatLngZoom(points.first(), initialZoom))
@@ -178,7 +148,6 @@ fun LiveMap(
         }
     }
 
-    /* ── UI ------------------------------------------------------------------- */
     Box(modifier = modifier) {
 
         GoogleMap(
@@ -189,7 +158,6 @@ fun LiveMap(
                 myLocationButtonEnabled = false
             )
         ) {
-            // Show track points if available (both in live and route mode)
             if (!trackPoints.isNullOrEmpty()) {
                 val points = trackPoints.mapNotNull { it.latLngOrNull()?.toLatLng() }
                 if (points.isNotEmpty()) {
@@ -201,7 +169,6 @@ fun LiveMap(
                 }
             }
 
-            // Show current location marker in live mode
             if (!isRouteMode && location != null) {
                 Marker(
                     state = markerState,
@@ -211,7 +178,6 @@ fun LiveMap(
             }
         }
 
-        /* floating controls */
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -224,8 +190,7 @@ fun LiveMap(
                     coroutineScope.launch {
                         val latLng = location.toLatLng()
                         if (useTopContentSpacing && topPaddingPx > 0) {
-                            // Create a small bounds around the location point to account for top spacing
-                            val offset = 0.001 // Small offset to create bounds around the point
+                            val offset = 0.001
                             val bounds = com.google.android.gms.maps.model.LatLngBounds.builder()
                                 .include(com.google.android.gms.maps.model.LatLng(
                                     latLng.latitude - offset,
@@ -237,7 +202,6 @@ fun LiveMap(
                                 ))
                                 .build()
 
-                            // Apply the same top-only padding logic as in route mode
                             val latSpan = bounds.northeast.latitude - bounds.southwest.latitude
                             val topPaddingRatio = topPaddingPx.toFloat() / 500f
                             val extraLatTop = latSpan * topPaddingRatio
@@ -257,14 +221,12 @@ fun LiveMap(
                                 CameraUpdateFactory.newLatLngBounds(adjustedBounds, sidePaddingPx)
                             )
                         } else {
-                            // Standard behavior - just center on location
                             cameraState.animate(CameraUpdateFactory.newLatLngZoom(latLng, initialZoom))
                         }
                     }
                 }
             }
 
-            // Focus on track button
             if (showTrackFocus && !trackPoints.isNullOrEmpty()) {
                 FocusButton("🗺️") {
                     coroutineScope.launch {
@@ -275,9 +237,8 @@ fun LiveMap(
                             try {
                                 val bounds = boundsBuilder.build()
                                 if (useTopContentSpacing && topPaddingPx > 0) {
-                                    // Apply the same top-only padding logic as in route mode
                                     val latSpan = bounds.northeast.latitude - bounds.southwest.latitude
-                                    val topPaddingRatio = topPaddingPx.toFloat() / 500f // Assuming 500dp map height
+                                    val topPaddingRatio = topPaddingPx.toFloat() / 500f
                                     val extraLatTop = latSpan * topPaddingRatio
 
                                     val adjustedBounds = com.google.android.gms.maps.model.LatLngBounds.builder()
@@ -300,7 +261,6 @@ fun LiveMap(
                                     )
                                 }
                             } catch (e: IllegalStateException) {
-                                // Log error or handle, e.g. when no valid points
                             }
                         }
                     }
@@ -313,7 +273,6 @@ fun LiveMap(
     }
 }
 
-/* helper composables & extensions ------------------------------------------- */
 
 @Composable
 private fun ZoomButton(label: String, onClick: () -> Unit) =
@@ -375,6 +334,5 @@ private fun com.topout.kmp.models.TrackPoint.latLngOrNull(): com.topout.kmp.mode
     }
 }
 
-/** Zooms the camera by [delta] steps (+ for in, – for out). Must be called inside a coroutine. */
 private suspend fun CameraPositionState.zoomBy(delta: Float) =
     animate(CameraUpdateFactory.zoomBy(delta))

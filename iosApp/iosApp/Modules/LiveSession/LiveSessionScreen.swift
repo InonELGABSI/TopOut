@@ -3,7 +3,6 @@ import Shared
 import MapKit
 
 struct LiveSessionView: View {
-    // MARK: – State / DI
     @ObservedObject private(set) var viewModel = ViewModelWrapper<LiveSessionState, LiveSessionViewModel>()
     @State private var showingStopConfirmation    = false
     @State private var showingDiscardConfirmation = false
@@ -16,13 +15,17 @@ struct LiveSessionView: View {
     @State private var lastToastTimestamp: Int64 = 0
     @State private var hasLocationPermission   = false
     @State private var hasNavigatedToDetails = false
-    @State private var animationTrigger = 0  // Add animation trigger state
+    @State private var animationTrigger = 0
+    @State private var sessionToastVisible = false
+    @State private var sessionToastMessage = ""
+    @State private var sessionToastSuccess = true
+    // NEW: observable MSL state for UI updates
+    @State private var mslHeightState: MSLHeightState = MSLHeightState.Loading()
 
     @EnvironmentObject private var themeManager: AppThemeManager
     @Environment(\.appTheme) private var theme
     @EnvironmentObject var networkMonitor: NetworkMonitor
     
-    // ⬅️ ADDED for navigation to SessionDetails
     @State private var navigateToDetails = false
     @State private var stoppedSessionId: String? = nil
     
@@ -31,8 +34,9 @@ struct LiveSessionView: View {
     var body: some View {
         ZStack {
             theme.background.ignoresSafeArea()
-            sessionContent          // big switch broken out
-            dangerToastView         // toast broken out
+            sessionContent
+            dangerToastView
+            sessionFeedbackToastView
         }
         .onAppear(perform: onAppearSetup)
         .alert(isPresented: $showingStopConfirmation, content: stopAlert)
@@ -54,17 +58,16 @@ struct LiveSessionView: View {
                     .navigationTitle("Session Details")
                     .navigationBarTitleDisplayMode(.inline)
                     .onDisappear {
-                        viewModel.viewModel.resetToInitialState() // clear ViewModel state
+                        viewModel.viewModel.resetToInitialState()
                         stoppedSessionId = nil
-                        hasNavigatedToDetails = false              // allow navigation next time
+                        hasNavigatedToDetails = false
                     }
             }
         }
 
     }
     
-    // MARK: – Computed Views
-    
+
     @ViewBuilder
     private var sessionContent: some View {
         switch onEnum(of: viewModel.uiState) {
@@ -78,26 +81,27 @@ struct LiveSessionView: View {
                         animationSize: 220,
                         iterations: 1
                     )
-                    .id("mountain_animation_\(animationTrigger)") // Restart animation with stable but refreshable ID
+                    .id("mountain_animation_\(animationTrigger)")
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.top, 60) // Generous top spacing after safe area
-                .padding(.bottom, 40) // Space before content
+                .padding(.top, 60)
+                .padding(.bottom, 40)
                 .onAppear {
-                    // Trigger animation restart every time we enter the loading state
                     animationTrigger += 1
                 }
 
-                // Content section
                 StartSessionContent(
                     hasLocationPermission: hasLocationPermission,
-                    onStartClick:          { viewModel.viewModel.onStartClicked() },
+                    onStartClick:          {
+                        let ok = viewModel.viewModel.onStartClicked()
+                        showSessionToast(message: ok ? "Session started" : "Failed to start session", success: ok)
+                    },
                     onRequestLocationPermission: { requestLocationPermission() },
-                    mslHeightState:        viewModel.viewModel.mslHeightState.value,
+                    onRefreshMSL:          { viewModel.viewModel.refreshMSLHeight() },
+                    mslHeightState:        mslHeightState,
                     theme:                 theme
                 )
 
-                // Push content up, button stays at natural position
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -110,11 +114,38 @@ struct LiveSessionView: View {
                 mapRegion:     $mapRegion,
                 onStopClicked: { showingStopConfirmation    = true },
                 onCancelClicked: { showingDiscardConfirmation = true },
+                onPauseClicked: {
+                    let ok = viewModel.viewModel.onPauseClicked()
+                    showSessionToast(message: ok ? "Session paused" : "Failed to pause", success: ok)
+                },
+                onResumeClicked: {
+                    let ok = viewModel.viewModel.onResumeClicked()
+                    showSessionToast(message: ok ? "Session resumed" : "Failed to resume", success: ok)
+                },
+                isPaused: false,
+                theme:         theme
+            )
+
+        case .paused(let state):
+            ActiveSessionContent(
+                trackPoint:    state.trackPoint,
+                trackPoints:   state.historyTrackPoints,
+                mapRegion:     $mapRegion,
+                onStopClicked: { showingStopConfirmation    = true },
+                onCancelClicked: { showingDiscardConfirmation = true },
+                onPauseClicked: {
+                    let ok = viewModel.viewModel.onPauseClicked()
+                    showSessionToast(message: ok ? "Session paused" : "Failed to pause", success: ok)
+                },
+                onResumeClicked: {
+                    let ok = viewModel.viewModel.onResumeClicked()
+                    showSessionToast(message: ok ? "Session resumed" : "Failed to resume", success: ok)
+                },
+                isPaused: true,
                 theme:         theme
             )
 
         case .stopping:
-            // ⬅️ CHANGED: Show loading spinner while stopping
             VStack {
                 ProgressView("Stopping session…")
                     .progressViewStyle(CircularProgressViewStyle())
@@ -134,7 +165,10 @@ struct LiveSessionView: View {
         case .error(let state):
             ErrorContent(
                 errorMessage: state.errorMessage,
-                onRetryClick: { viewModel.viewModel.onStartClicked() },
+                onRetryClick: {
+                    let ok = viewModel.viewModel.onStartClicked()
+                    showSessionToast(message: ok ? "Retrying…" : "Retry failed", success: ok)
+                },
                 theme:        theme
             )
         }
@@ -158,16 +192,29 @@ struct LiveSessionView: View {
         }
     }
     
-    // MARK: – Lifecycle
-    
+    @ViewBuilder private var sessionFeedbackToastView: some View {
+        if sessionToastVisible {
+            VStack {
+                Spacer()
+                FeedbackToast(message: sessionToastMessage, success: sessionToastSuccess) {
+                    withAnimation { sessionToastVisible = false }
+                }
+                .padding(.horizontal)
+                .padding(.bottom, showDangerToast ? 200 : 120)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .animation(.spring(), value: sessionToastVisible)
+        }
+    }
+
+
     private func onAppearSetup() {
         viewModel.startObserving()
         checkLocationPermission()
-        
-        Task {
+        Task { @MainActor in
             for await state in viewModel.viewModel.uiState {
-                if let loaded = state as? LiveSessionState.Loaded,
-                   loaded.trackPoint.danger {
+                if let loaded = state as? LiveSessionState.Loaded, loaded.trackPoint.danger {
                     let now = Int64(Date().timeIntervalSince1970 * 1000)
                     if !showDangerToast && (now - lastToastTimestamp) > 10_000 {
                         currentAlertType   = loaded.trackPoint.alertType
@@ -177,17 +224,22 @@ struct LiveSessionView: View {
                 }
             }
         }
+        Task { @MainActor in
+            for await state in viewModel.viewModel.mslHeightState {
+                mslHeightState = state
+            }
+        }
     }
     
-    // MARK: – Alerts / dialogs
-    
+
     private func stopAlert() -> Alert {
         Alert(
             title:   Text("Stop Session"),
             message: Text("Are you sure you want to stop this climbing session? Your progress will be saved."),
             primaryButton: .destructive(Text("Stop Session")) {
                 if let loaded = viewModel.uiState as? LiveSessionState.Loaded {
-                    viewModel.viewModel.onStopClicked(sessionId: loaded.trackPoint.sessionId)
+                    let ok = viewModel.viewModel.onStopClicked(sessionId: loaded.trackPoint.sessionId)
+                    showSessionToast(message: ok ? "Stopping session…" : "Failed to stop session", success: ok)
                 }
             },
             secondaryButton: .cancel(Text("Continue"))
@@ -198,14 +250,14 @@ struct LiveSessionView: View {
     private func discardActions() -> some View {
         Button("Cancel Session", role: .destructive) {
             if let loaded = viewModel.uiState as? LiveSessionState.Loaded {
-                viewModel.viewModel.onCancelClicked(sessionId: loaded.trackPoint.sessionId)
+                let ok = viewModel.viewModel.onCancelClicked(sessionId: loaded.trackPoint.sessionId)
+                showSessionToast(message: ok ? "Session cancelled" : "Failed to cancel", success: ok)
             }
         }
         Button("Keep Session", role: .cancel) { }
     }
     
-    // MARK: – Permission helpers
-    
+
     private func checkLocationPermission() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { hasLocationPermission = true }
     }
@@ -214,8 +266,7 @@ struct LiveSessionView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { hasLocationPermission = true }
     }
     
-    // MARK: – Toast helpers
-    
+
     private func getAlertMessage(alertType: AlertType) -> String {
         switch alertType {
         case .rapidDescent:           return "Rapid altitude decrease detected!"
@@ -223,6 +274,15 @@ struct LiveSessionView: View {
         case .relativeHeightExceeded: return "Height threshold exceeded!"
         case .totalHeightExceeded:    return "Maximum height threshold exceeded!"
         case .none:                   return "Warning: Abnormal movement detected!"
+        }
+    }
+
+    private func showSessionToast(message: String, success: Bool) {
+        sessionToastMessage = message
+        sessionToastSuccess = success
+        withAnimation { sessionToastVisible = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            withAnimation { sessionToastVisible = false }
         }
     }
 }

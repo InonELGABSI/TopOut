@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,30 +30,23 @@ fun SessionItem(
     onSessionClick: (Session) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Remove Card wrapper - the parent already provides the card background
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onSessionClick(session) }
             .padding(16.dp)
     ) {
-        // Header with title and date
         SessionHeader(
             title = session.title ?: "Unnamed Session",
-            startTime = session.startTime?.toLong()
+            startTime = session.startTime
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Stats row with improved layout
         SessionStats(session = session)
-
-        // Duration if available
         session.startTime?.let { start ->
             session.endTime?.let { end ->
-                if (end.toLong() > start.toLong()) {
+                if (end > start) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    SessionDuration(startTime = start.toLong(), endTime = end.toLong())
+                    SessionDuration(startTime = start, endTime = end)
                 }
             }
         }
@@ -93,7 +87,6 @@ private fun SessionHeader(
 @SuppressLint("DefaultLocale")
 @Composable
 private fun SessionStats(session: Session) {
-    // Create a more visually appealing grid layout for stats
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -104,7 +97,6 @@ private fun SessionStats(session: Session) {
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        // Total Ascent
         session.totalAscent?.let { ascent ->
             StatItem(
                 icon = Icons.Default.KeyboardArrowUp,
@@ -114,7 +106,6 @@ private fun SessionStats(session: Session) {
             )
         }
 
-        // Total Descent
         session.totalDescent?.let { descent ->
             StatItem(
                 icon = Icons.Default.KeyboardArrowDown,
@@ -124,7 +115,6 @@ private fun SessionStats(session: Session) {
             )
         }
 
-        // Max Altitude
         session.maxAltitude?.let { altitude ->
             StatItem(
                 icon = Icons.AutoMirrored.Filled.TrendingUp,
@@ -134,13 +124,21 @@ private fun SessionStats(session: Session) {
             )
         }
 
-        // Average Rate
-        session.avgRate?.let { rate ->
+        session.avgHorizontal?.let { avgH ->
+            StatItem(
+                icon = Icons.Default.Speed,
+                value = String.format("%.1f", avgH),
+                label = "Avg-H",
+                iconTint = Color(0xFF9C27B0)
+            )
+        }
+
+        session.avgVertical?.let { avgV ->
             StatItem(
                 icon = Icons.Default.Schedule,
-                value = String.format("%.1f", rate),
-                label = "Avg Rate",
-                iconTint = Color(0xFF9C27B0)
+                value = String.format("%.1f", avgV),
+                label = "Avg-V",
+                iconTint = Color(0xFFFF9800)
             )
         }
     }

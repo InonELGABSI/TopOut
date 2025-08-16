@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -28,8 +29,6 @@ import com.topout.kmp.shared_components.TopRoundedCard
 import com.topout.kmp.shared_components.WaveAnimation
 import com.topout.kmp.utils.extensions.latLngOrNull
 import org.koin.androidx.compose.koinViewModel
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.topout.kmp.shared_components.SessionToast
@@ -52,7 +51,6 @@ fun LiveSessionScreen(
 
     var showDangerToast by remember { mutableStateOf(false) }
     var currentAlertType by remember { mutableStateOf(AlertType.NONE) }
-    var lastToastTimestamp by remember { mutableStateOf(0L) }
 
     LaunchedEffect(uiState) {
         when {
@@ -98,26 +96,80 @@ fun LiveSessionScreen(
                 trackPoint = uiState.trackPoint,
                 historyTrackPoints = uiState.historyTrackPoints,
                 isPaused = false,
-                onPauseClick = { viewModel.onPauseClicked() },
-                onResumeClick = { viewModel.onResumeClicked() },
-                onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
+                onPauseClick = {
+                    val success = viewModel.onPauseClicked()
+                    if (!success) {
+                        toastType = SessionToastType.SESSION_PAUSE_FAILED
+                        showSessionToast = true
+                    }
+                    success
+                },
+                onResumeClick = {
+                    val success = viewModel.onResumeClicked()
+                    if (!success) {
+                        toastType = SessionToastType.SESSION_RESUME_FAILED
+                        showSessionToast = true
+                    }
+                    success
+                },
+                onStopClick = {
+                    val success = viewModel.onStopClicked(uiState.trackPoint.sessionId)
+                    if (!success) {
+                        toastType = SessionToastType.SESSION_SAVE_FAILED
+                        showSessionToast = true
+                    }
+                    success
+                },
                 onCancelClick = {
-                    viewModel.onCancelClicked(uiState.trackPoint.sessionId)
-                    toastType = SessionToastType.SESSION_CANCELLED
-                    showSessionToast = true
+                    val success = viewModel.onCancelClicked(uiState.trackPoint.sessionId)
+                    if (success) {
+                        toastType = SessionToastType.SESSION_CANCELLED
+                        showSessionToast = true
+                    } else {
+                        toastType = SessionToastType.SESSION_CANCEL_FAILED
+                        showSessionToast = true
+                    }
+                    success
                 }
             )
             is LiveSessionState.Paused -> ActiveSessionContent(
                 trackPoint = uiState.trackPoint,
                 historyTrackPoints = uiState.historyTrackPoints,
                 isPaused = true,
-                onPauseClick = { viewModel.onPauseClicked() },
-                onResumeClick = { viewModel.onResumeClicked() },
-                onStopClick = { viewModel.onStopClicked(uiState.trackPoint.sessionId) },
+                onPauseClick = {
+                    val success = viewModel.onPauseClicked()
+                    if (!success) {
+                        toastType = SessionToastType.SESSION_PAUSE_FAILED
+                        showSessionToast = true
+                    }
+                    success
+                },
+                onResumeClick = {
+                    val success = viewModel.onResumeClicked()
+                    if (!success) {
+                        toastType = SessionToastType.SESSION_RESUME_FAILED
+                        showSessionToast = true
+                    }
+                    success
+                },
+                onStopClick = {
+                    val success = viewModel.onStopClicked(uiState.trackPoint.sessionId)
+                    if (!success) {
+                        toastType = SessionToastType.SESSION_SAVE_FAILED
+                        showSessionToast = true
+                    }
+                    success
+                },
                 onCancelClick = {
-                    viewModel.onCancelClicked(uiState.trackPoint.sessionId)
-                    toastType = SessionToastType.SESSION_CANCELLED
-                    showSessionToast = true
+                    val success = viewModel.onCancelClicked(uiState.trackPoint.sessionId)
+                    if (success) {
+                        toastType = SessionToastType.SESSION_CANCELLED
+                        showSessionToast = true
+                    } else {
+                        toastType = SessionToastType.SESSION_CANCEL_FAILED
+                        showSessionToast = true
+                    }
+                    success
                 }
             )
 
@@ -159,7 +211,7 @@ fun LiveSessionScreen(
 @Composable
 fun StartSessionContent(
     hasLocationPermission: Boolean,
-    onStartClick: () -> Unit,
+    onStartClick: () -> Boolean,
     onRequestLocationPermission: () -> Unit,
     mslHeightState: com.topout.kmp.features.live_session.MSLHeightState,
     onRefreshMSLHeight: () -> Unit
@@ -302,11 +354,9 @@ fun StartSessionContent(
                         }
                     }
 
-                    // Add some space for the wave animation
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Wave animation positioned at the bottom with overflow clipping
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -318,7 +368,7 @@ fun StartSessionContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(80.dp)
-                            .offset(y = 20.dp), // Offset to create overflow effect
+                            .offset(y = 20.dp),
                         speed = 1f
                     )
                 }
@@ -330,7 +380,7 @@ fun StartSessionContent(
         Button(
             onClick = {
                 if (hasLocationPermission) {
-                    onStartClick()
+                    val success = onStartClick()
                 } else {
                     onRequestLocationPermission()
                 }
@@ -361,49 +411,46 @@ fun ActiveSessionContent(
     trackPoint: TrackPoint,
     historyTrackPoints: List<TrackPoint>,
     isPaused: Boolean,
-    onPauseClick: () -> Unit,
-    onResumeClick: () -> Unit,
-    onStopClick: () -> Unit,
-    onCancelClick: () -> Unit
+    onPauseClick: () -> Boolean,
+    onResumeClick: () -> Boolean,
+    onStopClick: () -> Boolean,
+    onCancelClick: () -> Boolean
 ) {
-    // State for stop confirmation dialog
     var showStopDialog by remember { mutableStateOf(false) }
     var showCancelDialog by remember { mutableStateOf(false) }
 
+    var toastType by remember { mutableStateOf<SessionToastType?>(null) }
+    var showToast by remember { mutableStateOf(false) }
+
     Box(modifier = Modifier.fillMaxSize()) {
-        // Live Data Card - positioned first so it appears behind the map
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 450.dp), // Start 50dp before map ends to create overlap
+                .padding(top = 450.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            // Live data overview card
             TopRoundedCard(
                 modifier = Modifier.fillMaxWidth(),
                 cornerRadius = 24.dp,
-                elevation = 2.dp, // Lower elevation to appear behind map
+                elevation = 2.dp,
                 containerColor = MaterialTheme.colorScheme.surfaceContainer
             ) {
                 LiveDataOverviewCard(trackPoint = trackPoint)
             }
 
-            // Content area with chip buttons
             Column(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Chip buttons row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 16.dp, end = 16.dp, bottom = 32.dp),
+                        .padding( bottom = 32.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Cancel chip button with gradient (light left, dark right)
                     Box(
                         modifier = Modifier
                             .height(48.dp)
@@ -411,8 +458,8 @@ fun ActiveSessionContent(
                             .background(
                                 brush = Brush.horizontalGradient(
                                     colors = listOf(
-                                        Color(0xFFE57373), // Light red
-                                        Color(0xFFD32F2F)  // Dark red
+                                        Color(0xFFE57373),
+                                        Color(0xFFD32F2F)
                                     )
                                 ),
                                 shape = RoundedCornerShape(
@@ -422,7 +469,8 @@ fun ActiveSessionContent(
                                     bottomEnd = 24.dp
                                 )
                             )
-                            .clickable { showCancelDialog = true }
+                            .alpha(if (isPaused) 0.45f else 1f)
+                            .clickable(enabled = !isPaused) { showCancelDialog = true }
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -446,7 +494,6 @@ fun ActiveSessionContent(
                         }
                     }
 
-                    // Pause/Resume
                     Box(
                         modifier = Modifier
                             .height(48.dp)
@@ -454,13 +501,19 @@ fun ActiveSessionContent(
                             .background(
                                 brush = Brush.horizontalGradient(
                                     colors = if (!isPaused)
-                                        listOf(Color(0xFF757575), Color(0xFF9E9E9E))   // Pause (אפור)
+                                        listOf(Color(0xFF757575), Color(0xFF9E9E9E))
                                     else
-                                        listOf(Color(0xFF1976D2), Color(0xFF64B5F6))   // Resume (כחול)
+                                        listOf(Color(0xFF1976D2), Color(0xFF64B5F6))
                                 ),
                                 shape = RoundedCornerShape(24.dp)
                             )
-                            .clickable { if (!isPaused) onPauseClick() else onResumeClick() }
+                            .clickable {
+                                val success = if (!isPaused) onPauseClick() else onResumeClick()
+                                if (!success) {
+                                    toastType = if (!isPaused) SessionToastType.SESSION_PAUSE_FAILED else SessionToastType.SESSION_RESUME_FAILED
+                                    showToast = true
+                                }
+                            }
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -482,7 +535,6 @@ fun ActiveSessionContent(
                         }
                     }
 
-                    // Stop & Save chip button with gradient (dark left, light right)
                     Box(
                         modifier = Modifier
                             .height(48.dp)
@@ -490,8 +542,8 @@ fun ActiveSessionContent(
                             .background(
                                 brush = Brush.horizontalGradient(
                                     colors = listOf(
-                                        Color(0xFF388E3C), // Dark green
-                                        Color(0xFF66BB6A)  // Light green
+                                        Color(0xFF388E3C),
+                                        Color(0xFF66BB6A)
                                     )
                                 ),
                                 shape = RoundedCornerShape(
@@ -501,7 +553,8 @@ fun ActiveSessionContent(
                                     bottomEnd = 0.dp
                                 )
                             )
-                            .clickable { showStopDialog = true }
+                            .alpha(if (isPaused) 0.45f else 1f)
+                            .clickable(enabled = !isPaused) { showStopDialog = true }
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -528,13 +581,12 @@ fun ActiveSessionContent(
             }
         }
 
-        // Map section in TopRoundedCard - positioned last so it appears above the live data card
         TopRoundedCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(500.dp),
             cornerRadius = 24.dp,
-            elevation = 6.dp // Higher elevation to appear above live data card
+            elevation = 6.dp
         ) {
             LiveMap(
                 location = trackPoint.latLngOrNull(),
@@ -544,9 +596,21 @@ fun ActiveSessionContent(
                 useTopContentSpacing = true
             )
         }
+
+        SessionToast(
+            toastType = toastType,
+            isVisible = showToast && toastType != null,
+            onDismiss = {
+                showToast = false
+                toastType = null
+            },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(WindowInsets.navigationBars.asPaddingValues())
+                .padding(bottom = 12.dp)
+        )
     }
 
-    // Stop session confirmation dialog
     ConfirmationDialog(
         isVisible = showStopDialog,
         title = "Stop Session",
@@ -555,11 +619,17 @@ fun ActiveSessionContent(
         cancelText = "Continue",
         icon = Icons.Default.Stop,
         isDestructive = true,
-        onConfirm = onStopClick,
+        onConfirm = {
+            val success = onStopClick()
+            showStopDialog = false
+            if (!success) {
+                toastType = SessionToastType.SESSION_SAVE_FAILED
+                showToast = true
+            }
+        },
         onDismiss = { showStopDialog = false }
     )
 
-    // Cancel session confirmation dialog
     ConfirmationDialog(
         isVisible = showCancelDialog,
         title = "Cancel Session",
@@ -568,7 +638,14 @@ fun ActiveSessionContent(
         cancelText = "Keep Session",
         icon = Icons.Default.Cancel,
         isDestructive = true,
-        onConfirm = onCancelClick,
+        onConfirm = {
+            val success = onCancelClick()
+            showCancelDialog = false
+            if (!success) {
+                toastType = SessionToastType.SESSION_CANCEL_FAILED
+                showToast = true
+            }
+        },
         onDismiss = { showCancelDialog = false }
     )
 }
@@ -659,13 +736,13 @@ fun ErrorContent(
 
 @Composable
 fun LiveDataOverviewCard(trackPoint: TrackPoint) {
-    val topContentSpacing = 50.dp // Use a fixed top content spacing
+    val topContentSpacing = 50.dp
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                top = topContentSpacing + 20.dp, // Add top content spacing plus card padding
+                top = topContentSpacing + 20.dp,
                 start = 20.dp,
                 end = 20.dp,
                 bottom = 20.dp
@@ -706,7 +783,6 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
             )
         }
 
-        // Second Row: Location data with icon and title on left, coordinates with space around
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -770,7 +846,7 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
                         )
                     )
                     Text(
-                        text = "Alt",
+                        text = "MSE",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -778,12 +854,10 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
             }
         }
 
-        // Third Row: Split into two sections - Speed and Altitude
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Left side: Speed section
             Card(
                 modifier = Modifier.weight(1f),
                 colors = CardDefaults.cardColors(
@@ -823,30 +897,13 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(
-                                text = "%.1f".format(trackPoint.vHorizontal),
+                                text = "%.1f".format(trackPoint.avgHorizontal),
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Bold
                                 )
                             )
                             Text(
-                                text = "H",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(
-                                text = "%.1f".format(trackPoint.vVertical),
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                            Text(
-                                text = "V",
+                                text = "Avg-H",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -872,7 +929,6 @@ fun LiveDataOverviewCard(trackPoint: TrackPoint) {
                 }
             }
 
-            // Right side: Altitude section
             Card(
                 modifier = Modifier.weight(1f),
                 colors = CardDefaults.cardColors(

@@ -1,9 +1,3 @@
-//
-//  WaveAnimationView.swift
-//  iosApp
-//
-//  Created by Inon Elgabsi on 30/07/2025.
-//
 
 import SwiftUI
 import Lottie
@@ -13,18 +7,11 @@ struct WaveAnimationView: View {
     let speed: Double
     let animationSize: CGFloat
     let iterations: Int
-
-    /// Initializes a Lottie-based wave animation view.
-    /// - Parameters:
-    ///   - animationAsset: Name of the Lottie asset in your bundle (no ".json" needed).
-    ///   - speed: Playback speed multiplier.
-    ///   - animationSize: Width/height in points.
-    ///   - iterations: 0 for infinite, 1 for once, N for N times.
     init(
         animationAsset: String = "Waves",
         speed: Double = 1.0,
         animationSize: CGFloat = 200,
-        iterations: Int = 0  // 0 means infinite loop (like in Mountain)
+        iterations: Int = 0
     ) {
         self.animationAsset = animationAsset
         self.speed = speed
@@ -41,7 +28,6 @@ struct WaveAnimationView: View {
                     .frame(width: animationSize, height: animationSize)
                     .accessibilityLabel(Text("Wave animation"))
             } else {
-                // Fallback: simple wave icon, styled like the mountain fallback
                 Image(systemName: "waveform.path.ecg")
                     .resizable()
                     .scaledToFit()

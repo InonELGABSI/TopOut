@@ -6,10 +6,13 @@ struct SettingsView: View {
     @State private var showSignOutDialog = false
     @State private var showDeleteAccountDialog = false
 
-    // State for editing sections
     @State private var isEditingProfile = false
     @State private var isEditingPreferences = false
     @State private var isEditingThresholds = false
+
+    @State private var showToast = false
+    @State private var toastMessage = ""
+    @State private var toastSuccess = false
 
     @EnvironmentObject private var themeManager: AppThemeManager
     @Environment(\.appTheme) private var theme
@@ -28,7 +31,15 @@ struct SettingsView: View {
                             user: state.user,
                             isEditing: isEditingProfile,
                             onToggleEdit: { isEditingProfile = $0 },
-                            onUpdateUser: { user in viewModel.viewModel.updateUser(user: user) },
+                            onUpdateUser: { user in
+                                viewModel.viewModel.updateUser(user: user) { success in
+                                    if success.boolValue {
+                                        showSuccessToast("Profile updated successfully")
+                                    } else {
+                                        showErrorToast("Failed to update profile")
+                                    }
+                                }
+                            },
                             theme: theme
                         )
                         .zIndex(1)
@@ -38,7 +49,15 @@ struct SettingsView: View {
                             user: state.user,
                             isEditing: isEditingPreferences,
                             onToggleEdit: { isEditingPreferences = $0 },
-                            onUpdateUser: { user in viewModel.viewModel.updateUser(user: user) },
+                            onUpdateUser: { user in
+                                viewModel.viewModel.updateUser(user: user) { success in
+                                    if success.boolValue {
+                                        showSuccessToast("Preferences updated successfully")
+                                    } else {
+                                        showErrorToast("Failed to update preferences")
+                                    }
+                                }
+                            },
                             theme: theme
                         )
                         .zIndex(2)
@@ -47,7 +66,15 @@ struct SettingsView: View {
                             user: state.user,
                             isEditing: isEditingThresholds,
                             onToggleEdit: { isEditingThresholds = $0 },
-                            onUpdateUser: { user in viewModel.viewModel.updateUser(user: user) },
+                            onUpdateUser: { user in
+                                viewModel.viewModel.updateUser(user: user) { success in
+                                    if success.boolValue {
+                                        showSuccessToast("Thresholds updated successfully")
+                                    } else {
+                                        showErrorToast("Failed to update thresholds")
+                                    }
+                                }
+                            },
                             theme: theme
                         )
                         .zIndex(3)
@@ -62,12 +89,62 @@ struct SettingsView: View {
             @unknown default:
                 EmptyView()
             }
+
+            if showToast {
+                VStack {
+                    Spacer()
+                    FeedbackToast(
+                        message: toastMessage,
+                        success: toastSuccess,
+                        onDismiss: dismissToast
+                    )
+                    .padding(.bottom, 100)
+                }
+                .zIndex(999)
+            }
         }
         .onAppear { viewModel.startObserving() }
+        .onChange(of: viewModel.uiState) { _, newState in
+            switch onEnum(of: newState) {
+            case .error(let state):
+                showErrorToast(state.errorMessage)
+            default:
+                break
+            }
+        }
+    }
+
+    private func showSuccessToast(_ message: String) {
+        toastMessage = message
+        toastSuccess = true
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+            showToast = true
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            dismissToast()
+        }
+    }
+
+    private func showErrorToast(_ message: String) {
+        toastMessage = message
+        toastSuccess = false
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+            showToast = true
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+            dismissToast()
+        }
+    }
+
+    private func dismissToast() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            showToast = false
+        }
     }
 }
 
-// MARK: - Card Components
 
 struct ProfileCard: View {
     let user: User
@@ -90,16 +167,14 @@ struct ProfileCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
-                // Leading: Icon + Title
                 Image(systemName: "person.fill")
                     .foregroundColor(theme.primary)
                 Text("Profile")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(theme.onSurface)
-                Spacer() // Pushes the button to the right
+                Spacer()
 
-                // Trailing: Edit button (shown only when not editing)
                 if !isEditing {
                     Button(action: {
                         editableUser = EditableUser(user: user)
@@ -204,10 +279,10 @@ struct ProfileCard: View {
                     )
                 )
         )
-        .topShadow(blur: 12, distance: 6)          // first soft penumbra
+        .topShadow(blur: 12, distance: 6)
         .topShadow(color: .black.opacity(0.08),
                    blur: 24,
-                   distance: 12)                    // second larger bloom
+                   distance: 12)
 
     }
 }
@@ -233,16 +308,14 @@ struct PreferencesCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
-                // Leading: Icon + Title
                 Image(systemName: "gearshape.fill")
                     .foregroundColor(theme.primary)
                 Text("Preferences")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(theme.onSurface)
-                Spacer() // Pushes the button to the right
+                Spacer()
 
-                // Trailing: Edit button (shown only when not editing)
                 if !isEditing {
                     Button(action: {
                         editableUser = EditableUser(user: user)
@@ -322,10 +395,10 @@ struct PreferencesCard: View {
                     )
                 )
         )
-        .topShadow(blur: 12, distance: 6)          // first soft penumbra
+        .topShadow(blur: 12, distance: 6)
         .topShadow(color: .black.opacity(0.08),
                    blur: 24,
-                   distance: 12)                    // second larger bloom
+                   distance: 12)
 
     }
 }
@@ -351,16 +424,14 @@ struct ThresholdsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
-                // Leading: Icon + Title
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundColor(theme.primary)
                 Text("Alert Thresholds")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(theme.onSurface)
-                Spacer() // Pushes the button to the right
+                Spacer()
 
-                // Trailing: Edit button (shown only when not editing)
                 if !isEditing {
                     Button(action: {
                         editableUser = EditableUser(user: user)
@@ -389,21 +460,21 @@ struct ThresholdsCard: View {
             }
 
             ThresholdField(
-                label: "Relative Height Threshold",
+                label: "Height From Start Threshold",
                 value: $editableUser.relativeHeightFromStartThr,
                 isEditing: isEditing,
                 unit: editableUser.unitPreference,
                 theme: theme
             )
             ThresholdField(
-                label: "Total Height Threshold",
+                label: "Total Gain Threshold",
                 value: $editableUser.totalHeightFromStartThr,
                 isEditing: isEditing,
                 unit: editableUser.unitPreference,
                 theme: theme
             )
             ThresholdField(
-                label: "Average Speed Threshold",
+                label: "Average Vertical Speed Threshold",
                 value: $editableUser.currentAvgHeightSpeedThr,
                 isEditing: isEditing,
                 unit: "\(editableUser.unitPreference)/min",
@@ -449,10 +520,10 @@ struct ThresholdsCard: View {
                     )
                 )
         )
-        .topShadow(blur: 12, distance: 6)          // first soft penumbra
+        .topShadow(blur: 12, distance: 6)
         .topShadow(color: .black.opacity(0.08),
                    blur: 24,
-                   distance: 12)                    // second larger bloom
+                   distance: 12)
 
     }
 }
@@ -464,7 +535,6 @@ struct ThemeCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // — Header row —
             HStack {
                 Label("Theme", systemImage: "paintpalette.fill")
                     .foregroundColor(theme.primary)
@@ -474,11 +544,9 @@ struct ThemeCard: View {
 
                 Spacer()
 
-                // Dark mode toggle with Lottie animation
                 LottieToggleButton(
                     isToggled: colorScheme == .dark,
                     onToggle: { isDark in
-                        // Toggle system appearance
                         UIApplication.shared.connectedScenes
                             .compactMap { $0 as? UIWindowScene }
                             .first?.windows.first?
@@ -525,11 +593,10 @@ struct ThemeCard: View {
     }
 }
 
-// MARK: - Field Components
 
 struct EditableField: View {
     let label: String
-    @Binding var value: String  // Non-optional!
+    @Binding var value: String
     let isEditing: Bool
     let icon: String
     var keyboardType: UIKeyboardType = .default
@@ -661,7 +728,7 @@ struct NotificationToggle: View {
 
 struct ThresholdField: View {
     let label: String
-    @Binding var value: Double // non-optional!
+    @Binding var value: Double
     let isEditing: Bool
     let unit: String
     let theme: AppTheme
@@ -763,7 +830,6 @@ struct ColorPalettePreview: View {
     }
 }
 
-// MARK: - Loading & Error Components
 
 struct SettingsLoadingContent: View {
     let theme: AppTheme
@@ -808,7 +874,6 @@ struct SettingsErrorContent: View {
     }
 }
 
-// MARK: - Helper Functions
 
 func formatDate(_ timestamp: Int64) -> String {
     if timestamp == 0 {

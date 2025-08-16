@@ -11,7 +11,6 @@ import org.koin.dsl.module
 
 class MyApplication : Application() {
 
-    // keep one application-wide scope instead of GlobalScope
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override fun onCreate() {
@@ -21,11 +20,9 @@ class MyApplication : Application() {
             androidLogger()
             androidContext(this@MyApplication)
 
-            // expose appScope so modules can `get<CoroutineScope>()`
             modules(module { single<CoroutineScope> { appScope } })
         }
 
-        // optional fire-and-forget task
         appScope.launch {
             getKoin().get<EnsureAnonymousUser>()()
         }

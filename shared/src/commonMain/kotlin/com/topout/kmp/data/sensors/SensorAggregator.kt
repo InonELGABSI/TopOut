@@ -65,7 +65,7 @@ class SensorAggregator(
                     emit(Unit)
                     delay(hz)
                 }
-            }.collect { _tick.emit(it) } // safe with extraBufferCapacity
+            }.collect { _tick.emit(it) }
         }
     }
 

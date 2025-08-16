@@ -16,7 +16,6 @@ struct HistoryView: View {
         ZStack {
             theme.background.ignoresSafeArea()
 
-            // Use type checking instead of pattern matching for KMP enums
             if viewModel.uiState is SessionsState.Loading {
                 LoadingView(theme: theme)
             } else if let loadedState = viewModel.uiState as? SessionsState.Loaded {
@@ -33,7 +32,6 @@ struct HistoryView: View {
                         currentSortOption = sortOrder
                     },
                     onDeleteSession: { sessionId in
-                        // TODO: Add delete functionality to SessionsViewModel
                     },
                     onSearchTextChanged: { searchText in
                         viewModel.viewModel.searchSessions(searchText: searchText)
@@ -83,7 +81,6 @@ struct HistoryView: View {
     }
 }
 
-// MARK: - Sort Options Sheet
 struct SortOptionsSheet: View {
     let currentSortOption: SortOption
     let onSortSelected: (SortOption) -> Void
@@ -180,7 +177,6 @@ struct SortOptionsSheet: View {
     }
 }
 
-// MARK: - Sort Option Row
 struct SortOptionRow: View {
     let title: String
     let sortOption: SortOption
@@ -205,7 +201,7 @@ struct SortOptionRow: View {
                         .imageScale(.medium)
                 }
             }
-            .frame(minHeight: 40) // Slightly reduced from 44
+            .frame(minHeight: 40)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -215,7 +211,6 @@ struct SortOptionRow: View {
     }
 }
 
-// Loading View
 struct LoadingView: View {
     let theme: AppTheme
 
@@ -228,7 +223,6 @@ struct LoadingView: View {
     }
 }
 
-// Error View
 struct ErrorView: View {
     let message: String
     let onRetry: () -> Void
@@ -256,7 +250,6 @@ struct ErrorView: View {
     }
 }
 
-// Main content view for the loaded state
 struct SessionsContentView: View {
     let state: SessionsState.Loaded
     let onSessionSelected: (Session) -> Void
@@ -287,7 +280,6 @@ struct SessionsContentView: View {
         }
     }
 
-    // MARK: - Card list without spacing
     private func sessionsGrid(sessions: [Session]) -> some View {
         return ScrollView {
             LazyVStack(spacing: 0, pinnedViews: []) {
@@ -304,10 +296,9 @@ struct SessionsContentView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                // extra scroll-room below the final card
                 Color.clear.frame(height: 80)
             }
-            .padding(.top, 8) // initial breathing-space
+            .padding(.top, 8)
         }
     }
 }
@@ -315,7 +306,6 @@ struct SessionsContentView: View {
 
 
 
-// Extension to help with state pattern matching
 extension SessionsState {
     static func ~= (pattern: (SessionsState.Loaded) -> Bool, value: SessionsState) -> Bool {
         guard let loaded = value as? SessionsState.Loaded else { return false }

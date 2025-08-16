@@ -46,7 +46,44 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>This app needs location for altitude and map features.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>TopOut needs location access to track your climbing sessions and provide altitude data.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>TopOut needs location access to track your climbing sessions and provide altitude data.</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
+	<key>CFBundleIconFiles</key>
+	<array>
+		<string>AppIcon</string>
+	</array>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>TopOut needs background location access to continue tracking your climbing session when the app is minimized.</string>
+    <key>NSLocationTemporaryUsageDescriptionDictionary</key>
+    <dict>
+        <key>PrecisePurpose</key>
+        <string>TopOut needs your precise location to accurately track climbing routes and elevation.</string>
+    </dict>
+    <!-- Motion (accelerometer / barometer) access explanation -->
+    <key>NSMotionUsageDescription</key>
+    <string>TopOut uses motion and barometer data to compute elevation gain and movement metrics during climbing sessions.</string>
+
+    <key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>background-processing</string>
+		<string>processing</string>
+		<string>fetch</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict/>
+
+    <!-- Optional future keys template:
+         NSUserTrackingUsageDescription
+         NSBluetoothAlwaysUsageDescription
+         NSCameraUsageDescription
+         NSPhotoLibraryAddUsageDescription
+         NSMicrophoneUsageDescription
+         NSHealthShareUsageDescription / NSHealthUpdateUsageDescription
+         Add only when related features are implemented. -->
 </dict>
 </plist>

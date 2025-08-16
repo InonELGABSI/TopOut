@@ -25,7 +25,6 @@ fun ChipControlBar(
     onBackClick: () -> Unit = {},
     isTransparent: Boolean = false,
 ) {
-    // The actual chip control bar
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -78,14 +77,13 @@ fun ChipControlBar(
                     }
                 )
         ) {
-            // Position back button absolutely outside the Row layout
             if (showBackButton) {
                 IconButton(
                     onClick = onBackClick,
                     modifier = Modifier
                         .size(40.dp)
                         .align(Alignment.CenterStart)
-                        .offset(x = 4.dp) // Small offset from the left edge
+                        .offset(x = 4.dp)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -98,7 +96,6 @@ fun ChipControlBar(
                 }
             }
 
-            // Row only contains the text, so height is consistent
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -111,7 +108,6 @@ fun ChipControlBar(
                         fontWeight = FontWeight.Bold
                     ),
                     color = if (isTransparent) {
-                        // Much darker version of primary color for transparent mode
                         val baseColor = MaterialTheme.colorScheme.primary
                         Color(
                             red = (baseColor.red * 0.3f).coerceAtLeast(0f),
@@ -120,7 +116,6 @@ fun ChipControlBar(
                             alpha = 1f
                         )
                     } else {
-                        // Much darker version of primary container color for normal mode
                         val baseColor = MaterialTheme.colorScheme.primaryContainer
                         Color(
                             red = (baseColor.red * 0.3f).coerceAtLeast(0f),
@@ -131,7 +126,7 @@ fun ChipControlBar(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = if (showBackButton) 32.dp else 0.dp) // Add padding when back button is present
+                        .padding(start = if (showBackButton) 32.dp else 0.dp)
                 )
             }
         }
@@ -145,7 +140,7 @@ fun ChipControlBarPreview() {
         ChipControlBar(
             title = "Sample Title",
             showBackButton = true,
-            onBackClick = { /* Handle back click */ },
+            onBackClick = {},
         )
     }
 }

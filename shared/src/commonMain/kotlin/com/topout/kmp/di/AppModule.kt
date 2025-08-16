@@ -25,7 +25,7 @@ import com.topout.kmp.domain.SaveSession
 import com.topout.kmp.domain.SignInAnonymously
 import com.topout.kmp.domain.LiveSessionManager
 import com.topout.kmp.domain.SyncOfflineChanges
-import com.topout.kmp.domain.session.FinishSession
+import com.topout.kmp.domain.FinishSession
 import com.topout.kmp.domain.CancelLocalSession
 import com.topout.kmp.domain.GetLocalTrackPointsFlow
 import com.topout.kmp.domain.UpdateSessionTitle
@@ -61,7 +61,6 @@ fun initKoin() = initKoin { }
 
 expect val platformModule:Module
 
-// domain and use cases
 val domainModule = module {
     factoryOf(::SignInAnonymously)
     factoryOf(::EnsureAnonymousUser)
@@ -96,7 +95,6 @@ val domainModule = module {
 
     factoryOf(::GetCurrentMSLHeight)
 
-    // User Settings
     factoryOf(::GetSettings)
     factoryOf(::UpdateUser)
     factoryOf(::SettingsUseCases)
@@ -120,7 +118,6 @@ val commonModule = module {
 
     single { createHttpClient(get(), get()) }
 
-    // Location-based use cases
 }
 
 fun createJson() = Json {

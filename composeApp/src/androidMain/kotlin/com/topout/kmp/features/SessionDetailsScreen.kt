@@ -17,19 +17,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.zIndex
 import com.topout.kmp.features.session_details.SessionDetailsState
 import com.topout.kmp.features.session_details.SessionDetailsViewModel
 import com.topout.kmp.models.SessionDetails
 import com.topout.kmp.models.TrackPoint
 import com.topout.kmp.map.LiveMap
-import com.topout.kmp.utils.extensions.latLngOrNull
 import com.topout.kmp.shared_components.*
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.max
 import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,24 +38,16 @@ fun SessionDetailsScreen(
 ) {
     val uiState = viewModel.uiState.collectAsState().value
 
-    // State for delete confirmation dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
-
-    // State for edit title dialog
     var showEditTitleDialog by remember { mutableStateOf(false) }
-
-    // State for session toast
     var toastType by remember { mutableStateOf<SessionToastType?>(null) }
     var showSessionToast by remember { mutableStateOf(false) }
-
-    // State for handling delete navigation delay
     var shouldNavigateAfterDelete by remember { mutableStateOf(false) }
 
     LaunchedEffect(sessionId) {
         viewModel.loadSession(sessionId)
     }
 
-    // Handle navigation after delete with delay
     LaunchedEffect(shouldNavigateAfterDelete) {
         if (shouldNavigateAfterDelete) {
             kotlinx.coroutines.delay(1000)
@@ -105,24 +94,37 @@ fun SessionDetailsScreen(
         icon = Icons.Outlined.DeleteOutline,
         isDestructive = true,
         onConfirm = {
-            viewModel.deleteSession(sessionId)
-            showDeleteDialog = false
-            toastType = SessionToastType.SESSION_DELETED
-            showSessionToast = true
-            shouldNavigateAfterDelete = true
+            viewModel.deleteSession(sessionId) { success ->
+                if (success) {
+                    showDeleteDialog = false
+                    toastType = SessionToastType.SESSION_DELETED
+                    showSessionToast = true
+                    shouldNavigateAfterDelete = true
+                } else {
+                    showDeleteDialog = false
+                    toastType = SessionToastType.SESSION_DELETE_FAILED
+                    showSessionToast = true
+                }
+            }
         },
         onDismiss = { showDeleteDialog = false }
     )
 
-    // Edit title dialog
     if (showEditTitleDialog && uiState is SessionDetailsState.Loaded) {
         EditTitleDialog(
             currentTitle = uiState.sessionDetails.session.title ?: "Climbing Session",
             onTitleChanged = { newTitle ->
-                viewModel.updateSessionTitle(sessionId, newTitle)
-                showEditTitleDialog = false
-                toastType = SessionToastType.SESSION_TITLE_EDITED
-                showSessionToast = true
+                viewModel.updateSessionTitle(sessionId, newTitle) { success ->
+                    if (success) {
+                        showEditTitleDialog = false
+                        toastType = SessionToastType.SESSION_TITLE_EDITED
+                        showSessionToast = true
+                    } else {
+                        showEditTitleDialog = false
+                        toastType = SessionToastType.SESSION_TITLE_EDIT_FAILED
+                        showSessionToast = true
+                    }
+                }
             },
             onDismiss = { showEditTitleDialog = false }
         )
@@ -135,12 +137,10 @@ fun NewSessionDetailsContent(
     onDeleteClick: () -> Unit,
     onEditTitleClick: () -> Unit
 ) {
-    // Make the entire content scrollable
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        // Map section
         item {
             TopRoundedCard(
                 modifier = Modifier
@@ -148,7 +148,6 @@ fun NewSessionDetailsContent(
                     .height(500.dp),
                 cornerRadius = 24.dp
             ) {
-                // Map takes full card space
                 if (sessionDetails.points.isNotEmpty()) {
                     LiveMap(
                         location = null, // Not needed in route mode
@@ -172,7 +171,6 @@ fun NewSessionDetailsContent(
             }
         }
 
-        // Session title section
         item {
             SessionTitleSection(
                 sessionDetails = sessionDetails,
@@ -180,7 +178,6 @@ fun NewSessionDetailsContent(
             )
         }
 
-        // Session info section
         item {
             SessionInfoSection(
                 sessionDetails = sessionDetails,
@@ -188,7 +185,6 @@ fun NewSessionDetailsContent(
             )
         }
 
-        // Session name with statistics and track points wrapped together
         item {
             BottomRoundedCard(
                 modifier = Modifier.fillMaxWidth(),
@@ -199,16 +195,14 @@ fun NewSessionDetailsContent(
                 Column(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Title
                     Text(
-                        text = "Climbing Session", // You can make this dynamic based on session data
+                        text = "Climbing Session",
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontWeight = FontWeight.Bold
                         ),
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)
                     )
 
-                    // Horizontal divider under title
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 24.dp),
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
@@ -216,19 +210,15 @@ fun NewSessionDetailsContent(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Statistics (without background)
                     SessionStatisticsCard(sessionDetails = sessionDetails)
 
-                    // Horizontal divider under statistics
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                     )
 
-                    // Add spacing before the chart section
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Time-Height Chart
                     if (sessionDetails.points.isNotEmpty()) {
                         Column(
                             modifier = Modifier
@@ -247,7 +237,7 @@ fun NewSessionDetailsContent(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Altitude over Time",
+                                    text = "MSE Altitude over Time",
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold
                                     )
@@ -265,7 +255,6 @@ fun NewSessionDetailsContent(
                         }
                     }
 
-                    // Track Points (without background)
                     TrackPointsCardContent(trackPoints = sessionDetails.points)
                 }
             }
@@ -521,7 +510,8 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
     val minAltitude = points.mapNotNull { it.altitude }.minOrNull() ?: 0.0
     val totalGain = points.lastOrNull()?.gain ?: 0.0
     val totalLoss = points.lastOrNull()?.loss ?: 0.0
-    val maxSpeed = points.maxOfOrNull { it.vTotal } ?: 0.0
+    val avgHorizontal = sessionDetails.session.avgHorizontal ?: 0.0
+    val avgVertical = sessionDetails.session.avgVertical ?: 0.0
 
     Column(
         modifier = Modifier
@@ -529,30 +519,28 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // First row - 3 items
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             StatisticItemWithIcon(
                 icon = Icons.Default.KeyboardArrowUp,
-                label = "Max Altitude",
+                label = "Max MSE Altitude",
                 value = "%.1f m".format(maxAltitude)
             )
             StatisticItemWithIcon(
                 icon = Icons.Default.KeyboardArrowDown,
-                label = "Min Altitude",
+                label = "Min MSE Altitude",
                 value = "%.1f m".format(minAltitude)
             )
             StatisticItemWithIcon(
                 icon = Icons.AutoMirrored.Filled.TrendingUp,
                 label = "Total Gain",
                 value = "%.1f m".format(totalGain),
-                textColor = androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                textColor = Color(0xFF4CAF50)
             )
         }
 
-        // Second row - 2 items
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -561,12 +549,19 @@ fun SessionStatisticsCard(sessionDetails: SessionDetails) {
                 icon = Icons.AutoMirrored.Filled.TrendingDown,
                 label = "Total Loss",
                 value = "%.1f m".format(totalLoss),
-                textColor = androidx.compose.ui.graphics.Color(0xFFFF5722)
+                textColor = Color(0xFFFF5722)
             )
             StatisticItemWithIcon(
                 icon = Icons.Default.Speed,
-                label = "Max Speed",
-                value = "%.1f m/s".format(maxSpeed)
+                label = "Avg-H",
+                value = "%.1f m/s".format(avgHorizontal),
+                textColor = Color(0xFF9C27B0)
+            )
+            StatisticItemWithIcon(
+                icon = Icons.Default.Schedule,
+                label = "Avg-V",
+                value = "%.1f m/s".format(avgVertical),
+                textColor = Color(0xFFFF9800)
             )
         }
     }
@@ -578,7 +573,7 @@ fun StatisticItemWithIcon(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
-    textColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
+    textColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Row(
         modifier = modifier.padding(horizontal = 8.dp),
@@ -635,42 +630,11 @@ fun TrackPointsCardContent(trackPoints: List<TrackPoint>) {
             )
         }
 
-        // Removed the detailed track points table - only showing the count above
     }
 }
 
-@Composable
-fun StatisticItem(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    textColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = textColor
-            ),
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-    }
-}
 
-/**
- * Prepares chart data from track points with a maximum of 50 points.
- * Calculates time from session start and aggregates points if necessary.
- */
+
 private fun prepareChartData(trackPoints: List<TrackPoint>): List<Pair<Float, Float>> {
     if (trackPoints.isEmpty()) return emptyList()
 

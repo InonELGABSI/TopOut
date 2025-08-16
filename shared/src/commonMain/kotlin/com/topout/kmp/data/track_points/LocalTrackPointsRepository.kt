@@ -28,13 +28,11 @@ class LocalTrackPointsRepository(
             accelY    = trackPoint.accelerationY,
             accelZ    = trackPoint.accelerationZ,
             metrics   = Metrics(
-                vVertical   = trackPoint.vVertical,
-                vHorizontal = trackPoint.vHorizontal,
-                vTotal      = trackPoint.vTotal,
                 gain        = trackPoint.gain,
                 loss        = trackPoint.loss,
                 relAltitude = trackPoint.relAltitude,
                 avgVertical = trackPoint.avgVertical,
+                avgHorizontal = trackPoint.avgHorizontal,
                 danger      = trackPoint.danger,
                 alertType   = trackPoint.alertType
             )

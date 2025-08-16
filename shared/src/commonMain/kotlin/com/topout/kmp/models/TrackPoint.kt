@@ -5,28 +5,24 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TrackPoint(
-    val id: Long = nowEpochMillis(),           // Unique ID for point (default: timestamp)
-    val sessionId: String = "",                // Session ID
-    val timestamp: Long = nowEpochMillis(),    // Sample time, milliseconds since epoch
+    val id: Long = nowEpochMillis(),
+    val sessionId: String = "",
+    val timestamp: Long = nowEpochMillis(),
 
     // Raw sensor data
-    val latitude: Double? = null,              // GPS lat
-    val longitude: Double? = null,             // GPS lon
-    val altitude: Double? = null,              // Barometer/GPS altitude
-    val accelerationX: Float? = null,          // Accelerometer X
-    val accelerationY: Float? = null,          // Accelerometer Y
-    val accelerationZ: Float? = null,          // Accelerometer Z
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val altitude: Double? = null,
+    val accelerationX: Float? = null,
+    val accelerationY: Float? = null,
+    val accelerationZ: Float? = null,
 
-    // Calculated metrics
-    val vVertical: Double = 0.0,               // Vertical speed
-    val vHorizontal: Double = 0.0,             // Horizontal speed
-    val vTotal: Double = 0.0,                  // Total speed
+    val gain: Double = 0.0,
+    val loss: Double = 0.0,
+    val relAltitude: Double = 0.0,
 
-    val gain: Double = 0.0,                    // Σ העליות
-    val loss: Double = 0.0,                    // Σ הירידות
-    val relAltitude: Double = 0.0,             // hᵢ − h₀
-
-    val avgVertical: Double = 0.0,             // avgV
-    val danger: Boolean = false,               // Danger threshold crossed
-    val alertType: AlertType = AlertType.NONE  // Alert type
+    val avgVertical: Double = 0.0,
+    val avgHorizontal: Double = 0.0,
+    val danger: Boolean = false,
+    val alertType: AlertType = AlertType.NONE
 )

@@ -3,12 +3,8 @@ package com.topout.kmp.features
 import androidx.compose.animation.core.EaseInOutCubic
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -21,8 +17,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -33,20 +27,15 @@ import com.topout.kmp.features.sessions.SessionsState
 import com.topout.kmp.features.sessions.SessionsViewModel
 import com.topout.kmp.features.sessions.SortOption
 import com.topout.kmp.models.Session
-import com.topout.kmp.shared_components.rememberTopContentSpacingDp
 import com.topout.kmp.shared_components.TopRoundedCard
 import org.koin.androidx.compose.koinViewModel
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.times
 import androidx.compose.ui.zIndex
 import com.topout.kmp.shared_components.BottomRoundedCard
-import com.topout.kmp.shared_components.FullRoundedCard
-import com.topout.kmp.shared_components.MiddleRoundedCard
-import kotlin.math.roundToInt
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +43,6 @@ fun HistoryScreen(
     viewModel: SessionsViewModel = koinViewModel(),
     onSessionClick: (Session) -> Unit
 ) {
-    val topContentSpacing = rememberTopContentSpacingDp()
 
     LaunchedEffect(Unit) {
         viewModel.fetchSessions()
@@ -123,7 +111,6 @@ fun HistoryControlsSection(
     viewModel: SessionsViewModel,
     modifier: Modifier = Modifier
 ) {
-    // Get state from ViewModel instead of using local remember
     val searchText by viewModel.currentSearchTextState.collectAsState()
     val currentSortOption by viewModel.currentSortOptionState.collectAsState()
     var showSortMenu by remember { mutableStateOf(false) }
@@ -137,7 +124,6 @@ fun HistoryControlsSection(
         "Ascent (Lowest)"
     )
 
-    // Function to convert SortOption enum to string
     fun sortOptionToString(sortOption: SortOption): String {
         return when (sortOption) {
             SortOption.DATE_NEWEST -> "Date (Newest)"
@@ -149,7 +135,6 @@ fun HistoryControlsSection(
         }
     }
 
-    // Function to convert string to SortOption enum
     fun stringToSortOption(sortString: String): SortOption {
         return when (sortString) {
             "Date (Newest)" -> SortOption.DATE_NEWEST
@@ -166,13 +151,11 @@ fun HistoryControlsSection(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Controls row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Sort button on the left
             Box {
                 OutlinedButton(
                     onClick = { showSortMenu = true },
@@ -211,7 +194,6 @@ fun HistoryControlsSection(
                             text = { Text(option) },
                             onClick = {
                                 showSortMenu = false
-                                // Apply sorting through ViewModel
                                 viewModel.sortSessions(stringToSortOption(option))
                             }
                         )
@@ -219,11 +201,9 @@ fun HistoryControlsSection(
                 }
             }
 
-            // Search input on the right
             OutlinedTextField(
                 value = searchText,
                 onValueChange = { newText ->
-                    // Call ViewModel search method whenever text changes
                     viewModel.searchSessions(newText)
                 },
                 modifier = Modifier
@@ -246,7 +226,6 @@ fun HistoryControlsSection(
                     if (searchText.isNotEmpty()) {
                         IconButton(
                             onClick = {
-                                // Clear search in ViewModel
                                 viewModel.searchSessions("")
                             }
                         ) {
@@ -289,7 +268,6 @@ fun StackedSessionCards(
     val density = LocalDensity.current
     val headerHeight = 200.dp
 
-    // State for header visibility (keep your animation logic as before)
     var headerOffset by remember { mutableFloatStateOf(0f) }
     var lastScrollValue by remember { mutableIntStateOf(0) }
     val headerHeightPx = with(density) { headerHeight.toPx() }
@@ -310,17 +288,12 @@ fun StackedSessionCards(
     }
 
     Box(modifier = modifier) {
-        // The stacking layout, scrollable
         Layout(
             modifier = Modifier
                 .verticalScroll(scrollState)
                 .fillMaxWidth(),
             content = {
-                // 1. Add the spacer for the header
                 Spacer(Modifier.height(headerHeight))
-                // 2. Add a spacer after the header for overlap (fine-tune as needed)
-//                Spacer(Modifier.height( 24.dp))
-                // 3. All session cards (stacked)
                 sessions.asReversed().forEachIndexed { revIndex, session ->
                     val color = palette[revIndex % palette.size]
                     val elevation = 6.dp + (revIndex * 2).dp
@@ -328,15 +301,12 @@ fun StackedSessionCards(
                         SessionCardContent(
                             session = session,
                             onSessionClick = onSessionClick,
-                            topContentSpacing = 0.dp,
-                            isFirstItem = revIndex == sessions.lastIndex
                         )
                     }
                     Box(
                         modifier = Modifier
                             .zIndex(revIndex.toFloat())
                     ) {
-                        // Use BottomRoundedCard for all session cards
                         BottomRoundedCard(
                             modifier = Modifier.fillMaxWidth(),
                             elevation = elevation,
@@ -349,29 +319,23 @@ fun StackedSessionCards(
         ) { measurables, constraints ->
             val overlapPx = overlap.roundToPx()
             var y = 0
-            // 1. Header spacer
             val headerPlaceable = measurables[0].measure(constraints)
             y += headerPlaceable.height
 
             val cardPlacements = mutableListOf<Pair<Int, Placeable>>()
-            // 2. Cards (start from index 1 since we only have header spacer)
             for (i in 1 until measurables.size) {
                 val placeable = measurables[i].measure(constraints)
                 cardPlacements.add(y to placeable)
-                // Each card overlaps the previous
                 y += placeable.height - overlapPx
             }
             val layoutHeight = if (cardPlacements.isEmpty()) y else y + overlapPx
 
             layout(constraints.maxWidth, layoutHeight) {
-                // Place header spacer (not visible, just offsets)
                 headerPlaceable.place(0, 0)
-                // Place cards
                 cardPlacements.forEach { (yy, pl) -> pl.place(0, yy) }
             }
         }
 
-        // Sticky/fixed header (as before)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -422,8 +386,6 @@ fun StackedSessionCards(
 fun SessionCardContent(
     session: Session,
     onSessionClick: (Session) -> Unit,
-    topContentSpacing: Dp,
-    isFirstItem: Boolean
 ) {
     Column(
         modifier = Modifier
@@ -435,29 +397,10 @@ fun SessionCardContent(
                 bottom = 20.dp
             )
     ) {
-        // Session content - reuse existing SessionItem content or create new layout
         SessionItem(
             session = session,
             onSessionClick = onSessionClick
         )
-    }
-}
-
-@Composable
-fun SessionsListContent(
-    sessions: List<Session>,
-    onSessionClicked: (Session) -> Unit
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 8.dp)
-    ) {
-        items(sessions) { session ->
-            SessionItem(
-                session = session,
-                onSessionClick = onSessionClicked
-            )
-        }
     }
 }
 
@@ -513,63 +456,3 @@ fun LoadingContent() {
         trackColor = MaterialTheme.colorScheme.secondary
     )
 }
-
-private fun createDummyUiState(type: String = "loaded"): SessionsState {
-    return when (type) {
-        "loading" -> SessionsState.Loading
-
-        "error" -> SessionsState.Error("Failed to load sessions. Please check your connection.")
-
-        "empty" -> SessionsState.Loaded(emptyList())
-
-        "loaded" -> SessionsState.Loaded(
-            listOf(
-                Session(
-                    id = "1",
-                    userId = "1",
-                    title = "Morning Climb",
-                    startTime = null, // Will be handled by ViewModel when real data comes from shared module
-                    endTime = null,
-                    totalAscent = 120.0,
-                    totalDescent = 100.0,
-                    maxAltitude = 300.0,
-                    minAltitude = 150.0,
-                    avgRate = 1.5,
-                    alertTriggered = 0L,
-                    createdAt = null,
-                ),
-                Session(
-                    id = "2",
-                    userId = "2",
-                    title = "Evening Session",
-                    startTime = null,
-                    endTime = null,
-                    totalAscent = 80.0,
-                    totalDescent = 80.0,
-                    maxAltitude = 250.0,
-                    minAltitude = 120.0,
-                    avgRate = 1.2,
-                    alertTriggered = 0L,
-                    createdAt = null,
-                ),
-                Session(
-                    id = "3",
-                    userId = "3",
-                    title = "Weekend Adventure",
-                    startTime = null,
-                    endTime = null,
-                    totalAscent = 200.0,
-                    totalDescent = 180.0,
-                    maxAltitude = 450.0,
-                    minAltitude = 200.0,
-                    avgRate = 1.8,
-                    alertTriggered = 0L,
-                    createdAt = null,
-                )
-            )
-        )
-
-        else -> SessionsState.Loading
-    }
-}
-

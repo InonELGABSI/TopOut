@@ -10,12 +10,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import co.touchlab.kermit.Logger
 
-/**
- * One-shot barometer read that returns both the raw pressure (hPa) and the
- * derived altitude (m) in an AltitudeData record.
- *
- * @throws IllegalStateException if the device has no barometer.
- */
 actual class BarometerProvider(
     private val context: Context
 ) {
@@ -26,7 +20,6 @@ actual class BarometerProvider(
     private val baro: Sensor = sm.getDefaultSensor(Sensor.TYPE_PRESSURE)
             ?: throw IllegalStateException("Device has no barometer")
 
-    /** Suspend until we receive one sensor sample, then unregister. */
     actual suspend fun getBarometerReading(): AltitudeData =
         suspendCancellableCoroutine { cont ->
             //log.d { "getBarometerReading()" }
@@ -37,11 +30,11 @@ actual class BarometerProvider(
                     sm.unregisterListener(this)
                     //log.d { "onSensorChanged" }
 
-                    val pressure = event.values[0]                    // hPa ㊀
+                    val pressure = event.values[0]
                     val altitude = SensorManager.getAltitude(
-                        SensorManager.PRESSURE_STANDARD_ATMOSPHERE,   // 1013.25 hPa ㊂
+                        SensorManager.PRESSURE_STANDARD_ATMOSPHERE,
                         pressure
-                    ).toDouble()                                      // metres ㊁
+                    ).toDouble()
 
                     cont.resume(
                         AltitudeData(

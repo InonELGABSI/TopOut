@@ -1,15 +1,14 @@
-//==============================================================
-//  StartSessionContent.swift
-//==============================================================
 
 import SwiftUI
 import Shared
 import Lottie
+import UIKit
 
 struct StartSessionContent: View {
     let hasLocationPermission: Bool
     let onStartClick: () -> Void
     let onRequestLocationPermission: () -> Void
+    let onRefreshMSL: () -> Void
     let mslHeightState: MSLHeightState
     let theme: AppTheme
 
@@ -26,7 +25,11 @@ struct StartSessionContent: View {
                     .foregroundColor(theme.onSurfaceVariant)
                     .padding(.horizontal, 16)
 
-                MSLCard(mslHeightState: mslHeightState, theme: theme)
+                MSLCard(
+                    mslHeightState: mslHeightState, 
+                    theme: theme,
+                    onRefresh: onRefreshMSL
+                )
                     .padding(.horizontal, 16)
 
                 Button(action: {
@@ -54,15 +57,16 @@ struct StartSessionContent: View {
 private struct MSLCard: View {
     let mslHeightState: MSLHeightState
     let theme: AppTheme
+    let onRefresh: () -> Void
+
+    private var isLoading: Bool { mslHeightState is MSLHeightState.Loading }
 
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .bottom) {
-                // Card background
                 RoundedRectangle(cornerRadius: 12)
                     .fill(theme.primaryContainer.opacity(0.3))
 
-                // Card content (text and info)
                 VStack(spacing: 16) {
                     HStack {
                         Image(systemName: "arrow.up.and.down")
@@ -71,6 +75,20 @@ private struct MSLCard: View {
                             .font(.headline)
                             .foregroundColor(theme.primary)
                         Spacer()
+                        Button(action: {
+                            guard !isLoading else { return }
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            onRefresh()
+                        }) {
+                            RefreshIcon(isLoading: isLoading, theme: theme)
+                                .frame(width: 20, height: 20)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isLoading)
+                        .accessibilityLabel(isLoading ? "Refreshing MSL height" : "Refresh MSL height")
+                        .accessibilityHint("Fetch latest Mean Sea Level data")
+                        .opacity(isLoading ? 0.8 : 1.0)
                     }
                     VStack(spacing: 4) {
                         switch mslHeightState {
@@ -100,14 +118,13 @@ private struct MSLCard: View {
                             EmptyView()
                         }
                     }
-                    Spacer(minLength: 4) // <-- Spacer for visual balance above wave
+                    Spacer(minLength: 4)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
                 .padding(.bottom, 12)
                 .zIndex(1)
 
-                // --- Wave Animation overlays bottom, fills card, clipped by card shape ---
                 WaveAnimationView(
                     animationAsset: "Waves",
                     speed: 1.0,
@@ -115,14 +132,34 @@ private struct MSLCard: View {
                     iterations: 0 // Infinite loop
                 )
                 .frame(width: geo.size.width, height: 48)
-                .offset(y: 18) // Tweak so just the crest is visible
+                .offset(y: 18)
                 .allowsHitTesting(false)
                 .zIndex(0)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12)) // 👈 Card + wave clipped together
+            .clipShape(RoundedRectangle(cornerRadius: 12))
             .frame(width: geo.size.width, height: 180, alignment: .bottom)
         }
         .frame(height: 180)
         .padding(.bottom, 0)
+    }
+}
+
+private struct RefreshIcon: View {
+    let isLoading: Bool
+    let theme: AppTheme
+
+    var body: some View {
+        ZStack {
+            if isLoading {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle())
+                    .tint(theme.primary)
+                    .scaleEffect(0.7)
+            } else {
+                Image(systemName: "arrow.clockwise")
+                    .foregroundColor(theme.primary)
+            }
+        }
+        .frame(width: 20, height: 20)
     }
 }

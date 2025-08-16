@@ -2,8 +2,44 @@ import SwiftUI
 import UIKit
 import Shared
 import Firebase
+import UserNotifications
 
-// MARK: - Gradient Text Helper
+enum NotificationManager {
+    static func registerCategories() {
+        let generalCategory = UNNotificationCategory(
+            identifier: "topout_general",
+            actions: [],
+            intentIdentifiers: [],
+            options: .customDismissAction
+        )
+
+        let alertHeightCategory = UNNotificationCategory(
+            identifier: "alert_height_warning",
+            actions: [
+                .init(identifier: "action_ok", title: "OK", options: .foreground)
+            ],
+            intentIdentifiers: [],
+            options: .customDismissAction
+        )
+
+        let alertSpeedCategory = UNNotificationCategory(
+            identifier: "alert_speed_warning",
+            actions: [
+                .init(identifier: "action_ok", title: "OK", options: .foreground)
+            ],
+            intentIdentifiers: [],
+            options: .customDismissAction
+        )
+
+        UNUserNotificationCenter.current().setNotificationCategories([
+            generalCategory,
+            alertHeightCategory,
+            alertSpeedCategory
+        ])
+        NSLog("[Notif] Registered categories")
+    }
+}
+
 extension UIColor {
     static func gradientColor(from startColor: UIColor, to endColor: UIColor, size: CGSize) -> UIColor {
         let renderer = UIGraphicsImageRenderer(size: size)
@@ -24,7 +60,6 @@ extension UIColor {
     }
 }
 
-// MARK: - Appearance builder (blur + translucent + gradient titles)
 extension UINavigationBarAppearance {
     static func translucentThemed(primary: UIColor) -> UINavigationBarAppearance {
         let a = UINavigationBarAppearance()
@@ -44,12 +79,10 @@ extension UINavigationBarAppearance {
     }
 }
 
-// MARK: - Centralized theming helper
 enum NavBarThemer {
     static func apply(primary: UIColor) {
         let themed = UINavigationBarAppearance.translucentThemed(primary: primary)
         
-        // Apply to global appearance (for new navigation controllers)
         let nav = UINavigationBar.appearance()
         nav.standardAppearance           = themed
         nav.compactAppearance            = themed
@@ -57,11 +90,9 @@ enum NavBarThemer {
         nav.compactScrollEdgeAppearance  = themed
         nav.tintColor = .label
         
-        // Apply to all existing navigation controllers immediately
         applyToExistingNavigationControllers(appearance: themed)
     }
     
-    /// Apple's best practice: Update all active navigation controllers immediately
     private static func applyToExistingNavigationControllers(appearance: UINavigationBarAppearance) {
         DispatchQueue.main.async {
             guard let windowScene = UIApplication.shared.connectedScenes
@@ -74,12 +105,10 @@ enum NavBarThemer {
         }
     }
     
-    /// Recursively find and update all navigation controllers
     private static func updateNavigationControllers(in viewController: UIViewController?, with appearance: UINavigationBarAppearance) {
         guard let viewController = viewController else { return }
         
         if let navigationController = viewController as? UINavigationController {
-            // Apply the new appearance immediately
             navigationController.navigationBar.standardAppearance = appearance
             navigationController.navigationBar.compactAppearance = appearance
             navigationController.navigationBar.scrollEdgeAppearance = appearance
@@ -87,21 +116,17 @@ enum NavBarThemer {
                 navigationController.navigationBar.compactScrollEdgeAppearance = appearance
             }
             
-            // Force the navigation bar to update its appearance
             navigationController.navigationBar.setNeedsLayout()
         }
         
-        // Check child view controllers
         for child in viewController.children {
             updateNavigationControllers(in: child, with: appearance)
         }
         
-        // Check presented view controllers
         if let presented = viewController.presentedViewController {
             updateNavigationControllers(in: presented, with: appearance)
         }
         
-        // For tab bar controllers, check all tabs
         if let tabBarController = viewController as? UITabBarController {
             for tabViewController in tabBarController.viewControllers ?? [] {
                 updateNavigationControllers(in: tabViewController, with: appearance)
@@ -110,18 +135,97 @@ enum NavBarThemer {
     }
 }
 
-// MARK: - UIApplicationDelegate
-final class AppDelegate: NSObject, UIApplicationDelegate {
+final class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         FirebaseApp.configure()
-        // Set an initial look (updated by theme below on first render)
+
+        let center = UNUserNotificationCenter.current()
+        center.delegate = self
+
         NavBarThemer.apply(primary: .systemBlue)
+
+        NotificationManager.registerCategories()
+        requestNotificationPermissionIfNeeded()
+
         return true
+    }
+
+    private func requestNotificationPermissionIfNeeded() {
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationSettings { [weak self] settings in
+            guard let self = self else { return }
+
+            switch settings.authorizationStatus {
+            case .notDetermined:
+                center.requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] granted, error in
+                    guard let self = self else { return }
+                    NSLog("[Notif] Permission request result: granted=\(granted), error=\(error?.localizedDescription ?? "none")")
+                    if granted {
+                        #if DEBUG
+                        DispatchQueue.main.async {
+                            self.scheduleDebugTestNotification(reason: "Permission just granted")
+                        }
+                        #endif
+                    }
+                }
+            case .denied:
+                NSLog("[Notif] Permission was denied. User must enable in Settings.")
+            case .authorized, .provisional, .ephemeral:
+                NSLog("[Notif] Permission already authorized.")
+                #if DEBUG
+                DispatchQueue.main.async {
+                    self.scheduleDebugTestNotification(reason: "Already authorized on launch")
+                }
+                #endif
+            @unknown default:
+                break
+            }
+        }
+    }
+
+    #if DEBUG
+    private func scheduleDebugTestNotification(reason: String) {
+        let content = UNMutableNotificationContent()
+        content.title = "TopOut Ready"
+        content.body = "Local notifications are working. (\(reason))"
+        content.sound = .default
+        content.categoryIdentifier = "topout_general"
+        let request = UNNotificationRequest(identifier: "debug_init_\(UUID())", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request) { err in
+            if let err = err { NSLog("[Notif] Failed debug schedule: %@", err.localizedDescription) }
+            else { NSLog("[Notif] Debug notification scheduled") }
+        }
+    }
+    #endif
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .sound, .list])
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        let identifier = response.actionIdentifier
+        let notificationId = response.notification.request.identifier
+
+        NSLog("[Notif] User interaction: action=\(identifier) notification=\(notificationId)")
+
+        switch identifier {
+        case "action_ok":
+            break
+        case UNNotificationDefaultActionIdentifier:
+            break
+        default:
+            break
+        }
+
+        completionHandler()
     }
 }
 
-// MARK: - App
 @main
 struct iOSApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
@@ -169,7 +273,6 @@ struct iOSApp: App {
             .environmentObject(themeManager)
             .environmentObject(networkMonitor)
             .withAppTheme()
-            // Apply themed nav bar once the theme is known, and whenever it changes.
             .onAppear {
                 NavBarThemer.apply(primary: UIColor(themeManager.currentTheme.primary))
             }
@@ -180,7 +283,6 @@ struct iOSApp: App {
     }
 }
 
-// MARK: - Bottom-bar tabs
 enum NavTab: String, CaseIterable, Identifiable {
     case history, liveSession, settings
     var id: String { rawValue }
@@ -193,7 +295,6 @@ enum NavTab: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - Navigation Stacks
 struct HistoryNavStack: View {
     @EnvironmentObject private var themeManager: AppThemeManager
     var body: some View {
