@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.*
 import android.os.Looper
 import android.annotation.SuppressLint
 import co.touchlab.kermit.Logger
+import android.os.Build
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.absoluteValue
 
 actual class SensorDataSource(
     private val context: android.content.Context,
@@ -29,6 +32,42 @@ actual class SensorDataSource(
 
     private var scope: CoroutineScope? = null
     private var locationCallback: LocationCallback? = null
+
+    // Emulator detection & altitude simulation (to match LocationProvider and iOS behavior)
+    private val isEmulator: Boolean by lazy {
+        val fingerprint = Build.FINGERPRINT.lowercase()
+        val model = Build.MODEL.lowercase()
+        val product = Build.PRODUCT.lowercase()
+        fingerprint.contains("generic") || fingerprint.contains("emulator") ||
+            model.contains("sdk") || model.contains("emulator") ||
+            product.contains("sdk") || product.contains("emulator") || product.contains("generic")
+    }
+    private val simulationJump = AtomicInteger(0)
+    private val baseSimulationAltitude = 100.0
+    private var lastAltitude: Double? = null
+    private var lastSimStepTs: Long = 0L
+
+    private fun computeAltitude(src: android.location.Location): Double {
+        val now = System.currentTimeMillis()
+        return if (isEmulator) {
+            // Always simulate on emulator to avoid unreliable 0.0 altitude from fused provider
+            if (now - lastSimStepTs >= 1000) { // advance roughly once per second
+                simulationJump.incrementAndGet()
+                lastSimStepTs = now
+            }
+            val simulated = baseSimulationAltitude + (simulationJump.get() * 10)
+            lastAltitude = simulated
+            simulated
+        } else if (src.hasAltitude()) {
+            val alt = src.altitude
+            // Treat extremely small or implausible altitudes as noise
+            val cleaned = if (alt.absoluteValue < 0.5) lastAltitude ?: alt else alt
+            lastAltitude = cleaned
+            cleaned
+        } else {
+            lastAltitude ?: 0.0
+        }
+    }
 
     @SuppressLint("MissingPermission")
     actual fun start(scope: CoroutineScope) {
@@ -76,11 +115,18 @@ actual class SensorDataSource(
                 locationResult.locations.lastOrNull()?.let { location ->
                     scope.launch {
                         try {
-                            val locationData = location.toModel()
+                            val altitude = computeAltitude(location)
+                            val locationData = LocationData(
+                                lat = location.latitude,
+                                lon = location.longitude,
+                                altitude = altitude,
+                                speed = location.speed,
+                                ts = System.currentTimeMillis()
+                            )
                             _locFlow.emit(locationData)
-                            log.d { "Location: ${location.latitude}, ${location.longitude} (${if (location.hasAccuracy()) "±${location.accuracy}m" else "no accuracy"})" }
+                            log.d { "Location: ${'$'}{location.latitude}, ${'$'}{location.longitude} alt=${'$'}altitude (src=stream ${if (isEmulator) "SIM" else "REAL"})" }
                         } catch (e: Exception) {
-                            log.w { "Failed to emit location: ${e.message}" }
+                            log.w { "Failed to emit location: ${'$'}{e.message}" }
                         }
                     }
                 }
@@ -103,16 +149,22 @@ actual class SensorDataSource(
         }
 
         scope.launch {
-            delay(5000)
+            delay(2000)
             while (isActive) {
                 try {
                     val freshLocation = locProvider.getLocation()
-                    _locFlow.emit(freshLocation)
-                    log.d { "Fallback location update: ${freshLocation.lat}, ${freshLocation.lon}" }
+                    // Ensure altitude continuity & simulation for fallback path
+                    val adjusted = freshLocation.copy(altitude = freshLocation.altitude.takeIf { it != 0.0 } ?: (lastAltitude ?: freshLocation.altitude))
+                    if (adjusted.altitude != freshLocation.altitude) {
+                        log.d { "Adjusted fallback altitude from ${'$'}{freshLocation.altitude} to ${'$'}{adjusted.altitude}" }
+                    }
+                    lastAltitude = adjusted.altitude
+                    _locFlow.emit(adjusted)
+                    log.d { "Fallback location update: ${'$'}{adjusted.lat}, ${'$'}{adjusted.lon} alt=${'$'}{adjusted.altitude}" }
                 } catch (e: Exception) {
-                    log.w { "Fallback location failed: ${e.message}" }
+                    log.w { "Fallback location failed: ${'$'}{e.message}" }
                 }
-                delay(5000)
+                delay(2000)
             }
         }
     }
@@ -128,11 +180,3 @@ actual class SensorDataSource(
         locationCallback = null
     }
 }
-
-private fun android.location.Location.toModel() = LocationData(
-    lat = latitude,
-    lon = longitude,
-    altitude = if (hasAltitude()) altitude else 0.0,
-    speed = speed,
-    ts = System.currentTimeMillis()
-)

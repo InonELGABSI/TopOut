@@ -8,7 +8,7 @@ actual class DatabaseDriverFactory {
     actual fun createDriver(): SqlDriver {
         return NativeSqliteDriver(
             AppDatabase.Schema,
-            name= "topout_db_v7.db")
+            name= "topout_db_v1.db")
     }
 }
 

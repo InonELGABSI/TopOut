@@ -13,14 +13,37 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import com.topout.kmp.models.sensor.LocationData
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import co.touchlab.kermit.Logger
 
 actual class LocationProvider(private val context: Context) {
 
+    companion object {
+        // Global simulation state so new instances don't reset altitude progression
+        private val globalSimulationJump = AtomicInteger(0)
+        private const val baseSimulationAltitudeGlobal = 100.0
+    }
+
     private val fused = LocationServices.getFusedLocationProviderClient(context)
     private val log = Logger.withTag("LocationProvider")
+
+    // Emulator altitude simulation (parity with iOS implementation)
+    private val isEmulator: Boolean by lazy {
+        val fingerprint = Build.FINGERPRINT.lowercase()
+        val model = Build.MODEL.lowercase()
+        val product = Build.PRODUCT.lowercase()
+        fingerprint.contains("generic") ||
+            fingerprint.contains("emulator") ||
+            model.contains("sdk") ||
+            model.contains("emulator") ||
+            product.contains("sdk") ||
+            product.contains("emulator") ||
+            product.contains("generic")
+    }
+    private val baseSimulationAltitude = 100.0
+    private val simulationJump = AtomicInteger(0)
 
     @SuppressLint("MissingPermission")
     actual suspend fun getLocation(): LocationData {
@@ -50,7 +73,7 @@ actual class LocationProvider(private val context: Context) {
                                 .addOnSuccessListener { lastLoc ->
                                     if (lastLoc != null) {
                                         val locationData = lastLoc.toModel()
-                                        log.i { "Got lastLocation: lat=${locationData.lat}, lon=${locationData.lon}, altitude=${locationData.altitude}" }
+                                        log.i { "Got lastLocation: lat=${'$'}{locationData.lat}, lon=${'$'}{locationData.lon}, altitude=${'$'}{locationData.altitude}" }
                                         cont.resume(locationData)
                                     } else {
                                         log.e { "lastLocation is also null" }
@@ -72,7 +95,7 @@ actual class LocationProvider(private val context: Context) {
                             .addOnSuccessListener { lastLoc ->
                                 if (lastLoc != null) {
                                     val locationData = lastLoc.toModel()
-                                    log.i { "Got lastLocation fallback: lat=${locationData.lat}, lon=${locationData.lon}, altitude=${locationData.altitude}" }
+                                    log.i { "Got lastLocation fallback: lat=${'$'}{locationData.lat}, lon=${'$'}{locationData.lon}, altitude=${'$'}{locationData.altitude}" }
                                     cont.resume(locationData)
                                 } else {
                                     log.e(error) { "lastLocation fallback failed" }
@@ -93,17 +116,25 @@ actual class LocationProvider(private val context: Context) {
         }
     }
 
-
-
     private fun hasLocationPermission(): Boolean =
         ContextCompat.checkSelfPermission(context, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(context, ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
-    private fun android.location.Location.toModel() = LocationData(
-        lat = latitude,
-        lon = longitude,
-        altitude = if (hasAltitude()) altitude else 0.0,
-        speed = speed,
-        ts = System.currentTimeMillis()
-    )
+    private fun android.location.Location.toModel(): LocationData {
+        val altitudeM = if (isEmulator) {
+            // Use global counter to avoid reset when provider recreated
+            val jump = globalSimulationJump.getAndIncrement()
+            val simulatedAltitude = baseSimulationAltitudeGlobal + (jump * 10)
+            log.d { "Emulator detected: using simulated altitude=${'$'}simulatedAltitude m (globalJump=${'$'}jump)" }
+            simulatedAltitude
+        } else if (hasAltitude()) altitude else 0.0
+
+        return LocationData(
+            lat = latitude,
+            lon = longitude,
+            altitude = altitudeM,
+            speed = speed,
+            ts = System.currentTimeMillis()
+        )
+    }
 }
