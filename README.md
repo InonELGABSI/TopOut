@@ -1,17 +1,56 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+# TopOut 🧗‍♂️
 
-* `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - `commonMain` is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    `iosMain` would be the right folder for such calls.
+**Kotlin Multiplatform app for climbers. Track your climbing sessions with real-time alerts on height changes, natively on iOS and Android.**
 
-* `/iosApp` contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform, 
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+## 🎯 Features
 
-* `/shared` is for the code that will be shared between all targets in the project.
-  The most important subfolder is `commonMain`. If preferred, you can add code to the platform-specific folders here too.
+• **Clean Architecture** - Backend business logic shared in Kotlin, native UIs with Jetpack Compose (Android) and SwiftUI (iOS)  
+• **Declarative DI** - Koin setup with Singleton & Factory patterns, bridging ViewModels to native layers  
+• **Platform Features** - expect/actual structure for sensors and notifications across platforms  
+• **Background Tracking** - Sensor data aggregation with Coroutines + WakeLock (Android), Background Tasks (iOS)  
+• **Storage** - SQLDelight for offline database + Firestore for remote sync. Anonymous sign-in, no user sign-up required  
+• **Offline First** - Full offline mode with conflict resolution. Changes sync seamlessly when connectivity returns  
+• **Native UX** - Native UI components, theme design system, and Lottie animations  
 
+## 🏗️ Architecture
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+```
+├── composeApp/     # Android - Jetpack Compose UI
+├── iosApp/         # iOS - SwiftUI UI  
+└── shared/         # Shared Kotlin business logic
+    ├── commonMain/ # Domain, data, DI modules
+    ├── androidMain/# Android platform implementations
+    └── iosMain/    # iOS platform implementations
+```
+
+**Tech Stack:**
+- **Shared**: Kotlin Multiplatform, Koin DI, SQLDelight, Ktor, Firebase Firestore, Coroutines
+- **Android**: Jetpack Compose, Material 3, Navigation, Maps, Vico Charts, Lottie
+- **iOS**: SwiftUI, Core Motion, Background Tasks, Core Location
+
+## 🚀 Quick Start
+
+**Prerequisites:** JDK 17+, Android Studio, Xcode 15+
+
+```bash
+git clone <repo-url>
+cd TopOut
+
+# Android
+./gradlew :composeApp:installDebug
+
+# iOS  
+./gradlew :shared:syncFramework
+# Then open iosApp.xcodeproj in Xcode
+```
+
+## 📱 Key Components
+
+**LiveSessionManager** - Real-time session tracking with sensor fusion  
+**expect/actual** - Platform abstractions for sensors, notifications, background tasks  
+**Offline Sync** - Conflict resolution with sync flags in SQLDelight schema  
+**Anonymous Auth** - Firebase auth without registration, data persists until app deletion  
+
+---
+
+*Built for the climbing community* 🧗‍♀️🧗‍♂️
