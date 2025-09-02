@@ -33,7 +33,7 @@
 **Prerequisites:** JDK 17+, Android Studio, Xcode 15+
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/InonELGABSI/TopOut.git
 cd TopOut
 
 # Android
